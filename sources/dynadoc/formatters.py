@@ -24,6 +24,7 @@
 # TODO: attribute species: class, instance
 # TODO: annotation as sequence of classes or special typeform (Any, etc...)
 #       also "indexed classes" (e.g., set[ str ])
+# TODO: genus: exception (from special dynadoc.Exception annotations)
 
 
 from __future__ import annotations

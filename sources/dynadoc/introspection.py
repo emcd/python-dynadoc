@@ -19,6 +19,7 @@
 
 
 ''' Introspection of argument, attribute, and return annotations. '''
+# TODO: genus: exception (from special dynadoc.Exception annotations)
 
 
 from __future__ import annotations
