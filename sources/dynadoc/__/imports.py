@@ -25,8 +25,9 @@
 
 from __future__ import annotations
 
-import collections.abc as cabc
-import types
+import collections.abc as   cabc
+import                      inspect
+import                      types
 
 import typing_extensions as typx
 # --- BEGIN: Injected by Copier ---

@@ -18,10 +18,13 @@
 #============================================================================#
 
 
-''' Common constants, imports, and utilities. '''
+''' Introspection of argument, attribute, and return annotations. '''
 
 
-from .imports import *
+from __future__ import annotations
+
+# from . import __
+# from . import nomina as _nomina
 
 
-dictproxy_empty: cabc.Mapping[ str, str ] = types.MappingProxyType( { } )
+# TODO: Implement.
