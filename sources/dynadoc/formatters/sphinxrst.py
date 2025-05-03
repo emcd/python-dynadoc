@@ -28,54 +28,72 @@ from .. import nomina as _nomina
 from . import __
 
 
-class Formatter( _interfaces.Formatter ):
+def produce_fragment(
+    possessor: _nomina.Decoratable,
+    informations: _interfaces.Informations,
+    context: __.typx.Optional[ _interfaces.Context ] = None,
+) -> str:
+    return '\n'.join(
+        _produce_fragment_partial( possessor, information, context = context )
+        for information in informations )
 
-    def format_argument( # noqa: PLR0913
-        self,
-        possessor: _nomina.Decoratable,
-        context: _nomina.Modulevars,
-        name: str,
-        paramspec: __.inspect.Parameter,
-        typle: _nomina.Typle,
-        description: str,
-    ) -> str:
-        ''' Renders argument in target format. '''
-        # TODO: Implement.
-        raise NotImplementedError
 
-    def format_attribute( # noqa: PLR0913
-        self,
-        possessor: _nomina.Decoratable,
-        context: _nomina.Modulevars,
-        name: str,
-        species: _nomina.AttributeSpecies,
-        typle: _nomina.Typle,
-        description: str,
-    ) -> str:
-        ''' Renders attribute in target format. '''
-        # TODO: Implement.
-        raise NotImplementedError
+def _produce_fragment_partial(
+    possessor: _nomina.Decoratable,
+    information: _interfaces.InformationBase,
+    context: __.typx.Optional[ _interfaces.Context ] = None,
+) -> str:
+    if isinstance( information, _interfaces.ArgumentInformation ):
+        return (
+            _produce_argument_text(
+                possessor, information, context = context ) )
+    if isinstance( information, _interfaces.AttributeInformation ):
+        return (
+            _produce_attribute_text(
+                possessor, information, context = context ) )
+    if isinstance( information, _interfaces.ExceptionInformation ):
+        return (
+            _produce_exception_text(
+                possessor, information, context = context ) )
+    if isinstance( information, _interfaces.ReturnInformation ):
+        return (
+            _produce_return_text(
+                possessor, information, context = context ) )
+    # TODO: Warn about unrecognized information.
+    return ''
 
-    def format_exception(
-        self,
-        possessor: _nomina.Decoratable,
-        context: _nomina.Modulevars,
-        name: str,
-        typle: _nomina.Typle,
-        description: str,
-    ) -> str:
-        ''' Renders exception in target format. '''
-        # TODO: Implement.
-        raise NotImplementedError
 
-    def format_return(
-        self,
-        possessor: _nomina.Decoratable,
-        context: _nomina.Modulevars,
-        name: str,
-        typle: _nomina.Typle,
-        description: str,
-    ) -> str:
-        ''' Renders return in target format. '''
-        # TODO: Implement.
-        raise NotImplementedError
+def _produce_argument_text(
+    possessor: _nomina.Decoratable,
+    information: _interfaces.ArgumentInformation,
+    context: __.typx.Optional[ _interfaces.Context ] = None,
+) -> str:
+    # TODO: Implement.
+    return ''
+
+
+def _produce_attribute_text(
+    possessor: _nomina.Decoratable,
+    information: _interfaces.AttributeInformation,
+    context: __.typx.Optional[ _interfaces.Context ] = None,
+) -> str:
+    # TODO: Implement.
+    return ''
+
+
+def _produce_exception_text(
+    possessor: _nomina.Decoratable,
+    information: _interfaces.ExceptionInformation,
+    context: __.typx.Optional[ _interfaces.Context ] = None,
+) -> str:
+    # TODO: Implement.
+    return ''
+
+
+def _produce_return_text(
+    possessor: _nomina.Decoratable,
+    information: _interfaces.ReturnInformation,
+    context: __.typx.Optional[ _interfaces.Context ] = None,
+) -> str:
+    # TODO: Implement.
+    return ''

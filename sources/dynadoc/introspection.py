@@ -19,13 +19,62 @@
 
 
 ''' Introspection of argument, attribute, and return annotations. '''
-# TODO: genus: exception (from special dynadoc.Exception annotations)
 
 
 from __future__ import annotations
 
-# from . import __
-# from . import nomina as _nomina
+from . import __
+from . import interfaces as _interfaces
+from . import nomina as _nomina
 
 
-# TODO: Implement.
+def introspect(
+    possessor: _nomina.Decoratable,
+    context: __.typx.Optional[ _interfaces.Context ] = None,
+) -> __.cabc.Sequence[ _interfaces.InformationBase ]:
+    if __.inspect.isclass( possessor ):
+        return _introspect_class( possessor, context = context )
+    if __.inspect.isfunction( possessor ) and possessor.__name__ != '<lambda>':
+        return _introspect_function( possessor, context = context )
+    # TODO? Other descriptors, like properties.
+    return ( )
+
+
+def _introspect_class(
+    possessor: _nomina.Decoratable,
+    context: __.typx.Optional[ _interfaces.Context ] = None,
+) -> __.cabc.Sequence[ _interfaces.InformationBase ]:
+    annotations = _access_annotations( possessor, context = context )
+    if not annotations: return ( )
+    informations: list[ _interfaces.InformationBase ] = [ ]
+    for annotation in annotations:
+        # TODO: Introspect attribute annotation.
+        pass
+    return tuple( informations )
+
+
+def _introspect_function(
+    possessor: _nomina.Decoratable,
+    context: __.typx.Optional[ _interfaces.Context ] = None,
+) -> __.cabc.Sequence[ _interfaces.InformationBase ]:
+    annotations = _access_annotations( possessor, context = context )
+    if not annotations: return ( )
+    informations: list[ _interfaces.InformationBase ] = [ ]
+    # TODO: Implement.
+    return tuple( informations )
+
+
+def _access_annotations(
+    possessor: _nomina.Decoratable,
+    context: __.typx.Optional[ _interfaces.Context ] = None,
+) -> __.cabc.Mapping[ str, __.typx.Any ]:
+    nomargs: _nomina.Variables = dict( eval_str = True )
+    if context:
+        nomargs[ 'locals' ] = context.localvars
+        nomargs[ 'globals' ] = context.globalvars
+    try:
+        return __.types.MappingProxyType(
+            __.inspect.get_annotations( possessor, **nomargs ) )
+    except TypeError:
+        # TODO: Issue warning.
+        return __.dictproxy_empty

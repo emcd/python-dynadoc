@@ -21,55 +21,69 @@
 ''' Public interfaces for formatters, etc.... '''
 
 
+from __future__ import annotations
+
 from . import __
 from . import nomina as _nomina
+
+
+@__.dcls.dataclass( frozen = True, kw_only = True, slots = True )
+class Context:
+    ''' Context for annotation evaluation, etc.... '''
+
+    localvars: __.typx.Optional[ _nomina.Variables ] = None
+    globalvars: __.typx.Optional[ _nomina.Variables ] = None
+
+
+@__.dcls.dataclass( frozen = True, kw_only = True, slots = True )
+class InformationBase:
+    ''' Base for information on various kinds of entities. '''
+
+    typle: _nomina.Typle
+    description: str
+
+
+@__.dcls.dataclass( frozen = True, kw_only = True, slots = True )
+class ArgumentInformation( InformationBase ):
+
+    name: str
+    paramspec: __.inspect.Parameter
+
+
+@__.dcls.dataclass( frozen = True, kw_only = True, slots = True )
+class AttributeInformation( InformationBase ):
+
+    name: str
+    on_class: bool
+
+
+@__.dcls.dataclass( frozen = True, kw_only = True, slots = True )
+class ExceptionInformation( InformationBase ): pass
+
+
+@__.dcls.dataclass( frozen = True, kw_only = True, slots = True )
+class ReturnInformation( InformationBase ): pass
+
+
+Informations: __.typx.TypeAlias = __.cabc.Sequence[ InformationBase ]
 
 
 class Formatter( __.typx.Protocol ):
     ''' Formatter for arguments, attributes, exceptions, and returns. '''
 
-    def format_argument( # noqa: PLR0913
-        self,
+    @staticmethod
+    def __call__(
         possessor: _nomina.Decoratable,
-        context: _nomina.Modulevars,
-        name: str,
-        paramspec: __.inspect.Parameter,
-        typle: _nomina.Typle,
-        description: str,
-    ) -> str:
-        ''' Renders argument in target format. '''
-        raise NotImplementedError
+        informations: Informations,
+        context: __.typx.Optional[ Context ] = None,
+    ) -> str: raise NotImplementedError
 
-    def format_attribute( # noqa: PLR0913
-        self,
-        possessor: _nomina.Decoratable,
-        context: _nomina.Modulevars,
-        name: str,
-        species: _nomina.AttributeSpecies,
-        typle: _nomina.Typle,
-        description: str,
-    ) -> str:
-        ''' Renders attribute in target format. '''
-        raise NotImplementedError
 
-    def format_exception(
-        self,
-        possessor: _nomina.Decoratable,
-        context: _nomina.Modulevars,
-        name: str,
-        typle: _nomina.Typle,
-        description: str,
-    ) -> str:
-        ''' Renders exception in target format. '''
-        raise NotImplementedError
+class Introspector( __.typx.Protocol ):
+    ''' Annotations introspector for classes and other invocables. '''
 
-    def format_return(
-        self,
+    @staticmethod
+    def __call__(
         possessor: _nomina.Decoratable,
-        context: _nomina.Modulevars,
-        name: str,
-        typle: _nomina.Typle,
-        description: str,
-    ) -> str:
-        ''' Renders return in target format. '''
-        raise NotImplementedError
+        context: __.typx.Optional[ Context ] = None,
+    ) -> Informations: raise NotImplementedError

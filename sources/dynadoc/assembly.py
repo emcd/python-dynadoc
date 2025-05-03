@@ -26,35 +26,41 @@ from __future__ import annotations
 from . import __
 from . import formatters as _formatters
 from . import interfaces as _interfaces
+from . import introspection as _introspection
 from . import nomina as _nomina
 
 
-formatter_default = _formatters.sphinxrst.Formatter( )
+formatter_default = _formatters.sphinxrst.produce_fragment
+introspector_default = _introspection.introspect
 
 
 def with_docstring(
     *fragments: _nomina.WithDocstringFragmentsArgument,
-    # TODO? custom context dictionary (default: module vars of decoratable)
+    context: __.typx.Optional[ _interfaces.Context ] = None,
     formatter: _interfaces.Formatter = formatter_default,
-    # TODO? custom introspector
+    introspector: __.typx.Optional[ _interfaces.Introspector ] = (
+        introspector_default ),
     preserve: _nomina.WithDocstringPreserveArgument = True,
     table: _nomina.WithDocstringTableArgument = __.dictproxy_empty,
 ) -> _nomina.Decorator:
     ''' Assembles docstring from fragments and decorates object with it. '''
-    def decorate( obj: _nomina.Decoratable ) -> _nomina.Decoratable:
+    def decorate( objct: _nomina.Decoratable ) -> _nomina.Decoratable:
         fragments_: list[ str ] = [ ]
         if preserve:
-            fragment = __.inspect.getdoc( obj )
+            fragment = __.inspect.getdoc( objct )
             if fragment: fragments_.append( fragment )
         fragments_.extend(
             (   fragment.documentation
                 if isinstance( fragment, __.typx.Doc )
                 else table[ fragment ] )
             for fragment in fragments )
-        # TODO: Introspect and format.
+        if introspector is not None:
+            informations = introspector( objct, context = context )
+            fragments_.extend(
+                formatter( objct, informations, context = context ) )
         docstring = '\n\n'.join(
             __.inspect.cleandoc( fragment ) for fragment in fragments_ )
-        obj.__doc__ = docstring if docstring else None
-        return obj
+        objct.__doc__ = docstring if docstring else None
+        return objct
 
     return decorate

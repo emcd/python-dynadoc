@@ -26,7 +26,6 @@ from __future__ import annotations
 from . import __
 
 
-AttributeSpecies: __.typx.TypeAlias = __.typx.Literal[ 'class', 'instance' ]
 Decoratable: __.typx.TypeAlias = type | __.cabc.Callable[ ..., __.typx.Any ]
 ClassDecorator: __.typx.TypeAlias = __.cabc.Callable[ [ type ], type ]
 FunctionDecorator: __.typx.TypeAlias = (
@@ -36,9 +35,8 @@ FunctionDecorator: __.typx.TypeAlias = (
 Decorator: __.typx.TypeAlias = ClassDecorator | FunctionDecorator
 Fragment: __.typx.TypeAlias = str |  __.typx.Doc
 FragmentsTable: __.typx.TypeAlias = __.cabc.Mapping[ str, str ]
-Modulevars: __.typx.TypeAlias = __.cabc.Mapping[ str, __.typx.Any ]
-# Typle: __.typx.TypeAlias = __.cabc.Sequence[ type | __.typx.Generic[ __.T ] ]
-Typle: __.typx.TypeAlias = __.cabc.Sequence[ type ]
+Typle: __.typx.TypeAlias = __.cabc.Sequence[ __.typx.TypeForm[ __.typx.Any ] ]
+Variables: __.typx.TypeAlias = __.cabc.Mapping[ str, __.typx.Any ]
 
 WithDocstringFragmentsArgument: __.typx.TypeAlias = __.typx.Annotated[
     Fragment,
