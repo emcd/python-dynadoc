@@ -24,4 +24,7 @@
 from .imports import *
 
 
+T = typx.TypeVar( 'T' )
+
+
 dictproxy_empty: cabc.Mapping[ str, str ] = types.MappingProxyType( { } )

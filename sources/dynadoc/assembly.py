@@ -25,15 +25,18 @@ from __future__ import annotations
 
 from . import __
 from . import formatters as _formatters
+from . import interfaces as _interfaces
 from . import nomina as _nomina
+
+
+formatter_default = _formatters.sphinxrst.Formatter( )
 
 
 def with_docstring(
     *fragments: _nomina.WithDocstringFragmentsArgument,
     # TODO? custom context dictionary (default: module vars of decoratable)
-    formatter: _nomina.WithDocstringFormatterArgument = (
-        _formatters.format_sphinx_rst ),
-    # TODO? custom introspecter
+    formatter: _interfaces.Formatter = formatter_default,
+    # TODO? custom introspector
     preserve: _nomina.WithDocstringPreserveArgument = True,
     table: _nomina.WithDocstringTableArgument = __.dictproxy_empty,
 ) -> _nomina.Decorator:

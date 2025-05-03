@@ -120,7 +120,7 @@ autodoc_default_options = {
     'undoc-members': True,
 }
 
-#autodoc_typehints = 'description'
+autodoc_typehints = 'none'
 
 # -- Options for intersphinx extension ---------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/extensions/intersphinx.html#configuration

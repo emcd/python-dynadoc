@@ -27,7 +27,17 @@ API
 Package ``dynadoc``
 ===============================================================================
 
-.. todo:: Provide package description.
+.. automodule:: dynadoc
+   :no-members:
 
 
+Module ``dynadoc.assembly``
+-------------------------------------------------------------------------------
 
+.. automodule:: dynadoc.assembly
+
+
+Module ``dynadoc.nomina``
+-------------------------------------------------------------------------------
+
+.. automodule:: dynadoc.nomina

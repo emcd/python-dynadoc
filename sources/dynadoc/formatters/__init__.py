@@ -18,8 +18,7 @@
 #============================================================================#
 
 
-''' Formatters for introspected arguments, attributes, and returns. '''
-# TODO: split into subpackage, one module per output format
+''' Foramtters for arguments, attributes, exceptions, and returns. '''
 # TODO: argument species: posonly, positional, nomonly, nominative
 # TODO: attribute species: class, instance
 # TODO: annotation as sequence of classes or special typeform (Any, etc...)
@@ -29,33 +28,4 @@
 
 from __future__ import annotations
 
-from . import __
-from . import nomina as _nomina
-
-
-def format_sphinx_rst(
-    name: str, genus: _nomina.SubjectGenus, annotation: __.typx.Any
-) -> str:
-    ''' Derives Sphinx reStructuredText for subject. '''
-    match genus:
-        case 'argument':
-            return _format_sphinx_rst_argument( name, annotation )
-        case 'attribute':
-            return _format_sphinx_rst_attribute( name, annotation )
-        case 'return':
-            return _format_sphinx_rst_return( name, annotation )
-
-
-def _format_sphinx_rst_argument( name: str, annotation: __.typx.Any ) -> str:
-    # TODO: Implement.
-    return ''
-
-
-def _format_sphinx_rst_attribute( name: str, annotation: __.typx.Any ) -> str:
-    # TODO: Implement.
-    return ''
-
-
-def _format_sphinx_rst_return( name: str, annotation: __.typx.Any ) -> str:
-    # TODO: Implement.
-    return ''
+from . import sphinxrst

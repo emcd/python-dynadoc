@@ -18,18 +18,11 @@
 #============================================================================#
 
 
-''' Docstring generation with configurable formats and PEP 727 support. '''
+''' Internals for formatters. '''
+
+# ruff: noqa: F403
 
 
-from . import __
-from . import nomina
-# --- BEGIN: Injected by Copier ---
-# --- END: Injected by Copier ---
+from __future__ import annotations
 
-from . import assembly
-
-
-__version__ = '1.0a0'
-
-
-# TODO: Reclassify package modules as immutable and concealed.
+from ..__ import *

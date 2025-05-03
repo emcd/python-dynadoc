@@ -26,8 +26,7 @@ from __future__ import annotations
 from . import __
 
 
-SubjectGenus: __.typx.TypeAlias = (
-    __.typx.Literal[ 'argument', 'attribute', 'return' ] )
+AttributeSpecies: __.typx.TypeAlias = __.typx.Literal[ 'class', 'instance' ]
 Decoratable: __.typx.TypeAlias = type | __.cabc.Callable[ ..., __.typx.Any ]
 ClassDecorator: __.typx.TypeAlias = __.cabc.Callable[ [ type ], type ]
 FunctionDecorator: __.typx.TypeAlias = (
@@ -35,26 +34,12 @@ FunctionDecorator: __.typx.TypeAlias = (
         [ __.cabc.Callable[ ..., __.typx.Any ] ],
         __.cabc.Callable[ ..., __.typx.Any ] ] )
 Decorator: __.typx.TypeAlias = ClassDecorator | FunctionDecorator
-Formatter: __.typx.TypeAlias = __.cabc.Callable[
-    [
-        str,            # subject name
-        SubjectGenus,   # subject genus
-        __.typx.Any,    # annotation
-    ],
-    str
-]
 Fragment: __.typx.TypeAlias = str |  __.typx.Doc
 FragmentsTable: __.typx.TypeAlias = __.cabc.Mapping[ str, str ]
+Modulevars: __.typx.TypeAlias = __.cabc.Mapping[ str, __.typx.Any ]
+# Typle: __.typx.TypeAlias = __.cabc.Sequence[ type | __.typx.Generic[ __.T ] ]
+Typle: __.typx.TypeAlias = __.cabc.Sequence[ type ]
 
-WithDocstringFormatterArgument: __.typx.TypeAlias = __.typx.Annotated[
-    Formatter,
-    __.typx.Doc(
-        ''' Formatter for introspected arguments, attributes, and returns.
-
-            Requires subject name, subject type, and annotation.
-        '''
-    ),
-]
 WithDocstringFragmentsArgument: __.typx.TypeAlias = __.typx.Annotated[
     Fragment,
     __.typx.Doc(
