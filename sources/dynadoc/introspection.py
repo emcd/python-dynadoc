@@ -75,6 +75,40 @@ def _access_annotations(
     try:
         return __.types.MappingProxyType(
             __.inspect.get_annotations( possessor, **nomargs ) )
-    except TypeError:
-        # TODO: Issue warning.
+    except TypeError as exc:
+        __.warnings.warn( # pyright: ignore[reportCallIssue]
+            f"Cannot access annotations for {possessor!r}: {exc}",
+            category = RuntimeWarning, stack_level = 2 )
         return __.dictproxy_empty
+
+
+def _reduce_annotation(
+    annotation: __.typx.Any,
+    context: __.typx.Optional[ _interfaces.Context ],
+    visitees: set[ __.typx.Any ],
+) -> _nomina.Typle:
+    # TODO? Simultaneously scan for ClassVar and other adjunct information.
+    if annotation in visitees: return ( annotation, )
+    # TODO? Eval strings. Should already be done by _access_annotations.
+    visitees.add( annotation )
+    origin = __.typx.get_origin( annotation )
+    if isinstance( annotation, __.types.UnionType ) or origin is __.typx.Union:
+        return _reduce_annotation_arguments( annotation, context, visitees )
+    if origin is None: return ( annotation, ) # raw type
+    if issubclass( origin, type ): return ( annotation, ) # generic, etc...
+    if origin is __.typx.Annotated:
+        return _reduce_annotation( annotation.__origin__, context, visitees )
+    # TODO: Handle ClassVar, Literal, etc....
+    # TODO? Other special forms.
+    return _reduce_annotation_arguments( annotation, context, visitees )
+
+
+def _reduce_annotation_arguments(
+    annotation: __.typx.Any,
+    context: __.typx.Optional[ _interfaces.Context ],
+    visitees: set[ __.typx.Any ],
+) -> _nomina.Typle:
+    return tuple( __.itert.chain.from_iterable(
+        map(
+            lambda a: _reduce_annotation( a, context, visitees ),
+            __.typx.get_args( annotation ) ) ) )
