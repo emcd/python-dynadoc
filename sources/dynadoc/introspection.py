@@ -82,33 +82,79 @@ def _access_annotations(
         return __.dictproxy_empty
 
 
+def _record_adjunct(
+    entity: __.typx.Any,
+    context: __.typx.Optional[ _interfaces.Context ],
+    adjuncts: _interfaces.AdjunctsData,
+) -> None:
+    if entity in ( __.types.UnionType, __.typx.Union ):
+        adjuncts.traits.add( 'Union' )
+        return
+    if entity in ( __.typx.ClassVar, __.typx.Final ):
+        label = entity.__name__
+        if 'Union' in adjuncts.traits:
+            __.warnings.warn( # pyright: ignore[reportCallIssue]
+                f"Use of {label!r} within a union is invalid.",
+                category = RuntimeWarning, stack_level = 2 )
+            return
+        adjuncts.traits.add( label )
+
+
 def _reduce_annotation(
     annotation: __.typx.Any,
     context: __.typx.Optional[ _interfaces.Context ],
+    adjuncts: _interfaces.AdjunctsData,
     visitees: set[ __.typx.Any ],
 ) -> _nomina.Typle:
-    # TODO? Simultaneously scan for ClassVar and other adjunct information.
+    # TODO? Use cache instead of visitees set.
+    #       Some visitees might not be hashable.
+    #       Maybe cache with ( origin, arguments ) key and
+    #       ( typle, adjuncts ) value?
     if annotation in visitees: return ( annotation, )
     # TODO? Eval strings. Should already be done by _access_annotations.
     visitees.add( annotation )
     origin = __.typx.get_origin( annotation )
-    if isinstance( annotation, __.types.UnionType ) or origin is __.typx.Union:
-        return _reduce_annotation_arguments( annotation, context, visitees )
-    if origin is None: return ( annotation, ) # raw type
-    if issubclass( origin, type ): return ( annotation, ) # generic, etc...
+    # TODO: Handle TypeVar early, since it has no origin or arguments.
+    # bare types, typing.Any, typing.LiteralString have no origin
+    # typing.Literal is considered to be fully reduced and taken as-is
+    if origin in ( None, __.typx.Literal ): return ( annotation, )
+    arguments = __.typx.get_args( annotation )
+    # TODO: Work through generic arguments.
+    if issubclass( origin, type ): return ( annotation, ) # generic type
+    # TODO: Process cabc.Callable objects.
     if origin is __.typx.Annotated:
-        return _reduce_annotation( annotation.__origin__, context, visitees )
-    # TODO: Handle ClassVar, Literal, etc....
-    # TODO? Other special forms.
-    return _reduce_annotation_arguments( annotation, context, visitees )
+        _scan_adjuncts( arguments, context, adjuncts )
+        return _reduce_annotation(
+            annotation.__origin__, context, adjuncts, visitees )
+    _record_adjunct( origin, context, adjuncts )
+    return _reduce_annotation_arguments( # type guards, unions, etc...
+        arguments, context, adjuncts, visitees )
 
 
 def _reduce_annotation_arguments(
-    annotation: __.typx.Any,
+    arguments: __.cabc.Sequence[ __.typx.Any ],
     context: __.typx.Optional[ _interfaces.Context ],
+    adjuncts: _interfaces.AdjunctsData,
     visitees: set[ __.typx.Any ],
 ) -> _nomina.Typle:
-    return tuple( __.itert.chain.from_iterable(
-        map(
-            lambda a: _reduce_annotation( a, context, visitees ),
-            __.typx.get_args( annotation ) ) ) )
+    return tuple( __.itert.chain.from_iterable( map(
+        lambda a: _reduce_annotation( a, context, adjuncts, visitees ),
+        arguments ) ) )
+
+
+def _scan_adjuncts(
+    arguments: __.cabc.Sequence[ __.typx.Any ],
+    context: __.typx.Optional[ _interfaces.Context ],
+    adjuncts: _interfaces.AdjunctsData,
+) -> None:
+    if 'Union' in adjuncts.traits:
+        __.warnings.warn( # pyright: ignore[reportCallIssue]
+            "Cannot disambiguate arguments to 'typing.Annotated' "
+            "within a union.",
+            category = RuntimeWarning, stack_level = 2 )
+        return
+    for argument in arguments:
+        if isinstance( argument, _interfaces.Doc ):
+            adjuncts.documentation.append( argument )
+        if isinstance( argument, _interfaces.Raises ):
+            adjuncts.exceptions.append( argument )

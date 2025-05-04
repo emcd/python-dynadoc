@@ -23,8 +23,32 @@
 
 from __future__ import annotations
 
+# Note: Can replace typx.Doc with an equivalent in the future,
+#       if support for it disappears from typing extensions.
+from typing_extensions import Doc
+
 from . import __
 from . import nomina as _nomina
+
+
+@__.dcls.dataclass( frozen = True, kw_only = True, slots = True )
+class Raises:
+    ''' Class and description of exception that can be raised. '''
+
+    classes: type[ BaseException ] | __.cabc.Sequence[ type[ BaseException ] ]
+    description: __.typx.Optional[ str ] = None
+
+
+@__.dcls.dataclass( frozen = True, kw_only = True, slots = True )
+class AdjunctsData:
+    ''' Data about type-adjacent entities. '''
+
+    documentation: __.cabc.MutableSequence[ Doc ] = (
+        __.dcls.field( default_factory = list[ Doc ] ) )
+    exceptions: __.cabc.MutableSequence[ Raises ] = (
+        __.dcls.field( default_factory = list[ Raises ] ) )
+    traits: __.cabc.MutableSet[ str ] = (
+        __.dcls.field( default_factory = set[ str ] ) )
 
 
 @__.dcls.dataclass( frozen = True, kw_only = True, slots = True )
