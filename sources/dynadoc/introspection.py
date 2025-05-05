@@ -114,13 +114,14 @@ def _reduce_annotation(
     # TODO? Eval strings. Should already be done by _access_annotations.
     visitees.add( annotation )
     origin = __.typx.get_origin( annotation )
-    # TODO: Handle TypeVar early, since it has no origin or arguments.
-    # bare types, typing.Any, typing.LiteralString have no origin
-    # typing.Literal is considered to be fully reduced and taken as-is
+    # bare types, typing.Any, typing.LiteralString, typing.Never,
+    # typing.TypeVar have no origin; taken as-is
+    # typing.Literal is considered fully reduced; taken as-is
     if origin in ( None, __.typx.Literal ): return ( annotation, )
     arguments = __.typx.get_args( annotation )
-    # TODO: Work through generic arguments.
-    if issubclass( origin, type ): return ( annotation, ) # generic type
+    if isinstance( annotation, __.types.GenericAlias ):
+        return _reduce_generic_annotation(
+            origin, arguments, context, _interfaces.AdjunctsData( ), set( ) )
     # TODO: Process cabc.Callable objects.
     if origin is __.typx.Annotated:
         _scan_adjuncts( arguments, context, adjuncts )
@@ -129,6 +130,28 @@ def _reduce_annotation(
     _record_adjunct( origin, context, adjuncts )
     return _reduce_annotation_arguments( # type guards, unions, etc...
         arguments, context, adjuncts, visitees )
+
+
+def _reduce_generic_annotation(
+    origin: __.typx.Any,
+    arguments: __.cabc.Sequence[ __.typx.Any ],
+    context: __.typx.Optional[ _interfaces.Context ],
+    adjuncts: _interfaces.AdjunctsData,
+    visitees: set[ __.typx.Any ],
+) -> _nomina.Typle:
+    arguments_r: list[ __.typx.Any ] = [ ]
+    for argument in arguments:
+        typle = _reduce_annotation(
+            argument, context, _interfaces.AdjunctsData( ), set( ) )
+        match len( typle ):
+            case 0: continue # TODO: error
+            case 1: arguments_r.append( *typle )
+            case _: arguments_r.append( __.typx.Union[ typle ] )
+    try: annotation = origin[ arguments_r ]
+    except TypeError:
+        # TODO: warn
+        return ( origin, )
+    return ( annotation, )
 
 
 def _reduce_annotation_arguments(
