@@ -42,12 +42,22 @@ def introspect(
 def _introspect_class(
     possessor: _nomina.Decoratable, context: _interfaces.Context
 ) -> __.cabc.Sequence[ _interfaces.InformationBase ]:
+    # TODO? Traverse MRO for inheritance.
     annotations = _access_annotations( possessor, context )
     if not annotations: return ( )
     informations: list[ _interfaces.InformationBase ] = [ ]
-    for annotation in annotations:
-        # TODO: Introspect attribute annotation.
-        pass
+    for name, annotation in annotations.items( ):
+        adjuncts = _interfaces.AdjunctsData( )
+        typeform = _reduce_annotation( annotation, context, adjuncts, set( ) )
+        description = '\n\n'.join(
+            extra.documentation for extra in adjuncts.extras
+            if isinstance( extra, _interfaces.Doc ) )
+        on_class = 'ClassVar' in adjuncts.traits
+        informations.append( _interfaces.AttributeInformation(
+            name = name,
+            typeform = typeform,
+            description = description,
+            on_class = on_class ) )
     return tuple( informations )
 
 
@@ -57,7 +67,61 @@ def _introspect_function(
     annotations = _access_annotations( possessor, context )
     if not annotations: return ( )
     informations: list[ _interfaces.InformationBase ] = [ ]
-    # TODO: Implement.
+    try: signature = __.inspect.signature( possessor )
+    except ValueError as exc:
+        context.notifier(
+            'error',
+            f"Could not assess signature for {possessor.__qualname__!r}. "
+            f"Reason: {exc}" )
+        return ( )
+    if signature.parameters:
+        informations.extend( _introspect_function_valences(
+            annotations, signature, context ) )
+    if 'return' in annotations:
+        informations.extend( _introspect_function_return(
+            annotations[ 'return' ], context ) )
+    return tuple( informations )
+
+
+def _introspect_function_return(
+    annotation: __.typx.Any, context: _interfaces.Context
+) -> __.cabc.Sequence[ _interfaces.InformationBase ]:
+    informations: list[ _interfaces.InformationBase ] = [ ]
+    adjuncts = _interfaces.AdjunctsData( )
+    typeform = _reduce_annotation( annotation, context, adjuncts, set( ) )
+    description = '\n\n'.join(
+        extra.documentation for extra in adjuncts.extras
+        if isinstance( extra, _interfaces.Doc ) )
+    informations.append(
+        _interfaces.ReturnInformation(
+            typeform = typeform, description = description ) )
+    informations.extend(
+        _interfaces.ExceptionInformation(
+            typeform = extra.classes, description = extra.description )
+        for extra in adjuncts.extras
+        if isinstance( extra, _interfaces.Raises ) )
+    return tuple( informations )
+
+
+def _introspect_function_valences(
+    annotations: __.cabc.Mapping[ str, __.typx.Any ],
+    signature: __.inspect.Signature,
+    context: _interfaces.Context,
+) -> __.cabc.Sequence[ _interfaces.ArgumentInformation ]:
+    informations: list[ _interfaces.ArgumentInformation ] = [ ]
+    for name, param in signature.parameters.items( ):
+        annotation = annotations.get( name, param.annotation )
+        if annotation is param.empty: continue
+        adjuncts = _interfaces.AdjunctsData( )
+        typeform = _reduce_annotation( annotation, context, adjuncts, set( ) )
+        description = '\n\n'.join(
+            extra.documentation for extra in adjuncts.extras
+            if isinstance( extra, _interfaces.Doc ) )
+        informations.append( _interfaces.ArgumentInformation(
+            name = name,
+            typeform = typeform,
+            description = description,
+            paramspec = param ) )
     return tuple( informations )
 
 

@@ -67,8 +67,8 @@ class Context:
 class InformationBase:
     ''' Base for information on various kinds of entities. '''
 
-    typle: _nomina.Typle
-    description: str
+    typeform: __.typx.Any
+    description: __.typx.Optional[ str ]
 
 
 @__.dcls.dataclass( frozen = True, kw_only = True, slots = True )

@@ -37,7 +37,6 @@ Fragment: __.typx.TypeAlias = str |  __.typx.Doc
 FragmentsTable: __.typx.TypeAlias = __.cabc.Mapping[ str, str ]
 NotificationLevels: __.typx.TypeAlias = (
     __.typx.Literal[ 'admonition', 'error', 'alert' ] )
-Typle: __.typx.TypeAlias = __.cabc.Sequence[ __.typx.TypeForm[ __.typx.Any ] ]
 Variables: __.typx.TypeAlias = __.cabc.Mapping[ str, __.typx.Any ]
 
 WithDocstringFragmentsArgument: __.typx.TypeAlias = __.typx.Annotated[
