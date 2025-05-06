@@ -55,6 +55,7 @@ class AdjunctsData:
 class Context:
     ''' Context for annotation evaluation, etc.... '''
 
+    notifier: Notifier
     localvars: __.typx.Optional[ _nomina.Variables ] = None
     globalvars: __.typx.Optional[ _nomina.Variables ] = None
 
@@ -99,15 +100,14 @@ class Formatter( __.typx.Protocol ):
     def __call__(
         possessor: _nomina.Decoratable,
         informations: Informations,
-        context: __.typx.Optional[ Context ] = None,
+        context: Context,
     ) -> str: raise NotImplementedError
 
 
-class Introspector( __.typx.Protocol ):
-    ''' Annotations introspector for classes and other invocables. '''
+class Notifier( __.typx.Protocol ):
+    ''' Notification callback for warning or error condition. '''
 
     @staticmethod
     def __call__(
-        possessor: _nomina.Decoratable,
-        context: __.typx.Optional[ Context ] = None,
-    ) -> Informations: raise NotImplementedError
+        level: _nomina.NotificationLevels, message: str
+    ) -> None: raise NotImplementedError

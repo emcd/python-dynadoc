@@ -18,25 +18,24 @@
 #============================================================================#
 
 
-''' Common imports and type aliases used throughout the package. '''
-
-# ruff: noqa: F401
+''' Assorted utilities for notification. '''
 
 
 from __future__ import annotations
 
-import collections.abc as   cabc
-import dataclasses as       dcls
-import                      inspect
-import itertools as         itert
-import                      types
-import                      warnings
-
-from pathlib import Path
-
-import typing_extensions as typx
-# --- BEGIN: Injected by Copier ---
-# --- END: Injected by Copier ---
+from . import __
+from . import nomina as _nomina
 
 
-ComparisonResult: typx.TypeAlias = bool | types.NotImplementedType
+_package_location = __.Path( __file__ ).parent
+def notify( level: _nomina.NotificationLevels, message: str ) -> None:
+    ''' Issues warning message. '''
+    __.warnings.warn( # pyright: ignore[reportCallIssue]
+        message,
+        category = RuntimeWarning,
+        skip_file_prefixes = ( str( _package_location ), ) )
+
+def notify_internal( level: _nomina.NotificationLevels, message: str ) -> None:
+    ''' Issues warning message. (Internal use within this package itself.) '''
+    __.warnings.warn( # pyright: ignore[reportCallIssue]
+        message, category = RuntimeWarning, stacklevel = 2 )

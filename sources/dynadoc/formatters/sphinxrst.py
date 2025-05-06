@@ -25,13 +25,13 @@ from __future__ import annotations
 
 from .. import interfaces as _interfaces
 from .. import nomina as _nomina
-from . import __
+# from . import __
 
 
 def produce_fragment(
     possessor: _nomina.Decoratable,
     informations: _interfaces.Informations,
-    context: __.typx.Optional[ _interfaces.Context ] = None,
+    context: _interfaces.Context,
 ) -> str:
     return '\n'.join(
         _produce_fragment_partial( possessor, information, context = context )
@@ -41,7 +41,7 @@ def produce_fragment(
 def _produce_fragment_partial(
     possessor: _nomina.Decoratable,
     information: _interfaces.InformationBase,
-    context: __.typx.Optional[ _interfaces.Context ] = None,
+    context: _interfaces.Context,
 ) -> str:
     if isinstance( information, _interfaces.ArgumentInformation ):
         return (
@@ -66,7 +66,7 @@ def _produce_fragment_partial(
 def _produce_argument_text(
     possessor: _nomina.Decoratable,
     information: _interfaces.ArgumentInformation,
-    context: __.typx.Optional[ _interfaces.Context ] = None,
+    context: _interfaces.Context,
 ) -> str:
     # TODO: Implement.
     return ''
@@ -75,7 +75,7 @@ def _produce_argument_text(
 def _produce_attribute_text(
     possessor: _nomina.Decoratable,
     information: _interfaces.AttributeInformation,
-    context: __.typx.Optional[ _interfaces.Context ] = None,
+    context: _interfaces.Context,
 ) -> str:
     # TODO: Implement.
     return ''
@@ -84,7 +84,7 @@ def _produce_attribute_text(
 def _produce_exception_text(
     possessor: _nomina.Decoratable,
     information: _interfaces.ExceptionInformation,
-    context: __.typx.Optional[ _interfaces.Context ] = None,
+    context: _interfaces.Context,
 ) -> str:
     # TODO: Implement.
     return ''
@@ -93,7 +93,7 @@ def _produce_exception_text(
 def _produce_return_text(
     possessor: _nomina.Decoratable,
     information: _interfaces.ReturnInformation,
-    context: __.typx.Optional[ _interfaces.Context ] = None,
+    context: _interfaces.Context,
 ) -> str:
     # TODO: Implement.
     return ''

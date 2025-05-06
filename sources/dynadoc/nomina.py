@@ -35,6 +35,8 @@ FunctionDecorator: __.typx.TypeAlias = (
 Decorator: __.typx.TypeAlias = ClassDecorator | FunctionDecorator
 Fragment: __.typx.TypeAlias = str |  __.typx.Doc
 FragmentsTable: __.typx.TypeAlias = __.cabc.Mapping[ str, str ]
+NotificationLevels: __.typx.TypeAlias = (
+    __.typx.Literal[ 'admonition', 'error', 'alert' ] )
 Typle: __.typx.TypeAlias = __.cabc.Sequence[ __.typx.TypeForm[ __.typx.Any ] ]
 Variables: __.typx.TypeAlias = __.cabc.Mapping[ str, __.typx.Any ]
 
@@ -48,6 +50,9 @@ WithDocstringFragmentsArgument: __.typx.TypeAlias = __.typx.Annotated[
             If fragment is a :pep:`727` ``Doc`` object, then the value of its
             ``documentation`` attribute will be incorporated.
         ''' ),
+]
+WithDocstringIntrospectArgument: __.typx.TypeAlias = __.typx.Annotated[
+    bool, __.typx.Doc( ''' Introspect classes and functions? ''' )
 ]
 WithDocstringPreserveArgument: __.typx.TypeAlias = __.typx.Annotated[
     bool, __.typx.Doc( ''' Preserve extant docstring? ''' )

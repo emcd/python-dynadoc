@@ -19,6 +19,10 @@
 
 
 ''' Docstring assembly. '''
+# TODO? with_docstring_defer
+#       Registers with_docstring partial function in registry.
+#       Registry can be executed after modules are loaded and all string
+#       annotations should be resolvable.
 
 
 from __future__ import annotations
@@ -28,18 +32,18 @@ from . import formatters as _formatters
 from . import interfaces as _interfaces
 from . import introspection as _introspection
 from . import nomina as _nomina
+from . import notification as _notification
 
 
+context_default = _interfaces.Context( notifier = _notification.notify )
 formatter_default = _formatters.sphinxrst.produce_fragment
-introspector_default = _introspection.introspect
 
 
 def with_docstring(
     *fragments: _nomina.WithDocstringFragmentsArgument,
-    context: __.typx.Optional[ _interfaces.Context ] = None,
+    context: _interfaces.Context = context_default,
     formatter: _interfaces.Formatter = formatter_default,
-    introspector: __.typx.Optional[ _interfaces.Introspector ] = (
-        introspector_default ),
+    introspect: _nomina.WithDocstringIntrospectArgument = True,
     preserve: _nomina.WithDocstringPreserveArgument = True,
     table: _nomina.WithDocstringTableArgument = __.dictproxy_empty,
 ) -> _nomina.Decorator:
@@ -54,8 +58,9 @@ def with_docstring(
                 if isinstance( fragment, __.typx.Doc )
                 else table[ fragment ] )
             for fragment in fragments )
-        if introspector is not None:
-            informations = introspector( objct, context = context )
+        if introspect:
+            informations = (
+                _introspection.introspect( objct, context = context ) )
             fragments_.extend(
                 formatter( objct, informations, context = context ) )
         docstring = '\n\n'.join(

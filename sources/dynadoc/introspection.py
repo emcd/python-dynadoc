@@ -29,22 +29,20 @@ from . import nomina as _nomina
 
 
 def introspect(
-    possessor: _nomina.Decoratable,
-    context: __.typx.Optional[ _interfaces.Context ] = None,
+    possessor: _nomina.Decoratable, context: _interfaces.Context
 ) -> __.cabc.Sequence[ _interfaces.InformationBase ]:
     if __.inspect.isclass( possessor ):
-        return _introspect_class( possessor, context = context )
+        return _introspect_class( possessor, context )
     if __.inspect.isfunction( possessor ) and possessor.__name__ != '<lambda>':
-        return _introspect_function( possessor, context = context )
+        return _introspect_function( possessor, context )
     # TODO? Other descriptors, like properties.
     return ( )
 
 
 def _introspect_class(
-    possessor: _nomina.Decoratable,
-    context: __.typx.Optional[ _interfaces.Context ] = None,
+    possessor: _nomina.Decoratable, context: _interfaces.Context
 ) -> __.cabc.Sequence[ _interfaces.InformationBase ]:
-    annotations = _access_annotations( possessor, context = context )
+    annotations = _access_annotations( possessor, context )
     if not annotations: return ( )
     informations: list[ _interfaces.InformationBase ] = [ ]
     for annotation in annotations:
@@ -54,10 +52,9 @@ def _introspect_class(
 
 
 def _introspect_function(
-    possessor: _nomina.Decoratable,
-    context: __.typx.Optional[ _interfaces.Context ] = None,
+    possessor: _nomina.Decoratable, context: _interfaces.Context
 ) -> __.cabc.Sequence[ _interfaces.InformationBase ]:
-    annotations = _access_annotations( possessor, context = context )
+    annotations = _access_annotations( possessor, context )
     if not annotations: return ( )
     informations: list[ _interfaces.InformationBase ] = [ ]
     # TODO: Implement.
@@ -65,8 +62,7 @@ def _introspect_function(
 
 
 def _access_annotations(
-    possessor: _nomina.Decoratable,
-    context: __.typx.Optional[ _interfaces.Context ] = None,
+    possessor: _nomina.Decoratable, context: _interfaces.Context
 ) -> __.cabc.Mapping[ str, __.typx.Any ]:
     nomargs: _nomina.Variables = dict( eval_str = True )
     if context:
@@ -76,15 +72,14 @@ def _access_annotations(
         return __.types.MappingProxyType(
             __.inspect.get_annotations( possessor, **nomargs ) )
     except TypeError as exc:
-        __.warnings.warn( # pyright: ignore[reportCallIssue]
-            f"Cannot access annotations for {possessor!r}: {exc}",
-            category = RuntimeWarning, stack_level = 2 )
+        emessage = f"Cannot access annotations for {possessor!r}: {exc}"
+        context.notifier( 'error', emessage )
         return __.dictproxy_empty
 
 
 def _record_adjunct(
     entity: __.typx.Any,
-    context: __.typx.Optional[ _interfaces.Context ],
+    context: _interfaces.Context,
     adjuncts: _interfaces.AdjunctsData,
 ) -> None:
     if entity in ( __.types.UnionType, __.typx.Union ):
@@ -93,16 +88,15 @@ def _record_adjunct(
     if entity in ( __.typx.ClassVar, __.typx.Final ):
         label = entity.__name__
         if 'Union' in adjuncts.traits:
-            __.warnings.warn( # pyright: ignore[reportCallIssue]
-                f"Use of {label!r} within a union is invalid.",
-                category = RuntimeWarning, stack_level = 2 )
+            emessage = f"Use of {label!r} within a union is invalid."
+            context.notifier( 'admonition', emessage )
             return
         adjuncts.traits.add( label )
 
 
 def _reduce_annotation(
     annotation: __.typx.Any,
-    context: __.typx.Optional[ _interfaces.Context ],
+    context: _interfaces.Context,
     adjuncts: _interfaces.AdjunctsData,
     visitees: set[ __.typx.Any ],
 ) -> _nomina.Typle:
@@ -121,7 +115,7 @@ def _reduce_annotation(
     arguments = __.typx.get_args( annotation )
     if isinstance( annotation, __.types.GenericAlias ):
         return _reduce_generic_annotation(
-            origin, arguments, context, _interfaces.AdjunctsData( ), set( ) )
+            origin, arguments, context, _interfaces.AdjunctsData( ), visitees )
     # TODO: Process cabc.Callable objects.
     if origin is __.typx.Annotated:
         _scan_adjuncts( arguments, context, adjuncts )
@@ -135,7 +129,7 @@ def _reduce_annotation(
 def _reduce_generic_annotation(
     origin: __.typx.Any,
     arguments: __.cabc.Sequence[ __.typx.Any ],
-    context: __.typx.Optional[ _interfaces.Context ],
+    context: _interfaces.Context,
     adjuncts: _interfaces.AdjunctsData,
     visitees: set[ __.typx.Any ],
 ) -> _nomina.Typle:
@@ -156,7 +150,7 @@ def _reduce_generic_annotation(
 
 def _reduce_annotation_arguments(
     arguments: __.cabc.Sequence[ __.typx.Any ],
-    context: __.typx.Optional[ _interfaces.Context ],
+    context: _interfaces.Context,
     adjuncts: _interfaces.AdjunctsData,
     visitees: set[ __.typx.Any ],
 ) -> _nomina.Typle:
@@ -167,14 +161,14 @@ def _reduce_annotation_arguments(
 
 def _scan_adjuncts(
     arguments: __.cabc.Sequence[ __.typx.Any ],
-    context: __.typx.Optional[ _interfaces.Context ],
+    context: _interfaces.Context,
     adjuncts: _interfaces.AdjunctsData,
 ) -> None:
     if 'Union' in adjuncts.traits:
-        __.warnings.warn( # pyright: ignore[reportCallIssue]
+        emessage = (
             "Cannot disambiguate arguments to 'typing.Annotated' "
-            "within a union.",
-            category = RuntimeWarning, stack_level = 2 )
+            "within a union." )
+        context.notifier( 'admonition', emessage )
         return
     for argument in arguments:
         if isinstance( argument, _interfaces.Doc ):
