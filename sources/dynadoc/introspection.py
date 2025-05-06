@@ -94,16 +94,34 @@ def _record_adjunct(
         adjuncts.traits.add( label )
 
 
+# TODO: Refactor (again).
+#       * Focus on stripping Annotated plus filters.
+#         By default, filters include ClassVar filter.
+#         (Let Final remain as-is.)
+#       * Replace typles with typx.Union.
+#         Union returns single argument itself, so no special handling of
+#         single arguments is needed.
+#       * Pile all Annotated arguments into single bucket.
+#         Formatters can look through this bucket for what they need.
+#       * Inherit adjuncts data for single-argument typeforms.
+#         Use severed adjuncts data for multiple-argument typeforms.
+#         I.e., no special treatment of Callable, Generic, etc....
+#       * Generic function to reconstitute all typeforms from their
+#         filtered arguments. If argument is a sequence, then recurse into
+#         sequence to filter and then reconstitute as same sequence.
+#         (This handles the Callable case.) No special handling for Union
+#         since it will naturally flatten any arguments which are unions.
+#       * Ensure Ellipsis is left as-is in all cases.
+# TODO? Cache object instead of visitees set. Has 'enter' method which
+#       takes annotation (cache key) and reduced annotation (cache value).
+
+
 def _reduce_annotation(
     annotation: __.typx.Any,
     context: _interfaces.Context,
     adjuncts: _interfaces.AdjunctsData,
     visitees: set[ __.typx.Any ],
 ) -> _nomina.Typle:
-    # TODO? Use cache instead of visitees set.
-    #       Some visitees might not be hashable.
-    #       Maybe cache with ( origin, arguments ) key and
-    #       ( typle, adjuncts ) value?
     if annotation in visitees: return ( annotation, )
     # TODO? Eval strings. Should already be done by _access_annotations.
     visitees.add( annotation )
@@ -113,39 +131,19 @@ def _reduce_annotation(
     # typing.Literal is considered fully reduced; taken as-is
     if origin in ( None, __.typx.Literal ): return ( annotation, )
     arguments = __.typx.get_args( annotation )
-    if isinstance( annotation, __.types.GenericAlias ):
-        return _reduce_generic_annotation(
-            origin, arguments, context, _interfaces.AdjunctsData( ), visitees )
-    # TODO: Process cabc.Callable objects.
     if origin is __.typx.Annotated:
         _scan_adjuncts( arguments, context, adjuncts )
         return _reduce_annotation(
             annotation.__origin__, context, adjuncts, visitees )
+    if issubclass( origin, __.cabc.Callable ):
+        return _reduce_annotation_for_callable(
+            origin, arguments, context, _interfaces.AdjunctsData( ), visitees )
+    if isinstance( annotation, __.types.GenericAlias ):
+        return _reduce_annotation_for_generic(
+            origin, arguments, context, _interfaces.AdjunctsData( ), visitees )
     _record_adjunct( origin, context, adjuncts )
     return _reduce_annotation_arguments( # type guards, unions, etc...
         arguments, context, adjuncts, visitees )
-
-
-def _reduce_generic_annotation(
-    origin: __.typx.Any,
-    arguments: __.cabc.Sequence[ __.typx.Any ],
-    context: _interfaces.Context,
-    adjuncts: _interfaces.AdjunctsData,
-    visitees: set[ __.typx.Any ],
-) -> _nomina.Typle:
-    arguments_r: list[ __.typx.Any ] = [ ]
-    for argument in arguments:
-        typle = _reduce_annotation(
-            argument, context, _interfaces.AdjunctsData( ), set( ) )
-        match len( typle ):
-            case 0: continue # TODO: error
-            case 1: arguments_r.append( *typle )
-            case _: arguments_r.append( __.typx.Union[ typle ] )
-    try: annotation = origin[ arguments_r ]
-    except TypeError:
-        # TODO: warn
-        return ( origin, )
-    return ( annotation, )
 
 
 def _reduce_annotation_arguments(
@@ -159,6 +157,53 @@ def _reduce_annotation_arguments(
         arguments ) ) )
 
 
+def _reduce_annotation_for_callable(
+    origin: __.typx.Any,
+    arguments: __.cabc.Sequence[ __.typx.Any ],
+    context: _interfaces.Context,
+    adjuncts: _interfaces.AdjunctsData,
+    visitees: set[ __.typx.Any ],
+) -> _nomina.Typle:
+    farguments, freturn = arguments
+    farguments_r: list[ __.typx.Any ] = [ ]
+    for argument in farguments:
+        typle = _reduce_annotation(
+            argument, context, _interfaces.AdjunctsData( ), visitees )
+        farguments_r.append( __.typx.Union[ typle ] )
+    freturn_r = __.typx.Union[ _reduce_annotation(
+        freturn, context, _interfaces.AdjunctsData( ), visitees ) ]
+    try: annotation = origin[ farguments_r, freturn_r ]
+    except TypeError as exc:
+        emessage = (
+            f"Cannot reconstruct callable with reduced annotations "
+            f"for arguments. Reason: {exc}" )
+        context.notifier( 'error', emessage )
+        return ( origin, )
+    return ( annotation, )
+
+
+def _reduce_annotation_for_generic(
+    origin: __.typx.Any,
+    arguments: __.cabc.Sequence[ __.typx.Any ],
+    context: _interfaces.Context,
+    adjuncts: _interfaces.AdjunctsData,
+    visitees: set[ __.typx.Any ],
+) -> _nomina.Typle:
+    arguments_r: list[ __.typx.Any ] = [ ]
+    for argument in arguments:
+        typle = _reduce_annotation(
+            argument, context, _interfaces.AdjunctsData( ), visitees )
+        arguments_r.append( __.typx.Union[ typle ] )
+    try: annotation = origin[ arguments_r ]
+    except TypeError as exc:
+        emessage = (
+            f"Cannot reconstruct generic {origin.__name__!r} "
+            f"with reduced annotations for arguments. Reason: {exc}" )
+        context.notifier( 'error', emessage )
+        return ( origin, )
+    return ( annotation, )
+
+
 def _scan_adjuncts(
     arguments: __.cabc.Sequence[ __.typx.Any ],
     context: _interfaces.Context,
@@ -166,8 +211,7 @@ def _scan_adjuncts(
 ) -> None:
     if 'Union' in adjuncts.traits:
         emessage = (
-            "Cannot disambiguate arguments to 'typing.Annotated' "
-            "within a union." )
+            "Cannot disambiguate arguments to 'Annotated' within a union." )
         context.notifier( 'admonition', emessage )
         return
     for argument in arguments:
