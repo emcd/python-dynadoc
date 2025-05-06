@@ -77,43 +77,42 @@ def _access_annotations(
         return __.dictproxy_empty
 
 
-def _record_adjunct(
-    entity: __.typx.Any,
-    context: _interfaces.Context,
-    adjuncts: _interfaces.AdjunctsData,
-) -> None:
-    if entity in ( __.types.UnionType, __.typx.Union ):
-        adjuncts.traits.add( 'Union' )
-        return
-    if entity in ( __.typx.ClassVar, __.typx.Final ):
-        label = entity.__name__
-        if 'Union' in adjuncts.traits:
-            emessage = f"Use of {label!r} within a union is invalid."
-            context.notifier( 'admonition', emessage )
-            return
-        adjuncts.traits.add( label )
-
-
-# TODO: Refactor (again).
-#       * Focus on stripping Annotated plus filters.
-#         By default, filters include ClassVar filter.
-#         (Let Final remain as-is.)
-#       * Replace typles with typx.Union.
-#         Union returns single argument itself, so no special handling of
-#         single arguments is needed.
-#       * Pile all Annotated arguments into single bucket.
-#         Formatters can look through this bucket for what they need.
-#       * Inherit adjuncts data for single-argument typeforms.
-#         Use severed adjuncts data for multiple-argument typeforms.
-#         I.e., no special treatment of Callable, Generic, etc....
-#       * Generic function to reconstitute all typeforms from their
-#         filtered arguments. If argument is a sequence, then recurse into
-#         sequence to filter and then reconstitute as same sequence.
-#         (This handles the Callable case.) No special handling for Union
-#         since it will naturally flatten any arguments which are unions.
-#       * Ensure Ellipsis is left as-is in all cases.
 # TODO? Cache object instead of visitees set. Has 'enter' method which
 #       takes annotation (cache key) and reduced annotation (cache value).
+
+
+def _filter_reconstitute_annotation(
+    origin: __.typx.Any,
+    arguments: __.cabc.Sequence[ __.typx.Any ],
+    context: _interfaces.Context,
+    adjuncts: _interfaces.AdjunctsData,
+    visitees: set[ __.typx.Any ],
+) -> __.typx.Any:
+    adjuncts.traits.add( origin.__name__ )
+    arguments_r: list[ __.typx.Any ] = [ ]
+    match len( arguments ):
+        case 1:
+            arguments_r.append( _reduce_annotation_argument(
+                arguments[ 0 ], context, adjuncts, visitees ) )
+        case _:
+            # upward propagation is ambiguous, so sever adjuncts data
+            adjuncts_ = _interfaces.AdjunctsData( )
+            adjuncts_.traits.add( origin.__name__ )
+            arguments_r.extend(
+                _reduce_annotation_argument(
+                    argument, context, adjuncts_.copy( ), visitees )
+                for argument in arguments )
+    # TODO: Apply filters from context, replacing origin as necessary.
+    #       E.g., ClassVar -> Union
+    #       (Union with one argument returns the argument.)
+    try: annotation = origin[ tuple( arguments_r ) ]
+    except TypeError as exc:
+        emessage = (
+            f"Cannot reconstruct {origin.__name__!r} "
+            f"with reduced annotations for arguments. Reason: {exc}" )
+        context.notifier( 'error', emessage )
+        return origin
+    return annotation
 
 
 def _reduce_annotation(
@@ -121,101 +120,34 @@ def _reduce_annotation(
     context: _interfaces.Context,
     adjuncts: _interfaces.AdjunctsData,
     visitees: set[ __.typx.Any ],
-) -> _nomina.Typle:
-    if annotation in visitees: return ( annotation, )
+) -> __.typx.Any:
+    # if annotation in visitees: return ( annotation, )
     # TODO? Eval strings. Should already be done by _access_annotations.
-    visitees.add( annotation )
+    # visitees.add( annotation )
     origin = __.typx.get_origin( annotation )
-    # bare types, typing.Any, typing.LiteralString, typing.Never,
+    # bare types, Ellipsis, typing.Any, typing.LiteralString, typing.Never,
     # typing.TypeVar have no origin; taken as-is
     # typing.Literal is considered fully reduced; taken as-is
-    if origin in ( None, __.typx.Literal ): return ( annotation, )
+    if origin in ( None, __.typx.Literal ): return annotation
     arguments = __.typx.get_args( annotation )
+    if not arguments: return annotation
     if origin is __.typx.Annotated:
-        _scan_adjuncts( arguments, context, adjuncts )
+        adjuncts.extras.extend( arguments[ 1 : ] )
         return _reduce_annotation(
             annotation.__origin__, context, adjuncts, visitees )
-    if issubclass( origin, __.cabc.Callable ):
-        return _reduce_annotation_for_callable(
-            origin, arguments, context, _interfaces.AdjunctsData( ), visitees )
-    if isinstance( annotation, __.types.GenericAlias ):
-        return _reduce_annotation_for_generic(
-            origin, arguments, context, _interfaces.AdjunctsData( ), visitees )
-    _record_adjunct( origin, context, adjuncts )
-    return _reduce_annotation_arguments( # type guards, unions, etc...
-        arguments, context, adjuncts, visitees )
+    return _filter_reconstitute_annotation(
+        origin, arguments, context, adjuncts, visitees )
 
 
-def _reduce_annotation_arguments(
-    arguments: __.cabc.Sequence[ __.typx.Any ],
+def _reduce_annotation_argument(
+    annotation: __.typx.Any,
     context: _interfaces.Context,
     adjuncts: _interfaces.AdjunctsData,
     visitees: set[ __.typx.Any ],
-) -> _nomina.Typle:
-    return tuple( __.itert.chain.from_iterable( map(
-        lambda a: _reduce_annotation( a, context, adjuncts, visitees ),
-        arguments ) ) )
-
-
-def _reduce_annotation_for_callable(
-    origin: __.typx.Any,
-    arguments: __.cabc.Sequence[ __.typx.Any ],
-    context: _interfaces.Context,
-    adjuncts: _interfaces.AdjunctsData,
-    visitees: set[ __.typx.Any ],
-) -> _nomina.Typle:
-    farguments, freturn = arguments
-    farguments_r: list[ __.typx.Any ] = [ ]
-    for argument in farguments:
-        typle = _reduce_annotation(
-            argument, context, _interfaces.AdjunctsData( ), visitees )
-        farguments_r.append( __.typx.Union[ typle ] )
-    freturn_r = __.typx.Union[ _reduce_annotation(
-        freturn, context, _interfaces.AdjunctsData( ), visitees ) ]
-    try: annotation = origin[ farguments_r, freturn_r ]
-    except TypeError as exc:
-        emessage = (
-            f"Cannot reconstruct callable with reduced annotations "
-            f"for arguments. Reason: {exc}" )
-        context.notifier( 'error', emessage )
-        return ( origin, )
-    return ( annotation, )
-
-
-def _reduce_annotation_for_generic(
-    origin: __.typx.Any,
-    arguments: __.cabc.Sequence[ __.typx.Any ],
-    context: _interfaces.Context,
-    adjuncts: _interfaces.AdjunctsData,
-    visitees: set[ __.typx.Any ],
-) -> _nomina.Typle:
-    arguments_r: list[ __.typx.Any ] = [ ]
-    for argument in arguments:
-        typle = _reduce_annotation(
-            argument, context, _interfaces.AdjunctsData( ), visitees )
-        arguments_r.append( __.typx.Union[ typle ] )
-    try: annotation = origin[ arguments_r ]
-    except TypeError as exc:
-        emessage = (
-            f"Cannot reconstruct generic {origin.__name__!r} "
-            f"with reduced annotations for arguments. Reason: {exc}" )
-        context.notifier( 'error', emessage )
-        return ( origin, )
-    return ( annotation, )
-
-
-def _scan_adjuncts(
-    arguments: __.cabc.Sequence[ __.typx.Any ],
-    context: _interfaces.Context,
-    adjuncts: _interfaces.AdjunctsData,
-) -> None:
-    if 'Union' in adjuncts.traits:
-        emessage = (
-            "Cannot disambiguate arguments to 'Annotated' within a union." )
-        context.notifier( 'admonition', emessage )
-        return
-    for argument in arguments:
-        if isinstance( argument, _interfaces.Doc ):
-            adjuncts.documentation.append( argument )
-        if isinstance( argument, _interfaces.Raises ):
-            adjuncts.exceptions.append( argument )
+) -> __.typx.Any:
+    if isinstance( annotation, __.cabc.Sequence ): # Callable, etc...
+        elements: list[ __.typx.Any ] = [
+            _reduce_annotation( element, context, adjuncts, visitees )
+            for element in annotation ] # pyright: ignore[reportUnknownVariableType]
+        return elements
+    return _reduce_annotation( annotation, context, adjuncts, visitees )

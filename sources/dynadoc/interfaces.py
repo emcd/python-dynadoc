@@ -25,7 +25,7 @@ from __future__ import annotations
 
 # Note: Can replace typx.Doc with an equivalent in the future,
 #       if support for it disappears from typing extensions.
-from typing_extensions import Doc
+from typing_extensions import Doc # noqa: F401
 
 from . import __
 from . import nomina as _nomina
@@ -43,12 +43,15 @@ class Raises:
 class AdjunctsData:
     ''' Data about type-adjacent entities. '''
 
-    documentation: __.cabc.MutableSequence[ Doc ] = (
-        __.dcls.field( default_factory = list[ Doc ] ) )
-    exceptions: __.cabc.MutableSequence[ Raises ] = (
-        __.dcls.field( default_factory = list[ Raises ] ) )
+    extras: __.cabc.MutableSequence[ __.typx.Any ] = (
+        __.dcls.field( default_factory = list[ __.typx.Any ] ) )
     traits: __.cabc.MutableSet[ str ] = (
         __.dcls.field( default_factory = set[ str ] ) )
+
+    def copy( self ) -> __.typx.Self:
+        return type( self )(
+            extras = list( self.extras ),
+            traits = set( self.traits ) )
 
 
 @__.dcls.dataclass( frozen = True, kw_only = True, slots = True )
