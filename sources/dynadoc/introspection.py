@@ -176,13 +176,22 @@ def _filter_reconstitute_annotation(
     # TODO: Apply filters from context, replacing origin as necessary.
     #       E.g., ClassVar -> Union
     #       (Union with one argument returns the argument.)
-    try: annotation = origin[ tuple( arguments_r ) ]
+    try:
+        if origin in ( __.types.UnionType, __.typx.Union ):
+            # Unions cannot be reconstructed from sequences.
+            # TODO: Python 3.11: Unpack into subscript.
+            annotation = __.funct.reduce( __.operator.or_, arguments_r )
+        else:
+            annotation = origin[ tuple( arguments_r ) ]
     except TypeError as exc:
         emessage = (
             f"Cannot reconstruct {origin.__name__!r} "
             f"with reduced annotations for arguments. Reason: {exc}" )
         context.notifier( 'error', emessage )
         return origin
+    # print( annotation )
+    # print( adjuncts )
+    # print( )
     return annotation
 
 

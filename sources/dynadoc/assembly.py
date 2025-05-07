@@ -81,3 +81,7 @@ def with_docstring(
         return objct
 
     return decorate
+
+
+_context = produce_context( notifier = _notification.notify_internal )
+with_docstring( context = _context )( with_docstring ) # pyright: ignore[reportArgumentType]
