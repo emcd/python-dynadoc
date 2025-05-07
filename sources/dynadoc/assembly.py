@@ -35,7 +35,19 @@ from . import nomina as _nomina
 from . import notification as _notification
 
 
-context_default = _interfaces.Context( notifier = _notification.notify )
+def produce_context(
+    localvars: __.typx.Optional[ _nomina.Variables ] = None,
+    globalvars: __.typx.Optional[ _nomina.Variables ] = None,
+    notifier: _interfaces.Notifier = _notification.notify,
+    visibility_predicate: _interfaces.VisibilityPredicate = (
+        _introspection.is_attribute_visible ),
+) -> _interfaces.Context:
+    return _interfaces.Context(
+        notifier = notifier, visibility_predicate = visibility_predicate,
+        localvars = localvars, globalvars = globalvars )
+
+
+context_default = produce_context( )
 formatter_default = _formatters.sphinxrst.produce_fragment
 
 

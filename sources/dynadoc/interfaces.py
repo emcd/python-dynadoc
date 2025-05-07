@@ -59,6 +59,7 @@ class Context:
     ''' Context for annotation evaluation, etc.... '''
 
     notifier: Notifier
+    visibility_predicate: VisibilityPredicate
     localvars: __.typx.Optional[ _nomina.Variables ] = None
     globalvars: __.typx.Optional[ _nomina.Variables ] = None
 
@@ -67,7 +68,7 @@ class Context:
 class InformationBase:
     ''' Base for information on various kinds of entities. '''
 
-    typeform: __.typx.Any
+    annotation: __.typx.Any
     description: __.typx.Optional[ str ]
 
 
@@ -114,3 +115,14 @@ class Notifier( __.typx.Protocol ):
     def __call__(
         level: _nomina.NotificationLevels, message: str
     ) -> None: raise NotImplementedError
+
+
+class VisibilityPredicate( __.typx.Protocol ):
+    ''' Callback to determine attribute visibility. '''
+
+    @staticmethod
+    def __call__(
+        name: str,
+        annotation: __.typx.Any,
+        description: __.typx.Optional[ str ],
+    ) -> bool: raise NotImplementedError

@@ -39,6 +39,12 @@ def introspect(
     return ( )
 
 
+def is_attribute_visible(
+    name: str, annotation: __.typx.Any, description: __.typx.Optional[ str ]
+) -> bool:
+    return bool( description ) or not name.startswith( '_' )
+
+
 def _introspect_class(
     possessor: _nomina.Decoratable, context: _interfaces.Context
 ) -> __.cabc.Sequence[ _interfaces.InformationBase ]:
@@ -48,16 +54,18 @@ def _introspect_class(
     informations: list[ _interfaces.InformationBase ] = [ ]
     for name, annotation in annotations.items( ):
         adjuncts = _interfaces.AdjunctsData( )
-        typeform = _reduce_annotation( annotation, context, adjuncts, set( ) )
+        annotation_ = _reduce_annotation(
+            annotation, context, adjuncts, set( ) )
         description = '\n\n'.join(
             extra.documentation for extra in adjuncts.extras
             if isinstance( extra, _interfaces.Doc ) )
-        on_class = 'ClassVar' in adjuncts.traits
+        if not context.visibility_predicate(name, annotation_, description ):
+            continue
         informations.append( _interfaces.AttributeInformation(
             name = name,
-            typeform = typeform,
+            annotation = annotation_,
             description = description,
-            on_class = on_class ) )
+            on_class = 'ClassVar' in adjuncts.traits ) )
     return tuple( informations )
 
 
@@ -88,16 +96,16 @@ def _introspect_function_return(
 ) -> __.cabc.Sequence[ _interfaces.InformationBase ]:
     informations: list[ _interfaces.InformationBase ] = [ ]
     adjuncts = _interfaces.AdjunctsData( )
-    typeform = _reduce_annotation( annotation, context, adjuncts, set( ) )
+    annotation_ = _reduce_annotation( annotation, context, adjuncts, set( ) )
     description = '\n\n'.join(
         extra.documentation for extra in adjuncts.extras
         if isinstance( extra, _interfaces.Doc ) )
     informations.append(
         _interfaces.ReturnInformation(
-            typeform = typeform, description = description ) )
+            annotation = annotation_, description = description ) )
     informations.extend(
         _interfaces.ExceptionInformation(
-            typeform = extra.classes, description = extra.description )
+            annotation = extra.classes, description = extra.description )
         for extra in adjuncts.extras
         if isinstance( extra, _interfaces.Raises ) )
     return tuple( informations )
@@ -113,13 +121,14 @@ def _introspect_function_valences(
         annotation = annotations.get( name, param.annotation )
         if annotation is param.empty: continue
         adjuncts = _interfaces.AdjunctsData( )
-        typeform = _reduce_annotation( annotation, context, adjuncts, set( ) )
+        annotation_ = _reduce_annotation(
+            annotation, context, adjuncts, set( ) )
         description = '\n\n'.join(
             extra.documentation for extra in adjuncts.extras
             if isinstance( extra, _interfaces.Doc ) )
         informations.append( _interfaces.ArgumentInformation(
             name = name,
-            typeform = typeform,
+            annotation = annotation_,
             description = description,
             paramspec = param ) )
     return tuple( informations )
@@ -156,16 +165,14 @@ def _filter_reconstitute_annotation(
     arguments_r: list[ __.typx.Any ] = [ ]
     match len( arguments ):
         case 1:
-            arguments_r.append( _reduce_annotation_argument(
+            arguments_r.append( _reduce_annotation(
                 arguments[ 0 ], context, adjuncts, visitees ) )
         case _:
             # upward propagation is ambiguous, so sever adjuncts data
             adjuncts_ = _interfaces.AdjunctsData( )
             adjuncts_.traits.add( origin.__name__ )
-            arguments_r.extend(
-                _reduce_annotation_argument(
-                    argument, context, adjuncts_.copy( ), visitees )
-                for argument in arguments )
+            arguments_r.extend( _reduce_annotation_arguments(
+                origin, arguments, context, adjuncts_.copy( ), visitees ) )
     # TODO: Apply filters from context, replacing origin as necessary.
     #       E.g., ClassVar -> Union
     #       (Union with one argument returns the argument.)
@@ -203,15 +210,34 @@ def _reduce_annotation(
         origin, arguments, context, adjuncts, visitees )
 
 
-def _reduce_annotation_argument(
-    annotation: __.typx.Any,
+def _reduce_annotation_arguments(
+    origin: __.typx.Any,
+    arguments: __.cabc.Sequence[ __.typx.Any ],
     context: _interfaces.Context,
     adjuncts: _interfaces.AdjunctsData,
     visitees: set[ __.typx.Any ],
-) -> __.typx.Any:
-    if isinstance( annotation, __.cabc.Sequence ): # Callable, etc...
-        elements: list[ __.typx.Any ] = [
-            _reduce_annotation( element, context, adjuncts, visitees )
-            for element in annotation ] # pyright: ignore[reportUnknownVariableType]
-        return elements
-    return _reduce_annotation( annotation, context, adjuncts, visitees )
+) -> __.cabc.Sequence[ __.typx.Any ]:
+    if issubclass( origin, __.cabc.Callable ):
+        return _reduce_annotation_for_callable(
+            arguments, context, adjuncts.copy( ), visitees )
+    return tuple(
+        _reduce_annotation( argument, context, adjuncts.copy( ), visitees )
+        for argument in arguments )
+
+
+def _reduce_annotation_for_callable(
+    arguments: __.cabc.Sequence[ __.typx.Any ],
+    context: _interfaces.Context,
+    adjuncts: _interfaces.AdjunctsData,
+    visitees: set[ __.typx.Any ],
+) -> tuple[ list[ __.typx.Any ] | __.types.EllipsisType, __.typx.Any ]:
+    farguments, freturn = arguments
+    if farguments is Ellipsis:
+        farguments_r = Ellipsis
+    else:
+        farguments_r = [
+            _reduce_annotation( element, context, adjuncts.copy( ), visitees )
+            for element in farguments ]
+    freturn_r = (
+        _reduce_annotation( freturn, context, adjuncts.copy( ), visitees ) )
+    return ( farguments_r, freturn_r )
