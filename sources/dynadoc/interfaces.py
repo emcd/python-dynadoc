@@ -55,6 +55,42 @@ class AdjunctsData:
 
 
 @__.dcls.dataclass( frozen = True, kw_only = True, slots = True )
+class AnnotationsCache:
+    ''' Lookup table for reduced annotations from original annotations.
+
+        Has special values for absent and incomplete entries.
+    '''
+    # TODO? LFU or LRU cache.
+
+    absent: __.typx.ClassVar[ object ] = object( )
+    incomplete: __.typx.ClassVar[ object ] = object( )
+
+    entries: dict[ __.typx.Any, __.typx.Any ] = (
+        __.dcls.field( default_factory = dict[ __.typx.Any, __.typx.Any ] ) )
+
+    def access( self, original: __.typx.Any ) -> __.typx.Any:
+        ''' Accesses entry value, if it exists.
+
+            Returns absence sentinel if entry does not exist.
+        '''
+        return self.entries.get( original, self.absent )
+
+    def enter(
+        self,
+        original: __.typx.Any,
+        reduction: __.typx.Any = incomplete,
+    ) -> __.typx.Any:
+        ''' Adds reduced annotation to cache, returning it.
+
+            Cache key is original annotation.
+            If reduction is not specified, then an incompletion sentinel is
+            added as the value for the entry.
+        '''
+        self.entries[ original ] = reduction
+        return reduction
+
+
+@__.dcls.dataclass( frozen = True, kw_only = True, slots = True )
 class Context:
     ''' Context for annotation evaluation, etc.... '''
 
