@@ -25,12 +25,15 @@
 
 from __future__ import annotations
 
+import                      builtins
 import collections.abc as   cabc
 import dataclasses as       dcls
 import functools as         funct
 import                      inspect
 import itertools as         itert
 import                      operator
+import                      re
+import                      sys
 import                      types
 import                      warnings
 

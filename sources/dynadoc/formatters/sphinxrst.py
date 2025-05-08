@@ -38,10 +38,67 @@ def produce_fragment(
         for information in informations )
 
 
+_qualident_regex = __.re.compile( r'''^([\w\.]+).*$''' )
+def _extract_qualident( name: str, context: _interfaces.Context ) -> str:
+    extract = _qualident_regex.match( name )
+    if extract is not None: return extract[ 1 ]
+    return '<unknown>'
+
+
 def _format_annotation(
     annotation: __.typx.Any, context: _interfaces.Context
 ) -> str:
-    return 'Exception'
+    if isinstance( annotation, list ):
+        seqstr = ', '.join(
+            _format_annotation( element, context )
+            for element in annotation ) # pyright: ignore[reportUnknownVariableType]
+        return f"[ {seqstr} ]"
+    origin = __.typx.get_origin( annotation )
+    if origin is None:
+        return _qualify_object_name( annotation, context )
+    arguments = __.typx.get_args( annotation )
+    if origin in ( __.types.UnionType, __.typx.Union ):
+        return ' | '.join(
+            _format_annotation( argument, context ) for argument in arguments )
+    oname = _qualify_object_name( origin, context )
+    if not arguments: return oname
+    if origin is __.typx.Literal:
+        argstr = ', '.join( repr( argument ) for argument in arguments )
+    else:
+        argstr = ', '.join(
+            _format_annotation( argument, context ) for argument in arguments )
+    return f"{oname}[ {argstr} ]"
+
+
+def _qualify_object_name(
+    objct: object, context: _interfaces.Context
+) -> str:
+    if objct is Ellipsis: return '...'
+    name = (
+        getattr( objct, '__name__', None )
+        or _extract_qualident( str( objct ), context ) )
+    if name == '<unknown>': return name
+    qname = getattr( objct, '__qualname__', None ) or name
+    name0 = qname.split( '.', maxsplit = 1 )[ 0 ]
+    if name0 in vars( __.builtins ): # Ellipsis, int, etc...
+        return qname
+    if context.globalvars and name0 in context.globalvars:
+        return qname
+    mname = getattr( objct, '__module__', None )
+    if mname: return f"{mname}.{qname}"
+    return name
+
+
+# def _resolve_globalvars(
+#     module_name: str, context: _interfaces.Context
+# ) -> __.cabc.Mapping[ str, __.typx.Any ]:
+#     if context.globalvars is not None:
+#         return context.globalvars
+#     module = __.sys.modules.get( module_name )
+#     if module is None:
+#         emessage = f"Could not access module namespace for {module_name!r}."
+#         context.notifier( 'admonition', emessage )
+#     return vars( module )
 
 
 def _produce_fragment_partial(
