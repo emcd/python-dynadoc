@@ -82,7 +82,7 @@ def _qualify_object_name(
     name0 = qname.split( '.', maxsplit = 1 )[ 0 ]
     if name0 in vars( __.builtins ): # Ellipsis, int, etc...
         return qname
-    if context.globalvars and name0 in context.globalvars:
+    if context.invoker_globals and name0 in context.invoker_globals:
         return qname
     mname = getattr( objct, '__module__', None )
     if mname: return f"{mname}.{qname}"

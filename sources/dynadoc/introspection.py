@@ -148,9 +148,8 @@ def _access_annotations(
     possessor: _nomina.Decoratable, context: _interfaces.Context
 ) -> __.cabc.Mapping[ str, __.typx.Any ]:
     nomargs: _nomina.Variables = dict( eval_str = True )
-    if context:
-        nomargs[ 'locals' ] = context.localvars
-        nomargs[ 'globals' ] = context.globalvars
+    nomargs[ 'locals' ] = context.resolver_locals
+    nomargs[ 'globals' ] = context.resolver_globals
     try:
         return __.types.MappingProxyType(
             __.inspect.get_annotations( possessor, **nomargs ) )

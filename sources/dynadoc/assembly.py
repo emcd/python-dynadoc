@@ -36,15 +36,19 @@ from . import notification as _notification
 
 
 def produce_context(
-    localvars: __.typx.Optional[ _nomina.Variables ] = None,
-    globalvars: __.typx.Optional[ _nomina.Variables ] = None,
+    invoker_globals: __.typx.Optional[ _nomina.Variables ] = None,
+    resolver_globals: __.typx.Optional[ _nomina.Variables ] = None,
+    resolver_locals: __.typx.Optional[ _nomina.Variables ] = None,
     notifier: _interfaces.Notifier = _notification.notify,
     visibility_predicate: _interfaces.VisibilityPredicate = (
         _introspection.is_attribute_visible ),
 ) -> _interfaces.Context:
     return _interfaces.Context(
-        notifier = notifier, visibility_predicate = visibility_predicate,
-        localvars = localvars, globalvars = globalvars )
+        notifier = notifier,
+        visibility_predicate = visibility_predicate,
+        invoker_globals = invoker_globals,
+        resolver_globals = resolver_globals,
+        resolver_locals = resolver_locals )
 
 
 context_default = produce_context( )
@@ -72,11 +76,14 @@ def with_docstring(
             for fragment in fragments )
         if introspect:
             cache = _interfaces.AnnotationsCache( )
+            context_ = (
+                context if context.invoker_globals is not None
+                else context.with_invoker_globals( ) )
             informations = (
                 _introspection.introspect(
-                    objct, context = context, cache = cache ) )
+                    objct, context = context_, cache = cache ) )
             fragments_.append(
-                formatter( objct, informations, context = context ) )
+                formatter( objct, informations, context = context_ ) )
         docstring = '\n\n'.join(
             __.inspect.cleandoc( fragment ) for fragment in fragments_ )
         objct.__doc__ = docstring if docstring else None

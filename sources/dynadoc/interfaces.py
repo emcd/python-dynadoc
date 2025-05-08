@@ -95,8 +95,22 @@ class Context:
 
     notifier: Notifier
     visibility_predicate: VisibilityPredicate
-    localvars: __.typx.Optional[ _nomina.Variables ] = None
-    globalvars: __.typx.Optional[ _nomina.Variables ] = None
+    invoker_globals: __.typx.Optional[ _nomina.Variables ] = None
+    resolver_globals: __.typx.Optional[ _nomina.Variables ] = None
+    resolver_locals: __.typx.Optional[ _nomina.Variables ] = None
+
+    def with_invoker_globals( self, level: int = 2 ) -> __.typx.Self:
+        ''' Returns new context with invoker globals from stack frame.
+
+            By default, the stack frame is that of the caller of the caller.
+        '''
+        iglobals = __.inspect.stack( )[ level ].frame.f_globals
+        return type( self )(
+            notifier = self.notifier,
+            visibility_predicate = self.visibility_predicate,
+            invoker_globals = iglobals,
+            resolver_globals = self.resolver_globals,
+            resolver_locals = self.resolver_locals )
 
 
 @__.dcls.dataclass( frozen = True, kw_only = True, slots = True )
