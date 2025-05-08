@@ -25,7 +25,7 @@ from __future__ import annotations
 
 from .. import interfaces as _interfaces
 from .. import nomina as _nomina
-# from . import __
+from . import __
 
 
 def produce_fragment(
@@ -36,6 +36,12 @@ def produce_fragment(
     return '\n'.join(
         _produce_fragment_partial( possessor, information, context = context )
         for information in informations )
+
+
+def _format_annotation(
+    annotation: __.typx.Any, context: _interfaces.Context
+) -> str:
+    return 'Exception'
 
 
 def _produce_fragment_partial(
@@ -59,7 +65,8 @@ def _produce_fragment_partial(
         return (
             _produce_return_text(
                 possessor, information, context = context ) )
-    # TODO: Warn about unrecognized information.
+    context.notifier(
+        'admonition', f"Unrecognized information: {information!r}" )
     return ''
 
 
@@ -68,8 +75,13 @@ def _produce_argument_text(
     information: _interfaces.ArgumentInformation,
     context: _interfaces.Context,
 ) -> str:
-    # TODO: Implement.
-    return ''
+    typetext = _format_annotation( information.annotation, context )
+    lines: list[ str ] = [ ]
+    if information.description:
+        lines.append(
+            f":argument {information.name}: {information.description}" )
+    lines.append( f":type {information.name}: {typetext}" )
+    return '\n'.join( lines )
 
 
 def _produce_attribute_text(
@@ -77,8 +89,14 @@ def _produce_attribute_text(
     information: _interfaces.AttributeInformation,
     context: _interfaces.Context,
 ) -> str:
-    # TODO: Implement.
-    return ''
+    typetext = _format_annotation( information.annotation, context )
+    vlabel = 'cvar' if information.on_class else 'ivar'
+    lines: list[ str ] = [ ]
+    if information.description:
+        lines.append(
+            f":{vlabel} {information.name}: {information.description}" )
+    lines.append( f":vartype {information.name}: {typetext}" )
+    return '\n'.join( lines )
 
 
 def _produce_exception_text(
@@ -86,8 +104,11 @@ def _produce_exception_text(
     information: _interfaces.ExceptionInformation,
     context: _interfaces.Context,
 ) -> str:
-    # TODO: Implement.
-    return ''
+    # TODO? Iterate over compound annotation and emit separate lines.
+    typetext = _format_annotation( information.annotation, context )
+    lines: list[ str ] = [ ]
+    lines.append( f":raises {typetext}: {information.description}" )
+    return '\n'.join( lines )
 
 
 def _produce_return_text(
@@ -95,5 +116,9 @@ def _produce_return_text(
     information: _interfaces.ReturnInformation,
     context: _interfaces.Context,
 ) -> str:
-    # TODO: Implement.
-    return ''
+    typetext = _format_annotation( information.annotation, context )
+    lines: list[ str ] = [ ]
+    if information.description:
+        lines.append( f":returns: {information.description}" )
+    lines.append( f":rtype: {typetext}" )
+    return '\n'.join( lines )

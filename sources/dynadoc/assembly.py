@@ -75,7 +75,7 @@ def with_docstring(
             informations = (
                 _introspection.introspect(
                     objct, context = context, cache = cache ) )
-            fragments_.extend(
+            fragments_.append(
                 formatter( objct, informations, context = context ) )
         docstring = '\n\n'.join(
             __.inspect.cleandoc( fragment ) for fragment in fragments_ )

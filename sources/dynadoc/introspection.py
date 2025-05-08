@@ -113,7 +113,8 @@ def _introspect_function_return(
             annotation = annotation_, description = description ) )
     informations.extend(
         _interfaces.ExceptionInformation(
-            annotation = extra.classes, description = extra.description )
+            annotation = _classes_sequence_to_union( extra.classes ),
+            description = extra.description )
         for extra in adjuncts.extras
         if isinstance( extra, _interfaces.Raises ) )
     return tuple( informations )
@@ -157,6 +158,14 @@ def _access_annotations(
         emessage = f"Cannot access annotations for {possessor!r}: {exc}"
         context.notifier( 'error', emessage )
         return __.dictproxy_empty
+
+
+def _classes_sequence_to_union(
+    annotation: type | __.cabc.Sequence[ type ]
+) -> __.typx.Any:
+    if not isinstance( annotation, __.cabc.Sequence ):
+        return annotation
+    return __.funct.reduce( __.operator.or_, annotation )
 
 
 def _filter_reconstitute_annotation(
