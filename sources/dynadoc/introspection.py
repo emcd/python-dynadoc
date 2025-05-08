@@ -29,12 +29,14 @@ from . import nomina as _nomina
 
 
 def introspect(
-    possessor: _nomina.Decoratable, context: _interfaces.Context
+    possessor: _nomina.Decoratable,
+    context: _interfaces.Context,
+    cache: _interfaces.AnnotationsCache,
 ) -> __.cabc.Sequence[ _interfaces.InformationBase ]:
     if __.inspect.isclass( possessor ):
-        return _introspect_class( possessor, context )
+        return _introspect_class( possessor, context, cache )
     if __.inspect.isfunction( possessor ) and possessor.__name__ != '<lambda>':
-        return _introspect_function( possessor, context )
+        return _introspect_function( possessor, context, cache )
     # TODO? Other descriptors, like properties.
     return ( )
 
@@ -46,12 +48,13 @@ def is_attribute_visible(
 
 
 def _introspect_class(
-    possessor: _nomina.Decoratable, context: _interfaces.Context
+    possessor: type,
+    context: _interfaces.Context,
+    cache: _interfaces.AnnotationsCache,
 ) -> __.cabc.Sequence[ _interfaces.InformationBase ]:
-    # TODO? Traverse MRO for inheritance.
+    # TODO: Support option to traverse MRO for inheritance.
     annotations = _access_annotations( possessor, context )
     if not annotations: return ( )
-    cache = _interfaces.AnnotationsCache( )
     informations: list[ _interfaces.InformationBase ] = [ ]
     for name, annotation in annotations.items( ):
         adjuncts = _interfaces.AdjunctsData( )
@@ -71,11 +74,12 @@ def _introspect_class(
 
 
 def _introspect_function(
-    possessor: _nomina.Decoratable, context: _interfaces.Context
+    possessor: __.cabc.Callable[ ..., __.typx.Any ],
+    context: _interfaces.Context,
+    cache: _interfaces.AnnotationsCache,
 ) -> __.cabc.Sequence[ _interfaces.InformationBase ]:
     annotations = _access_annotations( possessor, context )
     if not annotations: return ( )
-    cache = _interfaces.AnnotationsCache( )
     informations: list[ _interfaces.InformationBase ] = [ ]
     try: signature = __.inspect.signature( possessor )
     except ValueError as exc:
@@ -209,27 +213,13 @@ def _reduce_annotation(
             f"Annotation with circular reference {annotation!r}; "
             "returning Any." )
         context.notifier( 'admonition', emessage )
-        return __.typx.Any
-    # TODO: Cache must ensure proper adjuncts propagation.
-    # if annotation_r is not cache.absent: return annotation_r
-    cache.enter( annotation )
-    origin = __.typx.get_origin( annotation )
-    # bare types, Ellipsis, typing.Any, typing.LiteralString, typing.Never,
-    # typing.TypeVar have no origin; taken as-is
-    # typing.Literal is considered fully reduced; taken as-is
-    if origin in ( None, __.typx.Literal ):
-        return cache.enter( annotation, annotation )
-    arguments = __.typx.get_args( annotation )
-    if not arguments:
-        return cache.enter( annotation, annotation )
-    if origin is __.typx.Annotated:
-        adjuncts.extras.extend( arguments[ 1 : ] )
-        return _reduce_annotation(
-            annotation.__origin__, context, adjuncts, cache )
+        return cache.enter( annotation, __.typx.Any )
+    # Short-circuit on cache hit.
+    if annotation_r is not cache.absent: return annotation_r
+    cache.enter( annotation ) # mark as incomplete
     return cache.enter(
         annotation,
-        _filter_reconstitute_annotation(
-            origin, arguments, context, adjuncts, cache ) )
+        _reduce_annotation_core( annotation, context, adjuncts, cache ) )
 
 
 def _reduce_annotation_arguments(
@@ -245,6 +235,27 @@ def _reduce_annotation_arguments(
     return tuple(
         _reduce_annotation( argument, context, adjuncts.copy( ), cache )
         for argument in arguments )
+
+
+def _reduce_annotation_core(
+    annotation: __.typx.Any,
+    context: _interfaces.Context,
+    adjuncts: _interfaces.AdjunctsData,
+    cache: _interfaces.AnnotationsCache,
+) -> __.typx.Any:
+    origin = __.typx.get_origin( annotation )
+    # bare types, Ellipsis, typing.Any, typing.LiteralString, typing.Never,
+    # typing.TypeVar have no origin; taken as-is
+    # typing.Literal is considered fully reduced; taken as-is
+    if origin in ( None, __.typx.Literal ): return annotation
+    arguments = __.typx.get_args( annotation )
+    if not arguments: return annotation
+    if origin is __.typx.Annotated:
+        adjuncts.extras.extend( arguments[ 1 : ] )
+        return _reduce_annotation(
+            annotation.__origin__, context, adjuncts, cache )
+    return _filter_reconstitute_annotation(
+        origin, arguments, context, adjuncts, cache )
 
 
 def _reduce_annotation_for_callable(

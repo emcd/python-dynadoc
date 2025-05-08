@@ -71,8 +71,10 @@ def with_docstring(
                 else table[ fragment ] )
             for fragment in fragments )
         if introspect:
+            cache = _interfaces.AnnotationsCache( )
             informations = (
-                _introspection.introspect( objct, context = context ) )
+                _introspection.introspect(
+                    objct, context = context, cache = cache ) )
             fragments_.extend(
                 formatter( objct, informations, context = context ) )
         docstring = '\n\n'.join(

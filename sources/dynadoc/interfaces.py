@@ -60,7 +60,6 @@ class AnnotationsCache:
 
         Has special values for absent and incomplete entries.
     '''
-    # TODO? LFU or LRU cache.
 
     absent: __.typx.ClassVar[ object ] = object( )
     incomplete: __.typx.ClassVar[ object ] = object( )
