@@ -18,12 +18,7 @@
 #============================================================================#
 
 
-''' Foramtters for arguments, attributes, exceptions, and returns. '''
-# TODO: argument species: posonly, positional, nomonly, nominative
-# TODO: attribute species: class, instance
-# TODO: annotation as sequence of classes or special typeform (Any, etc...)
-#       also "indexed classes" (e.g., set[ str ])
-# TODO: genus: exception (from special dynadoc.Exception annotations)
+''' Formatters for arguments, attributes, exceptions, and returns. '''
 
 
 from __future__ import annotations

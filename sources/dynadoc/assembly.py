@@ -62,9 +62,9 @@ def with_docstring(
     introspect: _nomina.WithDocstringIntrospectArgument = True,
     preserve: _nomina.WithDocstringPreserveArgument = True,
     table: _nomina.WithDocstringTableArgument = __.dictproxy_empty,
-) -> _nomina.Decorator:
+) -> _nomina.Decorator[ _nomina.D ]:
     ''' Assembles docstring from fragments and decorates object with it. '''
-    def decorate( objct: _nomina.Decoratable ) -> _nomina.Decoratable:
+    def decorate( objct: _nomina.D ) -> _nomina.D:
         fragments_: list[ str ] = [ ]
         if preserve:
             fragment = __.inspect.getdoc( objct )
@@ -90,7 +90,3 @@ def with_docstring(
         return objct
 
     return decorate
-
-
-_context = produce_context( notifier = _notification.notify_internal )
-with_docstring( context = _context )( with_docstring ) # pyright: ignore[reportArgumentType]

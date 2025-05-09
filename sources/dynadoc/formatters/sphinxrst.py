@@ -70,37 +70,6 @@ def _format_annotation(
     return f"{oname}[ {argstr} ]"
 
 
-def _qualify_object_name(
-    objct: object, context: _interfaces.Context
-) -> str:
-    if objct is Ellipsis: return '...'
-    name = (
-        getattr( objct, '__name__', None )
-        or _extract_qualident( str( objct ), context ) )
-    if name == '<unknown>': return name
-    qname = getattr( objct, '__qualname__', None ) or name
-    name0 = qname.split( '.', maxsplit = 1 )[ 0 ]
-    if name0 in vars( __.builtins ): # Ellipsis, int, etc...
-        return qname
-    if context.invoker_globals and name0 in context.invoker_globals:
-        return qname
-    mname = getattr( objct, '__module__', None )
-    if mname: return f"{mname}.{qname}"
-    return name
-
-
-# def _resolve_globalvars(
-#     module_name: str, context: _interfaces.Context
-# ) -> __.cabc.Mapping[ str, __.typx.Any ]:
-#     if context.globalvars is not None:
-#         return context.globalvars
-#     module = __.sys.modules.get( module_name )
-#     if module is None:
-#         emessage = f"Could not access module namespace for {module_name!r}."
-#         context.notifier( 'admonition', emessage )
-#     return vars( module )
-
-
 def _produce_fragment_partial(
     possessor: _nomina.Decoratable,
     information: _interfaces.InformationBase,
@@ -132,12 +101,12 @@ def _produce_argument_text(
     information: _interfaces.ArgumentInformation,
     context: _interfaces.Context,
 ) -> str:
+    description = information.description or ''
     typetext = _format_annotation( information.annotation, context )
-    lines: list[ str ] = [ ]
-    if information.description:
-        lines.append(
-            f":argument {information.name}: {information.description}" )
-    lines.append( f":type {information.name}: {typetext}" )
+    lines: list[ str ] = [
+        f":argument {information.name}: {description}",
+        f":type {information.name}: {typetext}",
+    ]
     return '\n'.join( lines )
 
 
@@ -146,13 +115,13 @@ def _produce_attribute_text(
     information: _interfaces.AttributeInformation,
     context: _interfaces.Context,
 ) -> str:
+    description = information.description or ''
     typetext = _format_annotation( information.annotation, context )
     vlabel = 'cvar' if information.on_class else 'ivar'
-    lines: list[ str ] = [ ]
-    if information.description:
-        lines.append(
-            f":{vlabel} {information.name}: {information.description}" )
-    lines.append( f":vartype {information.name}: {typetext}" )
+    lines: list[ str ] = [
+        f":{vlabel} {information.name}: {description}",
+        f":vartype {information.name}: {typetext}",
+    ]
     return '\n'.join( lines )
 
 
@@ -161,10 +130,15 @@ def _produce_exception_text(
     information: _interfaces.ExceptionInformation,
     context: _interfaces.Context,
 ) -> str:
-    # TODO? Iterate over compound annotation and emit separate lines.
-    typetext = _format_annotation( information.annotation, context )
     lines: list[ str ] = [ ]
-    lines.append( f":raises {typetext}: {information.description}" )
+    annotation = information.annotation
+    description = information.description or ''
+    if isinstance( annotation, ( __.types.UnionType, __.typx.Union ) ):
+        annotations = __.typx.get_args( annotation )
+    else: annotations = ( annotation, )
+    for annotation_ in annotations:
+        typetext = _format_annotation( annotation_, context )
+        lines.append( f":raises {typetext}: {description}" )
     return '\n'.join( lines )
 
 
@@ -173,9 +147,30 @@ def _produce_return_text(
     information: _interfaces.ReturnInformation,
     context: _interfaces.Context,
 ) -> str:
+    description = information.description or ''
     typetext = _format_annotation( information.annotation, context )
     lines: list[ str ] = [ ]
-    if information.description:
-        lines.append( f":returns: {information.description}" )
+    if description:
+        lines.append( f":returns: {description}" )
     lines.append( f":rtype: {typetext}" )
     return '\n'.join( lines )
+
+
+def _qualify_object_name( # noqa: PLR0911
+    objct: object, context: _interfaces.Context
+) -> str:
+    if objct is Ellipsis: return '...'
+    if objct is __.types.NoneType: return 'None'
+    name = (
+        getattr( objct, '__name__', None )
+        or _extract_qualident( str( objct ), context ) )
+    if name == '<unknown>': return name
+    qname = getattr( objct, '__qualname__', None ) or name
+    name0 = qname.split( '.', maxsplit = 1 )[ 0 ]
+    if name0 in vars( __.builtins ): # int, etc...
+        return qname
+    if context.invoker_globals and name0 in context.invoker_globals:
+        return qname
+    mname = getattr( objct, '__module__', None )
+    if mname: return f"{mname}.{qname}"
+    return name

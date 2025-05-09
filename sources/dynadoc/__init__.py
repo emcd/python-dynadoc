@@ -22,11 +22,15 @@
 
 
 from . import __
+from . import _docfood
+from . import formatters
+from . import interfaces
+from . import introspection
 from . import nomina
 # --- BEGIN: Injected by Copier ---
 # --- END: Injected by Copier ---
 
-from . import assembly
+from .assembly import *
 
 
 __version__ = '1.0a0'

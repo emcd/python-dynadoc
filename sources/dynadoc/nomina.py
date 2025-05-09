@@ -27,12 +27,15 @@ from . import __
 
 
 Decoratable: __.typx.TypeAlias = type | __.cabc.Callable[ ..., __.typx.Any ]
+D = __.typx.TypeVar( 'D', bound = Decoratable )
+
 ClassDecorator: __.typx.TypeAlias = __.cabc.Callable[ [ type ], type ]
 FunctionDecorator: __.typx.TypeAlias = (
     __.cabc.Callable[
         [ __.cabc.Callable[ ..., __.typx.Any ] ],
         __.cabc.Callable[ ..., __.typx.Any ] ] )
-Decorator: __.typx.TypeAlias = ClassDecorator | FunctionDecorator
+# D = __.typx.TypeVar( 'D', ClassDecorator, FunctionDecorator )
+Decorator: __.typx.TypeAlias = __.cabc.Callable[ [ D ], D ]
 Fragment: __.typx.TypeAlias = str |  __.typx.Doc
 FragmentsTable: __.typx.TypeAlias = __.cabc.Mapping[ str, str ]
 NotificationLevels: __.typx.TypeAlias = (

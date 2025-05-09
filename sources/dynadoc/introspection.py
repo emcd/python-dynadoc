@@ -44,7 +44,12 @@ def introspect(
 def is_attribute_visible(
     name: str, annotation: __.typx.Any, description: __.typx.Optional[ str ]
 ) -> bool:
-    return bool( description ) or not name.startswith( '_' )
+    return (
+        bool( description )
+        or not name.startswith( '_' )
+        or (    name.startswith( '__' )
+                and name.endswith( '__' )
+                and len( name ) > 4 ) ) # noqa: PLR2004
 
 
 def _introspect_class(
@@ -195,7 +200,9 @@ def _filter_reconstitute_annotation(
             # TODO: Python 3.11: Unpack into subscript.
             annotation = __.funct.reduce( __.operator.or_, arguments_r )
         else:
-            annotation = origin[ tuple( arguments_r ) ]
+            match len( arguments_r ):
+                case 1: annotation = origin[ arguments_r[ 0 ] ]
+                case _: annotation = origin[ tuple( arguments_r ) ]
     except TypeError as exc:
         emessage = (
             f"Cannot reconstruct {origin.__name__!r} "
@@ -237,7 +244,7 @@ def _reduce_annotation_arguments(
     adjuncts: _interfaces.AdjunctsData,
     cache: _interfaces.AnnotationsCache,
 ) -> __.cabc.Sequence[ __.typx.Any ]:
-    if issubclass( origin, __.cabc.Callable ):
+    if __.inspect.isclass( origin ) and issubclass( origin, __.cabc.Callable ):
         return _reduce_annotation_for_callable(
             arguments, context, adjuncts.copy( ), cache )
     return tuple(
