@@ -152,12 +152,12 @@ def _introspect_function_valences(
 def _access_annotations(
     possessor: _nomina.Decoratable, context: _interfaces.Context
 ) -> __.cabc.Mapping[ str, __.typx.Any ]:
-    nomargs: _nomina.Variables = dict( eval_str = True )
-    nomargs[ 'locals' ] = context.resolver_locals
-    nomargs[ 'globals' ] = context.resolver_globals
+    nomargs: _nomina.Variables = dict( include_extras = True )
+    nomargs[ 'globalns' ] = context.resolver_globals
+    nomargs[ 'localns' ] = context.resolver_locals
     try:
         return __.types.MappingProxyType(
-            __.inspect.get_annotations( possessor, **nomargs ) )
+            __.typx.get_type_hints( possessor, **nomargs ) )
     except TypeError as exc:
         emessage = f"Cannot access annotations for {possessor!r}: {exc}"
         context.notifier( 'error', emessage )
