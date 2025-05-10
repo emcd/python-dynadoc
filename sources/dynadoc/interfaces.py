@@ -32,14 +32,20 @@ except ImportError:
 
     @__.dcls.dataclass( frozen = True, kw_only = True, slots = True )
     class Doc:
-        ''' Description of argument or attribute. '''
+        ''' Description of argument or attribute.
+
+            Compatible with :pep:`727` ``Doc`` objects.
+        '''
 
         documentation: str
 
 
 @__.dcls.dataclass( frozen = True, kw_only = True, slots = True )
 class Raises:
-    ''' Class and description of exception that can be raised. '''
+    ''' Class and description of exception which can be raised.
+
+        Should appear in the return annotations for a function.
+    '''
 
     classes: type[ BaseException ] | __.cabc.Sequence[ type[ BaseException ] ]
     description: __.typx.Optional[ str ] = None

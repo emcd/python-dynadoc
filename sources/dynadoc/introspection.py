@@ -57,7 +57,6 @@ def _introspect_class(
     context: _interfaces.Context,
     cache: _interfaces.AnnotationsCache,
 ) -> __.cabc.Sequence[ _interfaces.InformationBase ]:
-    # TODO: Support option to traverse MRO for inheritance.
     annotations = _access_annotations( possessor, context )
     if not annotations: return ( )
     informations: list[ _interfaces.InformationBase ] = [ ]
@@ -158,10 +157,19 @@ def _access_annotations(
     try:
         return __.types.MappingProxyType(
             __.typx.get_type_hints( possessor, **nomargs ) )
-    except TypeError as exc:
-        emessage = f"Cannot access annotations for {possessor!r}: {exc}"
-        context.notifier( 'error', emessage )
-        return __.dictproxy_empty
+    except TypeError:
+        # Fallback to lower-level resolution which sometimes works better.
+        # Note: No inheritance merges for classes.
+        nomargs = dict( eval_str = True )
+        nomargs[ 'globals' ] = context.resolver_globals
+        nomargs[ 'locals' ] = context.resolver_locals
+        try:
+            return __.types.MappingProxyType(
+                __.inspect.get_annotations( possessor, **nomargs ) )
+        except TypeError as exc:
+            emessage = f"Cannot access annotations for {possessor!r}: {exc}"
+            context.notifier( 'error', emessage )
+            return __.dictproxy_empty
 
 
 def _classes_sequence_to_union(

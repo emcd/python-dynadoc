@@ -59,6 +59,9 @@ WithDocstringIntrospectArgument: __.typx.TypeAlias = __.typx.Annotated[
 WithDocstringPreserveArgument: __.typx.TypeAlias = __.typx.Annotated[
     bool, __.typx.Doc( ''' Preserve extant docstring? ''' )
 ]
+WithDocstringRecurseArgument: __.typx.TypeAlias = __.typx.Annotated[
+    bool, __.typx.Doc( ''' Recursively decorate classes and methods? ''' )
+]
 WithDocstringTableArgument: __.typx.TypeAlias = __.typx.Annotated[
     FragmentsTable,
     __.typx.Doc( ''' Table from which to copy docstring fragments. ''' ),

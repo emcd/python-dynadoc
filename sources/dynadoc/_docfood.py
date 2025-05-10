@@ -41,7 +41,7 @@ from . import notification as _notification
 context = _assembly.produce_context(
     notifier = _notification.notify_internal )
 with_docstring = __.funct.partial(
-    _assembly.with_docstring, context = context )
+    _assembly.with_docstring, context = context, recurse = True )
 
 
 with_docstring( )( _assembly.produce_context )
@@ -49,23 +49,16 @@ with_docstring( )( _assembly.with_docstring )
 
 with_docstring( )( _interfaces.Raises )
 with_docstring( )( _interfaces.AdjunctsData )
-with_docstring( )( _interfaces.AdjunctsData.copy )
 with_docstring( )( _interfaces.AnnotationsCache )
-with_docstring( )( _interfaces.AnnotationsCache.access )
-with_docstring( )( _interfaces.AnnotationsCache.enter )
 with_docstring( )( _interfaces.Context )
-with_docstring( )( _interfaces.Context.with_invoker_globals )
 with_docstring( )( _interfaces.InformationBase )
 with_docstring( )( _interfaces.ArgumentInformation )
 with_docstring( )( _interfaces.AttributeInformation )
 with_docstring( )( _interfaces.ExceptionInformation )
 with_docstring( )( _interfaces.ReturnInformation )
 with_docstring( )( _interfaces.Formatter )
-with_docstring( )( _interfaces.Formatter.__call__ )
 with_docstring( )( _interfaces.Notifier )
-with_docstring( )( _interfaces.Notifier.__call__ )
 with_docstring( )( _interfaces.VisibilityPredicate )
-with_docstring( )( _interfaces.VisibilityPredicate.__call__ )
 
 with_docstring( )( _introspection.introspect )
 with_docstring( )( _introspection.is_attribute_visible )
