@@ -117,13 +117,15 @@ html_static_path = [ '_static' ]
 
 autodoc_default_options = {
     'member-order': 'groupwise',
-    'imported-members': False,
     'inherited-members': True,
     'show-inheritance': True,
-    'undoc-members': True,
+    'special-members': '__call__',
+    # 'undoc-members': True,
 }
 
+# autodoc_docstring_signature = False
 autodoc_typehints = 'none'
+autodoc_use_type_comments = False
 
 # -- Options for intersphinx extension ---------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/extensions/intersphinx.html#configuration

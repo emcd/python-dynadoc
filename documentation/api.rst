@@ -28,8 +28,6 @@ Package ``dynadoc``
 ===============================================================================
 
 .. automodule:: dynadoc
-   :no-members:
-   :no-imported-members:
 
 
 Module ``dynadoc.assembly``
@@ -60,8 +58,6 @@ Subpackage ``dynadoc.formatters``
 ===============================================================================
 
 .. automodule:: dynadoc.formatters
-   :no-members:
-   :no-imported-members:
 
 
 Module ``dynadoc.formatters.sphinxrst``

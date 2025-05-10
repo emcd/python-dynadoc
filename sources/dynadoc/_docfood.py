@@ -32,7 +32,9 @@ from __future__ import annotations
 
 from . import __
 from . import assembly as _assembly
+from . import formatters as _formatters
 from . import interfaces as _interfaces
+from . import introspection as _introspection
 from . import notification as _notification
 
 
@@ -64,3 +66,8 @@ with_docstring( )( _interfaces.Notifier )
 with_docstring( )( _interfaces.Notifier.__call__ )
 with_docstring( )( _interfaces.VisibilityPredicate )
 with_docstring( )( _interfaces.VisibilityPredicate.__call__ )
+
+with_docstring( )( _introspection.introspect )
+with_docstring( )( _introspection.is_attribute_visible )
+
+with_docstring( )( _formatters.sphinxrst.produce_fragment )
