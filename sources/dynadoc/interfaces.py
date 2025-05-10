@@ -23,12 +23,18 @@
 
 from __future__ import annotations
 
-# Note: Can replace typx.Doc with an equivalent in the future,
-#       if support for it disappears from typing extensions.
-from typing_extensions import Doc # noqa: F401
-
 from . import __
 from . import nomina as _nomina
+
+
+try: from typing_extensions import Doc # pyright: ignore[reportAssignmentType]
+except ImportError:
+
+    @__.dcls.dataclass( frozen = True, kw_only = True, slots = True )
+    class Doc:
+        ''' Description of argument or attribute. '''
+
+        documentation: str
 
 
 @__.dcls.dataclass( frozen = True, kw_only = True, slots = True )
