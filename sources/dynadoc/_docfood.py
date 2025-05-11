@@ -41,9 +41,12 @@ from . import notification as _notification
 context = _assembly.produce_context(
     notifier = _notification.notify_internal )
 with_docstring = __.funct.partial(
-    _assembly.with_docstring, context = context, recurse = True )
+    _assembly.with_docstring,
+    context = context,
+    recurse_into = _interfaces.RecursionTargetsSansModule )
 
 
+with_docstring( )( _assembly.assign_module_docstring )
 with_docstring( )( _assembly.produce_context )
 with_docstring( )( _assembly.with_docstring )
 

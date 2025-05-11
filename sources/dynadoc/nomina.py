@@ -27,42 +27,13 @@ from . import __
 
 
 Decoratable: __.typx.TypeAlias = type | __.cabc.Callable[ ..., __.typx.Any ]
+Documentable: __.typx.TypeAlias = __.types.ModuleType | Decoratable
 D = __.typx.TypeVar( 'D', bound = Decoratable )
 
-ClassDecorator: __.typx.TypeAlias = __.cabc.Callable[ [ type ], type ]
-FunctionDecorator: __.typx.TypeAlias = (
-    __.cabc.Callable[
-        [ __.cabc.Callable[ ..., __.typx.Any ] ],
-        __.cabc.Callable[ ..., __.typx.Any ] ] )
-# D = __.typx.TypeVar( 'D', ClassDecorator, FunctionDecorator )
 Decorator: __.typx.TypeAlias = __.cabc.Callable[ [ D ], D ]
 Fragment: __.typx.TypeAlias = str |  __.typx.Doc
 FragmentsTable: __.typx.TypeAlias = __.cabc.Mapping[ str, str ]
+Module: __.typx.TypeAlias = str | __.types.ModuleType
 NotificationLevels: __.typx.TypeAlias = (
     __.typx.Literal[ 'admonition', 'error', 'alert' ] )
 Variables: __.typx.TypeAlias = __.cabc.Mapping[ str, __.typx.Any ]
-
-WithDocstringFragmentsArgument: __.typx.TypeAlias = __.typx.Annotated[
-    Fragment,
-    __.typx.Doc(
-        ''' Fragments from which to produce a docstring.
-
-            If fragment is a string, then it will be used as an index
-            into a table of docstring fragments.
-            If fragment is a :pep:`727` ``Doc`` object, then the value of its
-            ``documentation`` attribute will be incorporated.
-        ''' ),
-]
-WithDocstringIntrospectArgument: __.typx.TypeAlias = __.typx.Annotated[
-    bool, __.typx.Doc( ''' Introspect classes and functions? ''' )
-]
-WithDocstringPreserveArgument: __.typx.TypeAlias = __.typx.Annotated[
-    bool, __.typx.Doc( ''' Preserve extant docstring? ''' )
-]
-WithDocstringRecurseArgument: __.typx.TypeAlias = __.typx.Annotated[
-    bool, __.typx.Doc( ''' Recursively decorate classes and methods? ''' )
-]
-WithDocstringTableArgument: __.typx.TypeAlias = __.typx.Annotated[
-    FragmentsTable,
-    __.typx.Doc( ''' Table from which to copy docstring fragments. ''' ),
-]

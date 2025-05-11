@@ -29,7 +29,7 @@ from . import __
 
 
 def produce_fragment(
-    possessor: _nomina.Decoratable,
+    possessor: _nomina.Documentable,
     informations: _interfaces.Informations,
     context: _interfaces.Context,
 ) -> str:
@@ -71,7 +71,7 @@ def _format_annotation(
 
 
 def _produce_fragment_partial(
-    possessor: _nomina.Decoratable,
+    possessor: _nomina.Documentable,
     information: _interfaces.InformationBase,
     context: _interfaces.Context,
 ) -> str:
@@ -97,7 +97,7 @@ def _produce_fragment_partial(
 
 
 def _produce_argument_text(
-    possessor: _nomina.Decoratable,
+    possessor: _nomina.Documentable,
     information: _interfaces.ArgumentInformation,
     context: _interfaces.Context,
 ) -> str:
@@ -111,7 +111,7 @@ def _produce_argument_text(
 
 
 def _produce_attribute_text(
-    possessor: _nomina.Decoratable,
+    possessor: _nomina.Documentable,
     information: _interfaces.AttributeInformation,
     context: _interfaces.Context,
 ) -> str:
@@ -126,7 +126,7 @@ def _produce_attribute_text(
 
 
 def _produce_exception_text(
-    possessor: _nomina.Decoratable,
+    possessor: _nomina.Documentable,
     information: _interfaces.ExceptionInformation,
     context: _interfaces.Context,
 ) -> str:
@@ -143,7 +143,7 @@ def _produce_exception_text(
 
 
 def _produce_return_text(
-    possessor: _nomina.Decoratable,
+    possessor: _nomina.Documentable,
     information: _interfaces.ReturnInformation,
     context: _interfaces.Context,
 ) -> str:

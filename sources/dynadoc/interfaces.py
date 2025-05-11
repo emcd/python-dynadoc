@@ -163,7 +163,7 @@ class Formatter( __.typx.Protocol ):
 
     @staticmethod
     def __call__(
-        possessor: _nomina.Decoratable,
+        possessor: _nomina.Documentable,
         informations: Informations,
         context: Context,
     ) -> str: raise NotImplementedError
@@ -176,6 +176,20 @@ class Notifier( __.typx.Protocol ):
     def __call__(
         level: _nomina.NotificationLevels, message: str
     ) -> None: raise NotImplementedError
+
+
+class RecursionTargets( __.enum.IntFlag ):
+    ''' Kinds of objects to recursively document. '''
+
+    Null        = 0
+    Class       = __.enum.auto( )
+    Function    = __.enum.auto( )
+    Module      = __.enum.auto( )
+
+RecursionTargetsSansModule = (
+    RecursionTargets.Class | RecursionTargets.Function )
+RecursionTargetsOmni = (
+    RecursionTargetsSansModule | RecursionTargets.Module )
 
 
 class VisibilityPredicate( __.typx.Protocol ):

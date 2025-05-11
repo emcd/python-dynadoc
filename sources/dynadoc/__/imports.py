@@ -28,6 +28,7 @@ from __future__ import annotations
 import                      builtins
 import collections.abc as   cabc
 import dataclasses as       dcls
+import                      enum
 import functools as         funct
 import                      inspect
 import itertools as         itert

@@ -29,7 +29,7 @@ from . import nomina as _nomina
 
 
 def introspect(
-    possessor: _nomina.Decoratable,
+    possessor: _nomina.Documentable,
     context: _interfaces.Context,
     cache: _interfaces.AnnotationsCache,
 ) -> __.cabc.Sequence[ _interfaces.InformationBase ]:
@@ -37,6 +37,7 @@ def introspect(
         return _introspect_class( possessor, context, cache )
     if __.inspect.isfunction( possessor ) and possessor.__name__ != '<lambda>':
         return _introspect_function( possessor, context, cache )
+    # TODO: module
     # TODO? Other descriptors, like properties.
     return ( )
 
