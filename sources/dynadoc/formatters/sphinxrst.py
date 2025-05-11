@@ -149,6 +149,7 @@ def _produce_return_text(
     information: _interfaces.ReturnInformation,
     context: _interfaces.Context,
 ) -> str:
+    if information.annotation in ( None, __.types.NoneType ): return ''
     description = information.description or ''
     typetext = _format_annotation( information.annotation, context )
     lines: list[ str ] = [ ]
