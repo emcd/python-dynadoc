@@ -107,6 +107,7 @@ class Context:
 
     notifier: Notifier
     visibility_predicate: VisibilityPredicate
+    fragments_name: str = '_dynadoc_fragments_'
     invoker_globals: __.typx.Optional[ _nomina.Variables ] = None
     resolver_globals: __.typx.Optional[ _nomina.Variables ] = None
     resolver_locals: __.typx.Optional[ _nomina.Variables ] = None
@@ -120,6 +121,7 @@ class Context:
         return type( self )(
             notifier = self.notifier,
             visibility_predicate = self.visibility_predicate,
+            fragments_name = self.fragments_name,
             invoker_globals = iglobals,
             resolver_globals = self.resolver_globals,
             resolver_locals = self.resolver_locals )

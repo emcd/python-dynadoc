@@ -225,8 +225,15 @@ def _decorate_class_attributes( # noqa: PLR0913
             targets = recurse_into,
             mname = objct.__module__, qname = objct.__qualname__ ) )
     members = __.inspect.getmembers( objct, predicate )
-    for _, member in members:
-        # TODO: Inspect '_dynadoc_fragments_' on attribute, if exists.
+    for name, member in members:
+        fragments: __.cabc.Sequence[ __.typx.Any ] = (
+            getattr( member, context.fragments_name, ( ) ) )
+        if not isinstance( fragments, __.cabc.Sequence ):
+            emessage = (
+                "Invalid fragments sequence "
+                f"on {objct.__module__}.{objct.__qualname__}.{name}." )
+            context.notifier( 'error', emessage )
+            fragments = ( )
         _decorate(
             member,
             context = context,
@@ -234,7 +241,7 @@ def _decorate_class_attributes( # noqa: PLR0913
             introspect = introspect,
             preserve = preserve,
             recurse_into = recurse_into,
-            fragments = ( ),
+            fragments = fragments,
             table = table )
 
 
@@ -252,8 +259,14 @@ def _decorate_module_attributes( # noqa: PLR0913
             _is_decoratable_module_attribute,
             targets = recurse_into, mname = module.__name__ ) )
     members = __.inspect.getmembers( module, predicate )
-    for _, member in members:
-        # TODO: Inspect '_dynadoc_fragments_' on attribute, if exists.
+    for name, member in members:
+        fragments: __.cabc.Sequence[ __.typx.Any ] = (
+            getattr( member, context.fragments_name, ( ) ) )
+        if not isinstance( fragments, __.cabc.Sequence ):
+            emessage = (
+                f"Invalid fragments sequence on {module.__name__}.{name}." )
+            context.notifier( 'error', emessage )
+            fragments = ( )
         _decorate(
             member,
             context = context,
@@ -261,7 +274,7 @@ def _decorate_module_attributes( # noqa: PLR0913
             introspect = introspect,
             preserve = preserve,
             recurse_into = recurse_into,
-            fragments = ( ),
+            fragments = fragments,
             table = table )
 
 
