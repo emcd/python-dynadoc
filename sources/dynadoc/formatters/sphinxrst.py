@@ -117,7 +117,9 @@ def _produce_attribute_text(
 ) -> str:
     description = information.description or ''
     typetext = _format_annotation( information.annotation, context )
-    vlabel = 'cvar' if information.on_class else 'ivar'
+    vlabel = (
+        ( 'cvar' if information.on_class else 'ivar' )
+        if __.inspect.isclass( possessor ) else 'var' )
     lines: list[ str ] = [
         f":{vlabel} {information.name}: {description}",
         f":vartype {information.name}: {typetext}",

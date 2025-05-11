@@ -23,9 +23,6 @@
 #       Registers with_docstring partial function in registry.
 #       Registry can be executed after modules are loaded and all string
 #       annotations should be resolvable.
-# TODO: assign_module_docstring
-#       Recursion option for module tree of package.
-#       Uses _decorate_module_members.
 
 
 from __future__ import annotations
@@ -225,6 +222,7 @@ def _decorate_class_attributes( # noqa: PLR0913
     predicate = (
         __.funct.partial(
             _is_decoratable_class_attribute,
+            targets = recurse_into,
             mname = objct.__module__, qname = objct.__qualname__ ) )
     members = __.inspect.getmembers( objct, predicate )
     for _, member in members:
@@ -251,7 +249,8 @@ def _decorate_module_attributes( # noqa: PLR0913
 ) -> None:
     predicate = (
         __.funct.partial(
-            _is_decoratable_module_attribute, mname = module.__name__ ) )
+            _is_decoratable_module_attribute,
+            targets = recurse_into, mname = module.__name__ ) )
     members = __.inspect.getmembers( module, predicate )
     for _, member in members:
         # TODO: Inspect '_dynadoc_fragments_' on attribute, if exists.
@@ -266,32 +265,43 @@ def _decorate_module_attributes( # noqa: PLR0913
             table = table )
 
 
-def _is_decoratable_class_attribute( # noqa: PLR0911
-    objct: object, mname: str, qname: str
+def _is_decoratable_class_attribute(
+    objct: object, /,
+    targets: _interfaces.RecursionTargets,
+    mname: str, qname: str,
 ) -> bool:
-    # TODO: Consider 'recurse_into' flags.
+    if (    targets & _interfaces.RecursionTargets.Module
+        and __.inspect.ismodule( objct )
+    ): return objct.__name__.startswith( f"{mname}." )
     if not callable( objct ): return False
     mname_ = getattr( objct, '__module__', None )
     if mname_ and mname != mname_: return False
     qname_ = getattr( objct, '__qualname__', None )
     if qname_ and not qname_.startswith( f"{qname}." ): return False
-    if __.inspect.isclass( objct ): return True
-    if __.inspect.isfunction( objct ): return objct.__name__ != '<lambda>'
-    if __.inspect.isbuiltin( objct ): return False
     # TODO: Handle method descriptors, etc....
-    return False
+    return _is_decoratable_core( objct, targets )
 
 
-def _is_decoratable_module_attribute( # noqa: PLR0911
-    objct: object, mname: str
+def _is_decoratable_module_attribute(
+    objct: object, /, targets: _interfaces.RecursionTargets, mname: str
 ) -> bool:
-    # TODO: Consider 'recurse_into' flags.
-    if __.inspect.ismodule( objct ):
-        return objct.__name__.startswith( f"{mname}." )
+    if (    targets & _interfaces.RecursionTargets.Module
+        and __.inspect.ismodule( objct )
+    ): return objct.__name__.startswith( f"{mname}." )
     if not callable( objct ): return False
     mname_ = getattr( objct, '__module__', None )
     if mname_ and mname != mname_: return False
-    if __.inspect.isclass( objct ): return True
-    if __.inspect.isfunction( objct ): return objct.__name__ != '<lambda>'
+    return _is_decoratable_core( objct, targets )
+
+
+def _is_decoratable_core(
+    objct: object, /, targets: _interfaces.RecursionTargets
+) -> bool:
+    if (    targets & _interfaces.RecursionTargets.Class
+        and __.inspect.isclass( objct )
+    ): return True
+    if (    targets & _interfaces.RecursionTargets.Function
+        and __.inspect.isfunction( objct )
+    ): return objct.__name__ != '<lambda>'
     if __.inspect.isbuiltin( objct ): return False
     return False

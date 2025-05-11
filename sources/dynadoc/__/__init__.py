@@ -28,3 +28,4 @@ T = typx.TypeVar( 'T' )
 
 
 dictproxy_empty: cabc.Mapping[ str, str ] = types.MappingProxyType( { } )
+package_name = __name__.split( '.', maxsplit = 1 )[ 0 ]

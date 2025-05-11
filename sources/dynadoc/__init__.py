@@ -22,10 +22,10 @@
 
 
 from . import __
-from . import _docfood
 from . import formatters
 from . import introspection
 from . import nomina
+from . import notification
 # --- BEGIN: Injected by Copier ---
 # --- END: Injected by Copier ---
 
@@ -36,4 +36,10 @@ from .interfaces import *
 __version__ = '1.0a0'
 
 
+_context = assembly.produce_context(
+    notifier = notification.notify_internal )
+assembly.assign_module_docstring(
+    __.package_name,
+    context = _context,
+    recurse_into = interfaces.RecursionTargetsOmni )
 # TODO: Reclassify package modules as immutable and concealed.
