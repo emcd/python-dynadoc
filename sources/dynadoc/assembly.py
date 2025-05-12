@@ -194,7 +194,8 @@ def _decorate_core( # noqa: PLR0913
         fragment = __.inspect.getdoc( objct )
         if fragment: fragments_.append( fragment )
     fragments_.extend(
-        (   fragment.documentation
+        __.inspect.cleandoc(
+            fragment.documentation
             if isinstance( fragment, __.typx.Doc )
             else table[ fragment ] )
         for fragment in fragments )
@@ -206,7 +207,7 @@ def _decorate_core( # noqa: PLR0913
         fragments_.append(
             formatter( objct, informations, context = context ) )
     docstring = '\n\n'.join(
-        __.inspect.cleandoc( fragment ) for fragment in fragments_ )
+        fragment for fragment in filter( None, fragments_ ) ).rstrip( )
     objct.__doc__ = docstring if docstring else None
 
 

@@ -24,6 +24,7 @@
 from __future__ import annotations
 
 from .. import interfaces as _interfaces
+from .. import introspection as _introspection
 from .. import nomina as _nomina
 from . import __
 
@@ -115,15 +116,43 @@ def _produce_attribute_text(
     information: _interfaces.AttributeInformation,
     context: _interfaces.Context,
 ) -> str:
+    annotation = information.annotation
     description = information.description or ''
-    typetext = _format_annotation( information.annotation, context )
-    vlabel = (
-        ( 'cvar' if information.on_class else 'ivar' )
-        if __.inspect.isclass( possessor ) else 'var' )
-    lines: list[ str ] = [
-        f":{vlabel} {information.name}: {description}",
-        f":vartype {information.name}: {typetext}",
-    ]
+    name = information.name
+    typetext = _format_annotation( annotation, context )
+    match information.association:
+        case _interfaces.AttributeAssociation.Module: vlabel = 'var'
+        case _interfaces.AttributeAssociation.Class: vlabel = 'cvar'
+        case _interfaces.AttributeAssociation.Instance: vlabel = 'ivar'
+    lines: list[ str ] = [ ]
+    if vlabel in ( 'cvar', 'ivar' ):
+        lines.extend( [
+            f":{vlabel} {name}: {description}",
+            f":vartype {name}: {typetext}",
+        ] )
+    elif annotation is __.typx.TypeAlias:
+        value_a = getattr( possessor, name )
+        value_ar = _introspection.reduce_annotation(
+            value_a, context,
+            _interfaces.AdjunctsData( ),
+            _interfaces.AnnotationsCache( ) )
+        value_s = _format_annotation( value_ar, context )
+        lines.extend( [
+            f".. py:type:: {name}",
+            f"   :canonical: {value_s}",
+            '',
+            f"   {description}",
+        ] )
+    # Note: No way to inject data docstring as of 2025-05-11.
+    #       Autodoc will read doc comments and pseudo-docstrings,
+    #       but we have no means of supplying description via a field.
+    # else:
+    #     lines.extend( [
+    #         f".. autodata:: {name}",
+    #         # f".. py:data:: {name}",
+    #         # f"   :type: {typetext}",
+    #         # TODO: ':value:' <- value
+    #     ] )
     return '\n'.join( lines )
 
 
@@ -164,6 +193,7 @@ def _qualify_object_name( # noqa: PLR0911
 ) -> str:
     if objct is Ellipsis: return '...'
     if objct is __.types.NoneType: return 'None'
+    if objct is __.types.ModuleType: return 'types.ModuleType'
     name = (
         getattr( objct, '__name__', None )
         or _extract_qualident( str( objct ), context ) )

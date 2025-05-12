@@ -101,6 +101,13 @@ class AnnotationsCache:
         return reduction
 
 
+class AttributeAssociation( __.enum.Enum ):
+
+    Module      = __.enum.auto( )
+    Class       = __.enum.auto( )
+    Instance    = __.enum.auto( )
+
+
 @__.dcls.dataclass( frozen = True, kw_only = True, slots = True )
 class Context:
     ''' Context for annotation evaluation, etc.... '''
@@ -146,7 +153,7 @@ class ArgumentInformation( InformationBase ):
 class AttributeInformation( InformationBase ):
 
     name: str
-    on_class: bool
+    association: AttributeAssociation
 
 
 @__.dcls.dataclass( frozen = True, kw_only = True, slots = True )

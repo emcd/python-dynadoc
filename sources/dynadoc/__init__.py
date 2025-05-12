@@ -33,6 +33,7 @@ from .assembly import *
 from .interfaces import *
 
 
+__version__: str
 __version__ = '1.0a0'
 
 
