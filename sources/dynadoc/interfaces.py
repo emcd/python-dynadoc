@@ -23,6 +23,8 @@
 
 from __future__ import annotations
 
+import typing as _typing  # https://github.com/python/cpython/issues/133956
+
 from . import __
 from . import nomina as _nomina
 
@@ -73,8 +75,9 @@ class AnnotationsCache:
         Has special values for absent and incomplete entries.
     '''
 
-    absent: __.typx.ClassVar[ object ] = object( )
-    incomplete: __.typx.ClassVar[ object ] = object( )
+    # https://github.com/python/cpython/issues/133956
+    absent: _typing.ClassVar[ object ] = object( )
+    incomplete: _typing.ClassVar[ object ] = object( )
 
     entries: dict[ __.typx.Any, __.typx.Any ] = (
         __.dcls.field( default_factory = dict[ __.typx.Any, __.typx.Any ] ) )
