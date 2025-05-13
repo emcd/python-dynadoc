@@ -204,6 +204,19 @@ RecursionTargetsOmni = (
     RecursionTargetsSansModule | RecursionTargets.Module )
 
 
+class Visibility( __.enum.Enum ):
+    ''' Annotation to determine visibility of attribute.
+
+        Default means to defer to visibility predicate in use.
+        Conceal means to hide regardless of visibility predicate.
+        Reveal means to show regardless of visibility predicate.
+    '''
+
+    Default     = __.enum.auto( )
+    Conceal     = __.enum.auto( )
+    Reveal      = __.enum.auto( )
+
+
 class VisibilityPredicate( __.typx.Protocol ):
     ''' Callback to determine attribute visibility. '''
 

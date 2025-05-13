@@ -93,8 +93,9 @@ def _introspect_class(
         description = '\n\n'.join(
             extra.documentation for extra in adjuncts.extras
             if isinstance( extra, _interfaces.Doc ) )
-        if not context.visibility_predicate(name, annotation_, description ):
-            continue
+        if not _is_attribute_visible(
+            name, annotation_, context, adjuncts, description
+        ): continue
         association = (
             _interfaces.AttributeAssociation.Class
             if 'ClassVar' in adjuncts.traits
@@ -146,8 +147,9 @@ def _introspect_module(
         description = '\n\n'.join(
             extra.documentation for extra in adjuncts.extras
             if isinstance( extra, _interfaces.Doc ) )
-        if not context.visibility_predicate(name, annotation_, description ):
-            continue
+        if not _is_attribute_visible(
+            name, annotation_, context, adjuncts, description
+        ): continue
         informations.append( _interfaces.AttributeInformation(
             name = name,
             annotation = annotation_,
@@ -263,10 +265,27 @@ def _filter_reconstitute_annotation(
             f"with reduced annotations for arguments. Reason: {exc}" )
         context.notifier( 'error', emessage )
         return origin
-    # print( annotation )
-    # print( adjuncts )
-    # print( )
     return annotation
+
+
+def _is_attribute_visible(
+    name: str,
+    annotation: __.typx.Any,
+    context: _interfaces.Context,
+    adjuncts: _interfaces.AdjunctsData,
+    description: __.typx.Optional[ str ],
+) -> bool:
+    visibility = next(
+        (   extra for extra in adjuncts.extras
+            if isinstance( extra, _interfaces.Visibility ) ),
+        _interfaces.Visibility.Default )
+    match visibility:
+        case _interfaces.Visibility.Conceal: return False
+        case _interfaces.Visibility.Reveal: return True
+        case _:
+            return (
+                context.visibility_predicate(
+                    name, annotation, description ) )
 
 
 def _reduce_annotation_arguments(
