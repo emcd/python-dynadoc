@@ -37,6 +37,7 @@ import                      re
 import                      sys
 import                      types
 import                      warnings
+import                      weakref
 
 from pathlib import Path
 

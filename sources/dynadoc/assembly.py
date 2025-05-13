@@ -62,6 +62,9 @@ WithDocstringTableArgument: __.typx.TypeAlias = __.typx.Annotated[
 ]
 
 
+_visitees: __.weakref.WeakSet[ _nomina.Documentable ] = __.weakref.WeakSet( )
+
+
 def produce_context(
     invoker_globals: __.typx.Optional[ _nomina.Variables ] = None,
     resolver_globals: __.typx.Optional[ _nomina.Variables ] = None,
@@ -151,6 +154,8 @@ def _decorate( # noqa: PLR0913
     fragments: __.cabc.Sequence[ _nomina.Fragment ],
     table: _nomina.FragmentsTable,
 ) -> None:
+    if objct in _visitees: return # Prevent multiple decoration.
+    _visitees.add( objct )
     if recurse_into:
         if __.inspect.isclass( objct ):
             _decorate_class_attributes(
