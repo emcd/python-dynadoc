@@ -48,10 +48,8 @@ def is_attribute_visible(
 ) -> bool:
     return (
         bool( description )
-        or not name.startswith( '_' )
-        or (    name.startswith( '__' )
-                and name.endswith( '__' )
-                and len( name ) > 4 ) ) # noqa: PLR2004
+        or ( name.startswith( '__' ) and name.endswith( '__' ) )
+        or not name.startswith( '_' ) )
 
 
 def reduce_annotation(
@@ -81,7 +79,11 @@ def _introspect_class(
     context: _interfaces.Context,
     cache: _interfaces.AnnotationsCache,
 ) -> __.cabc.Sequence[ _interfaces.InformationBase ]:
-    annotations = _access_annotations( possessor, context )
+    annotations: dict[ str, __.typx.Any ] = { }
+    # Descendant annotations override ancestor annotations.
+    for class_ in reversed( possessor.__mro__ ):
+        annotations_b = _access_annotations( class_, context )
+        annotations.update( annotations_b )
     if not annotations: return ( )
     informations: list[ _interfaces.InformationBase ] = [ ]
     for name, annotation in annotations.items( ):
@@ -134,16 +136,7 @@ def _introspect_module(
     context: _interfaces.Context,
     cache: _interfaces.AnnotationsCache,
 ) -> __.cabc.Sequence[ _interfaces.InformationBase ]:
-    nomargs: _nomina.Variables = dict( eval_str = True )
-    nomargs[ 'globals' ] = context.resolver_globals
-    nomargs[ 'locals' ] = context.resolver_locals
-    try:
-        annotations = __.types.MappingProxyType(
-            __.inspect.get_annotations( possessor, **nomargs ) )
-    except TypeError as exc:
-        emessage = f"Cannot access annotations for {possessor!r}: {exc}"
-        context.notifier( 'error', emessage )
-        annotations = ( )
+    annotations = _access_annotations( possessor, context )
     if not annotations: return ( )
     informations: list[ _interfaces.InformationBase ] = [ ]
     for name, annotation in annotations.items( ):
@@ -211,27 +204,18 @@ def _introspect_function_valences(
 
 
 def _access_annotations(
-    possessor: _nomina.Decoratable, context: _interfaces.Context
+    possessor: _nomina.Documentable, context: _interfaces.Context
 ) -> __.cabc.Mapping[ str, __.typx.Any ]:
-    nomargs: _nomina.Variables = dict( include_extras = True )
-    nomargs[ 'globalns' ] = context.resolver_globals
-    nomargs[ 'localns' ] = context.resolver_locals
+    nomargs: _nomina.Variables = dict( eval_str = True )
+    nomargs[ 'globals' ] = context.resolver_globals
+    nomargs[ 'locals' ] = context.resolver_locals
     try:
         return __.types.MappingProxyType(
-            __.typx.get_type_hints( possessor, **nomargs ) )
-    except TypeError:
-        # Fallback to lower-level resolution which sometimes works better.
-        # Note: No inheritance merges for classes.
-        nomargs = dict( eval_str = True )
-        nomargs[ 'globals' ] = context.resolver_globals
-        nomargs[ 'locals' ] = context.resolver_locals
-        try:
-            return __.types.MappingProxyType(
-                __.inspect.get_annotations( possessor, **nomargs ) )
-        except TypeError as exc:
-            emessage = f"Cannot access annotations for {possessor!r}: {exc}"
-            context.notifier( 'error', emessage )
-            return __.dictproxy_empty
+            __.inspect.get_annotations( possessor, **nomargs ) )
+    except TypeError as exc:
+        emessage = f"Cannot access annotations for {possessor!r}: {exc}"
+        context.notifier( 'error', emessage )
+        return __.dictproxy_empty
 
 
 def _classes_sequence_to_union(
