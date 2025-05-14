@@ -208,7 +208,8 @@ def _decorate_core( # noqa: PLR0913
         fragment = __.inspect.getdoc( objct )
         if fragment: fragments_.append( fragment )
     fragments_.extend(
-        __.inspect.cleandoc(
+        # __.inspect.cleandoc(
+        (
             fragment.documentation
             if isinstance( fragment, _interfaces.Doc )
             else table[ fragment ] )
@@ -241,6 +242,8 @@ def _decorate_class_attributes( # noqa: PLR0913
             mname = objct.__module__, qname = objct.__qualname__ ) )
     members = __.inspect.getmembers( objct, predicate )
     for name, member in members:
+        # Methods proxy their docstrings from their core functions.
+        target = member.__func__ if __.inspect.ismethod( member ) else member
         fragments: __.cabc.Sequence[ __.typx.Any ] = (
             getattr( member, context.fragments_name, ( ) ) )
         if not isinstance( fragments, __.cabc.Sequence ):
@@ -250,7 +253,7 @@ def _decorate_class_attributes( # noqa: PLR0913
             context.notifier( 'error', emessage )
             fragments = ( )
         _decorate(
-            member,
+            target,
             context = context,
             formatter = formatter,
             introspect = introspect,
@@ -299,12 +302,14 @@ def _is_decoratable_class_attribute(
     mname: str, qname: str,
 ) -> bool:
     if _check_module_recursion( objct, targets, mname ): return True
-    # TODO: Handle method descriptors, etc....
     if not callable( objct ): return False
     mname_ = getattr( objct, '__module__', None )
     if mname_ and mname != mname_: return False
     qname_ = getattr( objct, '__qualname__', None )
     if qname_ and not qname_.startswith( f"{qname}." ): return False
+    if (    targets & _interfaces.RecursionTargets.Function
+        and __.inspect.ismethod( objct )
+    ): return True
     return _is_decoratable_core( objct, targets )
 
 
