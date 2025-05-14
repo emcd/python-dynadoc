@@ -29,6 +29,9 @@ from . import __
 from . import nomina as _nomina
 
 
+_fragments_name_default = '_dynadoc_fragments_'
+
+
 try: from typing_extensions import Doc # pyright: ignore[reportAssignmentType]
 except ImportError:
 
@@ -117,7 +120,7 @@ class Context:
 
     notifier: Notifier
     visibility_predicate: VisibilityPredicate
-    fragments_name: str = '_dynadoc_fragments_'
+    fragments_name: str = _fragments_name_default
     invoker_globals: __.typx.Optional[ _nomina.Variables ] = None
     resolver_globals: __.typx.Optional[ _nomina.Variables ] = None
     resolver_locals: __.typx.Optional[ _nomina.Variables ] = None

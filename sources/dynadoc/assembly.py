@@ -144,6 +144,15 @@ def with_docstring( # noqa: PLR0913
     return decorate
 
 
+def _check_module_recursion(
+    objct: object, /, targets: _interfaces.RecursionTargets, mname: str
+) -> bool:
+    if (    targets & _interfaces.RecursionTargets.Module
+        and __.inspect.ismodule( objct )
+    ): return objct.__name__.startswith( f"{mname}." )
+    return False
+
+
 def _decorate( # noqa: PLR0913
     objct: _nomina.Documentable, /,
     context: _interfaces.Context,
@@ -289,24 +298,20 @@ def _is_decoratable_class_attribute(
     targets: _interfaces.RecursionTargets,
     mname: str, qname: str,
 ) -> bool:
-    if (    targets & _interfaces.RecursionTargets.Module
-        and __.inspect.ismodule( objct )
-    ): return objct.__name__.startswith( f"{mname}." )
+    if _check_module_recursion( objct, targets, mname ): return True
+    # TODO: Handle method descriptors, etc....
     if not callable( objct ): return False
     mname_ = getattr( objct, '__module__', None )
     if mname_ and mname != mname_: return False
     qname_ = getattr( objct, '__qualname__', None )
     if qname_ and not qname_.startswith( f"{qname}." ): return False
-    # TODO: Handle method descriptors, etc....
     return _is_decoratable_core( objct, targets )
 
 
 def _is_decoratable_module_attribute(
     objct: object, /, targets: _interfaces.RecursionTargets, mname: str
 ) -> bool:
-    if (    targets & _interfaces.RecursionTargets.Module
-        and __.inspect.ismodule( objct )
-    ): return objct.__name__.startswith( f"{mname}." )
+    if _check_module_recursion( objct, targets, mname ): return True
     if not callable( objct ): return False
     mname_ = getattr( objct, '__module__', None )
     if mname_ and mname != mname_: return False
@@ -322,5 +327,4 @@ def _is_decoratable_core(
     if (    targets & _interfaces.RecursionTargets.Function
         and __.inspect.isfunction( objct )
     ): return objct.__name__ != '<lambda>'
-    if __.inspect.isbuiltin( objct ): return False
     return False
