@@ -32,13 +32,14 @@ def introspect(
     possessor: _nomina.Documentable,
     context: _interfaces.Context,
     cache: _interfaces.AnnotationsCache,
+    table: _nomina.FragmentsTable,
 ) -> __.cabc.Sequence[ _interfaces.InformationBase ]:
     if __.inspect.isclass( possessor ):
-        return _introspect_class( possessor, context, cache )
+        return _introspect_class( possessor, context, cache, table )
     if __.inspect.isfunction( possessor ) and possessor.__name__ != '<lambda>':
-        return _introspect_function( possessor, context, cache )
+        return _introspect_function( possessor, context, cache, table )
     if __.inspect.ismodule( possessor ):
-        return _introspect_module( possessor, context, cache )
+        return _introspect_module( possessor, context, cache, table )
     # TODO? Additional descriptors, like properties.
     return ( )
 
@@ -74,137 +75,6 @@ def reduce_annotation(
         _reduce_annotation_core( annotation, context, adjuncts, cache ) )
 
 
-def _introspect_class(
-    possessor: type,
-    context: _interfaces.Context,
-    cache: _interfaces.AnnotationsCache,
-) -> __.cabc.Sequence[ _interfaces.InformationBase ]:
-    annotations: dict[ str, __.typx.Any ] = { }
-    # Descendant annotations override ancestor annotations.
-    for class_ in reversed( possessor.__mro__ ):
-        annotations_b = _access_annotations( class_, context )
-        annotations.update( annotations_b )
-    if not annotations: return ( )
-    informations: list[ _interfaces.InformationBase ] = [ ]
-    for name, annotation in annotations.items( ):
-        adjuncts = _interfaces.AdjunctsData( )
-        annotation_ = reduce_annotation(
-            annotation, context, adjuncts, cache )
-        description = '\n\n'.join(
-            extra.documentation for extra in adjuncts.extras
-            if isinstance( extra, _interfaces.Doc ) )
-        if not _is_attribute_visible(
-            name, annotation_, context, adjuncts, description
-        ): continue
-        association = (
-            _interfaces.AttributeAssociation.Class
-            if 'ClassVar' in adjuncts.traits
-            else _interfaces.AttributeAssociation.Instance )
-        informations.append( _interfaces.AttributeInformation(
-            name = name,
-            annotation = annotation_,
-            description = description,
-            association = association ) )
-    return tuple( informations )
-
-
-def _introspect_function(
-    possessor: __.cabc.Callable[ ..., __.typx.Any ],
-    context: _interfaces.Context,
-    cache: _interfaces.AnnotationsCache,
-) -> __.cabc.Sequence[ _interfaces.InformationBase ]:
-    annotations = _access_annotations( possessor, context )
-    if not annotations: return ( )
-    informations: list[ _interfaces.InformationBase ] = [ ]
-    try: signature = __.inspect.signature( possessor )
-    except ValueError as exc:
-        context.notifier(
-            'error',
-            f"Could not assess signature for {possessor.__qualname__!r}. "
-            f"Reason: {exc}" )
-        return ( )
-    if signature.parameters:
-        informations.extend( _introspect_function_valences(
-            annotations, signature, context, cache ) )
-    if 'return' in annotations:
-        informations.extend( _introspect_function_return(
-            annotations[ 'return' ], context, cache ) )
-    return tuple( informations )
-
-
-def _introspect_module(
-    possessor: __.types.ModuleType,
-    context: _interfaces.Context,
-    cache: _interfaces.AnnotationsCache,
-) -> __.cabc.Sequence[ _interfaces.InformationBase ]:
-    annotations = _access_annotations( possessor, context )
-    if not annotations: return ( )
-    informations: list[ _interfaces.InformationBase ] = [ ]
-    for name, annotation in annotations.items( ):
-        adjuncts = _interfaces.AdjunctsData( )
-        annotation_ = reduce_annotation(
-            annotation, context, adjuncts, cache )
-        description = '\n\n'.join(
-            extra.documentation for extra in adjuncts.extras
-            if isinstance( extra, _interfaces.Doc ) )
-        if not _is_attribute_visible(
-            name, annotation_, context, adjuncts, description
-        ): continue
-        informations.append( _interfaces.AttributeInformation(
-            name = name,
-            annotation = annotation_,
-            description = description,
-            association = _interfaces.AttributeAssociation.Module ) )
-    return tuple( informations )
-
-
-def _introspect_function_return(
-    annotation: __.typx.Any,
-    context: _interfaces.Context,
-    cache: _interfaces.AnnotationsCache,
-) -> __.cabc.Sequence[ _interfaces.InformationBase ]:
-    informations: list[ _interfaces.InformationBase ] = [ ]
-    adjuncts = _interfaces.AdjunctsData( )
-    annotation_ = reduce_annotation( annotation, context, adjuncts, cache )
-    description = '\n\n'.join(
-        extra.documentation for extra in adjuncts.extras
-        if isinstance( extra, _interfaces.Doc ) )
-    informations.append(
-        _interfaces.ReturnInformation(
-            annotation = annotation_, description = description ) )
-    informations.extend(
-        _interfaces.ExceptionInformation(
-            annotation = _classes_sequence_to_union( extra.classes ),
-            description = extra.description )
-        for extra in adjuncts.extras
-        if isinstance( extra, _interfaces.Raises ) )
-    return tuple( informations )
-
-
-def _introspect_function_valences(
-    annotations: __.cabc.Mapping[ str, __.typx.Any ],
-    signature: __.inspect.Signature,
-    context: _interfaces.Context,
-    cache: _interfaces.AnnotationsCache,
-) -> __.cabc.Sequence[ _interfaces.ArgumentInformation ]:
-    informations: list[ _interfaces.ArgumentInformation ] = [ ]
-    for name, param in signature.parameters.items( ):
-        annotation = annotations.get( name, param.annotation )
-        if annotation is param.empty: continue
-        adjuncts = _interfaces.AdjunctsData( )
-        annotation_ = reduce_annotation(
-            annotation, context, adjuncts, cache )
-        description = '\n\n'.join(
-            extra.documentation for extra in adjuncts.extras
-            if isinstance( extra, _interfaces.Doc ) )
-        informations.append( _interfaces.ArgumentInformation(
-            name = name,
-            annotation = annotation_,
-            description = description,
-            paramspec = param ) )
-    return tuple( informations )
-
-
 def _access_annotations(
     possessor: _nomina.Documentable, context: _interfaces.Context
 ) -> __.cabc.Mapping[ str, __.typx.Any ]:
@@ -226,6 +96,25 @@ def _classes_sequence_to_union(
     if not isinstance( annotation, __.cabc.Sequence ):
         return annotation
     return __.funct.reduce( __.operator.or_, annotation )
+
+
+def _compile_description(
+    context: _interfaces.Context,
+    adjuncts: _interfaces.AdjunctsData,
+    table: _nomina.FragmentsTable,
+) -> str:
+    fragments: list[ str ] = [ ]
+    for extra in adjuncts.extras:
+        if isinstance( extra, _interfaces.Doc ):
+            fragments.append( extra.documentation )
+        elif isinstance( extra, _interfaces.Findex ):
+            name = extra.name
+            if name not in table:
+                emessage = f"Fragment '{name}' not in provided table."
+                context.notifier( 'error', emessage )
+            else: fragments.append( table[ name ] )
+    return '\n\n'.join(
+        __.inspect.cleandoc( fragment ) for fragment in fragments )
 
 
 def _filter_reconstitute_annotation(
@@ -266,6 +155,134 @@ def _filter_reconstitute_annotation(
         context.notifier( 'error', emessage )
         return origin
     return annotation
+
+
+def _introspect_class(
+    possessor: type,
+    context: _interfaces.Context,
+    cache: _interfaces.AnnotationsCache,
+    table: _nomina.FragmentsTable,
+) -> __.cabc.Sequence[ _interfaces.InformationBase ]:
+    annotations: dict[ str, __.typx.Any ] = { }
+    # Descendant annotations override ancestor annotations.
+    for class_ in reversed( possessor.__mro__ ):
+        annotations_b = _access_annotations( class_, context )
+        annotations.update( annotations_b )
+    if not annotations: return ( )
+    informations: list[ _interfaces.InformationBase ] = [ ]
+    for name, annotation in annotations.items( ):
+        adjuncts = _interfaces.AdjunctsData( )
+        annotation_ = reduce_annotation(
+            annotation, context, adjuncts, cache )
+        description = _compile_description( context, adjuncts, table )
+        if not _is_attribute_visible(
+            name, annotation_, context, adjuncts, description
+        ): continue
+        association = (
+            _interfaces.AttributeAssociation.Class
+            if 'ClassVar' in adjuncts.traits
+            else _interfaces.AttributeAssociation.Instance )
+        informations.append( _interfaces.AttributeInformation(
+            name = name,
+            annotation = annotation_,
+            description = description,
+            association = association ) )
+    return tuple( informations )
+
+
+def _introspect_function(
+    possessor: __.cabc.Callable[ ..., __.typx.Any ],
+    context: _interfaces.Context,
+    cache: _interfaces.AnnotationsCache,
+    table: _nomina.FragmentsTable,
+) -> __.cabc.Sequence[ _interfaces.InformationBase ]:
+    annotations = _access_annotations( possessor, context )
+    if not annotations: return ( )
+    informations: list[ _interfaces.InformationBase ] = [ ]
+    try: signature = __.inspect.signature( possessor )
+    except ValueError as exc:
+        context.notifier(
+            'error',
+            f"Could not assess signature for {possessor.__qualname__!r}. "
+            f"Reason: {exc}" )
+        return ( )
+    if signature.parameters:
+        informations.extend( _introspect_function_valences(
+            annotations, signature, context, cache, table ) )
+    if 'return' in annotations:
+        informations.extend( _introspect_function_return(
+            annotations[ 'return' ], context, cache, table ) )
+    return tuple( informations )
+
+
+def _introspect_function_return(
+    annotation: __.typx.Any,
+    context: _interfaces.Context,
+    cache: _interfaces.AnnotationsCache,
+    table: _nomina.FragmentsTable,
+) -> __.cabc.Sequence[ _interfaces.InformationBase ]:
+    informations: list[ _interfaces.InformationBase ] = [ ]
+    adjuncts = _interfaces.AdjunctsData( )
+    annotation_ = reduce_annotation( annotation, context, adjuncts, cache )
+    description = _compile_description( context, adjuncts, table )
+    informations.append(
+        _interfaces.ReturnInformation(
+            annotation = annotation_, description = description ) )
+    informations.extend(
+        _interfaces.ExceptionInformation(
+            annotation = _classes_sequence_to_union( extra.classes ),
+            description = extra.description )
+        for extra in adjuncts.extras
+        if isinstance( extra, _interfaces.Raises ) )
+    return tuple( informations )
+
+
+def _introspect_function_valences(
+    annotations: __.cabc.Mapping[ str, __.typx.Any ],
+    signature: __.inspect.Signature,
+    context: _interfaces.Context,
+    cache: _interfaces.AnnotationsCache,
+    table: _nomina.FragmentsTable,
+) -> __.cabc.Sequence[ _interfaces.ArgumentInformation ]:
+    informations: list[ _interfaces.ArgumentInformation ] = [ ]
+    for name, param in signature.parameters.items( ):
+        annotation = annotations.get( name, param.annotation )
+        if annotation is param.empty: continue
+        adjuncts = _interfaces.AdjunctsData( )
+        annotation_ = reduce_annotation(
+            annotation, context, adjuncts, cache )
+        description = _compile_description( context, adjuncts, table )
+        informations.append( _interfaces.ArgumentInformation(
+            name = name,
+            annotation = annotation_,
+            description = description,
+            paramspec = param ) )
+    return tuple( informations )
+
+
+def _introspect_module(
+    possessor: __.types.ModuleType,
+    context: _interfaces.Context,
+    cache: _interfaces.AnnotationsCache,
+    table: _nomina.FragmentsTable,
+) -> __.cabc.Sequence[ _interfaces.InformationBase ]:
+    annotations = _access_annotations( possessor, context )
+    if not annotations: return ( )
+    informations: list[ _interfaces.InformationBase ] = [ ]
+    for name, annotation in annotations.items( ):
+        adjuncts = _interfaces.AdjunctsData( )
+        annotation_ = reduce_annotation(
+            annotation, context, adjuncts, cache )
+        description = _compile_description( context, adjuncts, table )
+        if not _is_attribute_visible(
+            name, annotation_, context, adjuncts, description
+        ): continue
+        informations.append( _interfaces.AttributeInformation(
+            name = name,
+            annotation = annotation_,
+            description = description,
+            association = _interfaces.AttributeAssociation.Module ) )
+    return tuple( informations )
 
 
 def _is_attribute_visible(

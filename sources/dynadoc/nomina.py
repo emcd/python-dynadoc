@@ -31,7 +31,6 @@ Documentable: __.typx.TypeAlias = __.types.ModuleType | Decoratable
 D = __.typx.TypeVar( 'D', bound = Decoratable )
 
 Decorator: __.typx.TypeAlias = __.cabc.Callable[ [ D ], D ]
-Fragment: __.typx.TypeAlias = str |  __.typx.Doc
 FragmentsTable: __.typx.TypeAlias = __.cabc.Mapping[ str, str ]
 Module: __.typx.TypeAlias = str | __.types.ModuleType
 NotificationLevels: __.typx.TypeAlias = (

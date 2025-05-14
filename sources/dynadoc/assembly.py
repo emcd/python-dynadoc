@@ -36,7 +36,7 @@ from . import notification as _notification
 
 
 WithDocstringFragmentsArgument: __.typx.TypeAlias = __.typx.Annotated[
-    _nomina.Fragment,
+    _interfaces.Fragment,
     __.typx.Doc(
         ''' Fragments from which to produce a docstring.
 
@@ -160,7 +160,7 @@ def _decorate( # noqa: PLR0913
     introspect: bool,
     preserve: bool,
     recurse_into: _interfaces.RecursionTargets,
-    fragments: __.cabc.Sequence[ _nomina.Fragment ],
+    fragments: _interfaces.Fragments,
     table: _nomina.FragmentsTable,
 ) -> None:
     if objct in _visitees: return # Prevent multiple decoration.
@@ -200,7 +200,7 @@ def _decorate_core( # noqa: PLR0913
     formatter: _interfaces.Formatter,
     introspect: bool,
     preserve: bool,
-    fragments: __.cabc.Sequence[ _nomina.Fragment ],
+    fragments: _interfaces.Fragments,
     table: _nomina.FragmentsTable,
 ) -> None:
     fragments_: list[ str ] = [ ]
@@ -210,14 +210,14 @@ def _decorate_core( # noqa: PLR0913
     fragments_.extend(
         __.inspect.cleandoc(
             fragment.documentation
-            if isinstance( fragment, __.typx.Doc )
+            if isinstance( fragment, _interfaces.Doc )
             else table[ fragment ] )
         for fragment in fragments )
     if introspect:
         cache = _interfaces.AnnotationsCache( )
         informations = (
             _introspection.introspect(
-                objct, context = context, cache = cache ) )
+                objct, context = context, cache = cache, table = table ) )
         fragments_.append(
             formatter( objct, informations, context = context ) )
     docstring = '\n\n'.join(
