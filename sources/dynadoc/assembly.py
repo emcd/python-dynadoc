@@ -162,9 +162,13 @@ def _collect_fragments(
     fragments: _interfaces.Fragments = (
         getattr( objct, context.fragments_name, ( ) ) )
     if not isinstance( fragments, __.cabc.Sequence ):
-        emessage = f"Invalid fragments sequence on {fqname}."
+        emessage = f"Invalid fragments sequence on {fqname}: {fragments!r}"
         context.notifier( 'error', emessage )
         fragments = ( )
+    for fragment in fragments:
+        if not isinstance( fragment, ( str, _interfaces.Doc ) ):
+            emessage = f"Invalid fragment on {fqname}: {fragment!r}"
+            context.notifier( 'error', emessage )
     return fragments
 
 
@@ -285,11 +289,7 @@ def _decorate_core( # noqa: PLR0913
         fragment = __.inspect.getdoc( objct )
         if fragment: fragments_.append( fragment )
     fragments_.extend(
-        context.fragment_rectifier(
-            fragment.documentation
-            if isinstance( fragment, _interfaces.Doc )
-            else table[ fragment ] )
-        for fragment in fragments )
+        _process_fragments_argument( context, fragments, table ) )
     if introspect:
         cache = _interfaces.AnnotationsCache( )
         informations = (
@@ -357,6 +357,28 @@ def _decorate_module_attributes( # noqa: PLR0913
             table = table )
         if attribute is not surface_attribute:
             surface_attribute.__doc__ = attribute.__doc__
+
+
+def _process_fragments_argument(
+    context: _interfaces.Context,
+    fragments: _interfaces.Fragments,
+    table: _nomina.FragmentsTable,
+) -> __.cabc.Sequence[ str ]:
+    fragments_: list[ str ] = [ ]
+    for fragment in fragments:
+        if isinstance( fragment, _interfaces.Doc ):
+            fragment_r = fragment.documentation
+        elif isinstance( fragment, str ):
+            if fragment not in table:
+                emessage = f"Fragment '{fragment}' not in provided table."
+                context.notifier( 'error', emessage )
+            else: fragment_r = table[ fragment ]
+        else:
+            emessage = f"Fragment {fragment!r} is invalid. Must be Doc or str."
+            context.notifier( 'error', emessage )
+            continue
+        fragments_.append( context.fragment_rectifier( fragment_r ) )
+    return fragments_
 
 
 def _survey_class_attributes(
