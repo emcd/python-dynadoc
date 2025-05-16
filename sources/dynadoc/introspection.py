@@ -112,8 +112,8 @@ def _compile_description(
                 emessage = f"Fragment '{name}' not in provided table."
                 context.notifier( 'error', emessage )
             else: fragments.append( table[ name ] )
-    return '\n\n'.join( fragment for fragment in fragments )
-        # __.inspect.cleandoc( fragment ) for fragment in fragments )
+    return '\n\n'.join(
+        context.fragment_rectifier( fragment ) for fragment in fragments )
 
 
 def _filter_reconstitute_annotation(

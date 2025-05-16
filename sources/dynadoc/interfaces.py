@@ -132,6 +132,7 @@ class Context:
     ''' Context for annotation evaluation, etc.... '''
 
     notifier: Notifier
+    fragment_rectifier: FragmentRectifier
     visibility_predicate: VisibilityPredicate
     fragments_name: str = _fragments_name_default
     invoker_globals: __.typx.Optional[ _nomina.Variables ] = None
@@ -146,11 +147,33 @@ class Context:
         iglobals = __.inspect.stack( )[ level ].frame.f_globals
         return type( self )(
             notifier = self.notifier,
+            fragment_rectifier = self.fragment_rectifier,
             visibility_predicate = self.visibility_predicate,
             fragments_name = self.fragments_name,
             invoker_globals = iglobals,
             resolver_globals = self.resolver_globals,
             resolver_locals = self.resolver_locals )
+
+
+class Formatter( __.typx.Protocol ):
+    ''' Formatter for arguments, attributes, exceptions, and returns. '''
+
+    @staticmethod
+    def __call__(
+        possessor: _nomina.Documentable,
+        informations: Informations,
+        context: Context,
+    ) -> str: raise NotImplementedError
+
+
+class FragmentRectifier( __.typx.Protocol ):
+    ''' Callback to clean documentation fragment.
+
+        Example: inspect.cleandoc
+    '''
+
+    @staticmethod
+    def __call__( fragment: str ) -> str: raise NotImplementedError
 
 
 @__.dcls.dataclass( frozen = True, kw_only = True, slots = True )
@@ -184,17 +207,6 @@ class ReturnInformation( InformationBase ): pass
 
 
 Informations: __.typx.TypeAlias = __.cabc.Sequence[ InformationBase ]
-
-
-class Formatter( __.typx.Protocol ):
-    ''' Formatter for arguments, attributes, exceptions, and returns. '''
-
-    @staticmethod
-    def __call__(
-        possessor: _nomina.Documentable,
-        informations: Informations,
-        context: Context,
-    ) -> str: raise NotImplementedError
 
 
 class Notifier( __.typx.Protocol ):

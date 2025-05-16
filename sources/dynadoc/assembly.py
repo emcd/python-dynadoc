@@ -65,16 +65,19 @@ WithDocstringTableArgument: __.typx.TypeAlias = __.typx.Annotated[
 _visitees: __.weakref.WeakSet[ _nomina.Documentable ] = __.weakref.WeakSet( )
 
 
-def produce_context(
+def produce_context( # noqa: PLR0913
     invoker_globals: __.typx.Optional[ _nomina.Variables ] = None,
     resolver_globals: __.typx.Optional[ _nomina.Variables ] = None,
     resolver_locals: __.typx.Optional[ _nomina.Variables ] = None,
     notifier: _interfaces.Notifier = _notification.notify,
+    fragment_rectifier: _interfaces.FragmentRectifier = (
+        lambda fragment: fragment ),
     visibility_predicate: _interfaces.VisibilityPredicate = (
         _introspection.is_attribute_visible ),
 ) -> _interfaces.Context:
     return _interfaces.Context(
         notifier = notifier,
+        fragment_rectifier = fragment_rectifier,
         visibility_predicate = visibility_predicate,
         invoker_globals = invoker_globals,
         resolver_globals = resolver_globals,
@@ -282,8 +285,7 @@ def _decorate_core( # noqa: PLR0913
         fragment = __.inspect.getdoc( objct )
         if fragment: fragments_.append( fragment )
     fragments_.extend(
-        # __.inspect.cleandoc(
-        (
+        context.fragment_rectifier(
             fragment.documentation
             if isinstance( fragment, _interfaces.Doc )
             else table[ fragment ] )
