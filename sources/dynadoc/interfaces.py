@@ -44,6 +44,7 @@ except ImportError:
 
         documentation: str
 
+
 Fragment: __.typx.TypeAlias = str | Doc
 Fragments: __.typx.TypeAlias = __.cabc.Sequence[ Fragment ]
 
@@ -88,7 +89,9 @@ class AnnotationsCache:
         Has special values for absent and incomplete entries.
     '''
 
-    # https://github.com/python/cpython/issues/133956
+    # TODO: Python 3.14: Replace '_typing' with '__.typx'.
+    # Note: Must use 'typing.ClassVar' for "reasons":
+    #       https://github.com/python/cpython/issues/133956
     absent: _typing.ClassVar[ object ] = object( )
     incomplete: _typing.ClassVar[ object ] = object( )
 
@@ -208,11 +211,14 @@ class RecursionTargets( __.enum.IntFlag ):
 
     Null        = 0
     Class       = __.enum.auto( )
+    Descriptor  = __.enum.auto( )
     Function    = __.enum.auto( )
     Module      = __.enum.auto( )
 
 RecursionTargetsSansModule = (
-    RecursionTargets.Class | RecursionTargets.Function )
+        RecursionTargets.Class
+    |   RecursionTargets.Descriptor
+    |   RecursionTargets.Function )
 RecursionTargetsOmni = (
     RecursionTargetsSansModule | RecursionTargets.Module )
 

@@ -146,11 +146,85 @@ def with_docstring( # noqa: PLR0913
 
 def _check_module_recursion(
     objct: object, /, targets: _interfaces.RecursionTargets, mname: str
-) -> bool:
+) -> __.typx.TypeIs[ __.types.ModuleType ]:
     if (    targets & _interfaces.RecursionTargets.Module
         and __.inspect.ismodule( objct )
     ): return objct.__name__.startswith( f"{mname}." )
     return False
+
+
+def _collect_fragments(
+    objct: _nomina.Documentable, /, context: _interfaces.Context, fqname: str
+) -> _interfaces.Fragments:
+    fragments: _interfaces.Fragments = (
+        getattr( objct, context.fragments_name, ( ) ) )
+    if not isinstance( fragments, __.cabc.Sequence ):
+        emessage = f"Invalid fragments sequence on {fqname}."
+        context.notifier( 'error', emessage )
+        fragments = ( )
+    return fragments
+
+
+def _consider_class_attribute( # noqa: C901,PLR0913
+    attribute: object, /,
+    context: _interfaces.Context,
+    targets: _interfaces.RecursionTargets,
+    pmname: str, pqname: str, aname: str,
+) -> tuple[ __.typx.Optional[ _nomina.Documentable ], bool ]:
+    if _check_module_recursion( attribute, targets, pmname ):
+        return attribute, False
+    attribute_ = None
+    update_surface = False
+    if (    not attribute_ and targets & _interfaces.RecursionTargets.Class
+        and __.inspect.isclass( attribute )
+    ): attribute_ = attribute
+    if not attribute_ and targets & _interfaces.RecursionTargets.Descriptor:
+        if isinstance( attribute, property ) and attribute.fget:
+            # Examine docstring and signature of getter method on property.
+            attribute_ = attribute.fget
+            update_surface = True
+        # TODO: Apply custom processors from context.
+        if __.inspect.isdatadescriptor( attribute ):
+            # Ignore descriptors which we do not know how to handle.
+            return None, False
+    if not attribute_ and targets & _interfaces.RecursionTargets.Function:
+        if __.inspect.ismethod( attribute ):
+            # Methods proxy docstrings from their core functions.
+            attribute_ = attribute.__func__
+        if __.inspect.isfunction( attribute ) and aname != '<lambda>':
+            attribute_ = attribute
+    if attribute_:
+        mname = getattr( attribute_, '__module__', None )
+        if not mname or mname != pmname:
+            attribute_ = None
+    if attribute_:
+        qname = getattr( attribute_, '__qualname__', None )
+        if not qname or not qname.startswith( f"{pqname}." ):
+            attribute_ = None
+    return attribute_, update_surface
+
+
+def _consider_module_attribute(
+    attribute: object, /,
+    context: _interfaces.Context,
+    targets: _interfaces.RecursionTargets,
+    pmname: str, aname: str,
+) -> tuple[ __.typx.Optional[ _nomina.Documentable ], bool ]:
+    if _check_module_recursion( attribute, targets, pmname ):
+        return attribute, False
+    attribute_ = None
+    update_surface = False
+    if (    not attribute_ and targets & _interfaces.RecursionTargets.Class
+        and __.inspect.isclass( attribute )
+    ): attribute_ = attribute
+    if (    not attribute_ and targets & _interfaces.RecursionTargets.Function
+        and __.inspect.isfunction( attribute ) and aname != '<lambda>'
+    ): attribute_ = attribute
+    if attribute_:
+        mname = getattr( attribute_, '__module__', None )
+        if not mname or mname != pmname:
+            attribute_ = None
+    return attribute_, update_surface
 
 
 def _decorate( # noqa: PLR0913
@@ -227,7 +301,7 @@ def _decorate_core( # noqa: PLR0913
 
 
 def _decorate_class_attributes( # noqa: PLR0913
-    objct: _nomina.Decoratable, /,
+    objct: type, /,
     context: _interfaces.Context,
     formatter: _interfaces.Formatter,
     introspect: bool,
@@ -235,25 +309,15 @@ def _decorate_class_attributes( # noqa: PLR0913
     recurse_into: _interfaces.RecursionTargets,
     table: _nomina.FragmentsTable,
 ) -> None:
-    predicate = (
-        __.funct.partial(
-            _is_decoratable_class_attribute,
-            targets = recurse_into,
-            mname = objct.__module__, qname = objct.__qualname__ ) )
-    members = __.inspect.getmembers( objct, predicate )
-    for name, member in members:
-        # Methods proxy their docstrings from their core functions.
-        target = member.__func__ if __.inspect.ismethod( member ) else member
-        fragments: __.cabc.Sequence[ __.typx.Any ] = (
-            getattr( member, context.fragments_name, ( ) ) )
-        if not isinstance( fragments, __.cabc.Sequence ):
-            emessage = (
-                "Invalid fragments sequence "
-                f"on {objct.__module__}.{objct.__qualname__}.{name}." )
-            context.notifier( 'error', emessage )
-            fragments = ( )
+    pmname = objct.__module__
+    pqname = objct.__qualname__
+    for aname, attribute, surface_attribute in (
+        _survey_class_attributes( objct, context, recurse_into )
+    ):
+        fqname = f"{pmname}.{pqname}.{aname}"
+        fragments = _collect_fragments( attribute, context, fqname )
         _decorate(
-            target,
+            attribute,
             context = context,
             formatter = formatter,
             introspect = introspect,
@@ -261,6 +325,8 @@ def _decorate_class_attributes( # noqa: PLR0913
             recurse_into = recurse_into,
             fragments = fragments,
             table = table )
+        if attribute is not surface_attribute:
+            surface_attribute.__doc__ = attribute.__doc__
 
 
 def _decorate_module_attributes( # noqa: PLR0913
@@ -272,21 +338,14 @@ def _decorate_module_attributes( # noqa: PLR0913
     recurse_into: _interfaces.RecursionTargets,
     table: _nomina.FragmentsTable,
 ) -> None:
-    predicate = (
-        __.funct.partial(
-            _is_decoratable_module_attribute,
-            targets = recurse_into, mname = module.__name__ ) )
-    members = __.inspect.getmembers( module, predicate )
-    for name, member in members:
-        fragments: __.cabc.Sequence[ __.typx.Any ] = (
-            getattr( member, context.fragments_name, ( ) ) )
-        if not isinstance( fragments, __.cabc.Sequence ):
-            emessage = (
-                f"Invalid fragments sequence on {module.__name__}.{name}." )
-            context.notifier( 'error', emessage )
-            fragments = ( )
+    pmname = module.__name__
+    for aname, attribute, surface_attribute in (
+        _survey_module_attributes( module, context, recurse_into )
+    ):
+        fqname = f"{pmname}.{aname}"
+        fragments = _collect_fragments( attribute, context, fqname )
         _decorate(
-            member,
+            attribute,
             context = context,
             formatter = formatter,
             introspect = introspect,
@@ -294,42 +353,40 @@ def _decorate_module_attributes( # noqa: PLR0913
             recurse_into = recurse_into,
             fragments = fragments,
             table = table )
+        if attribute is not surface_attribute:
+            surface_attribute.__doc__ = attribute.__doc__
 
 
-def _is_decoratable_class_attribute(
-    objct: object, /,
+def _survey_class_attributes(
+    possessor: type, /,
+    context: _interfaces.Context,
     targets: _interfaces.RecursionTargets,
-    mname: str, qname: str,
-) -> bool:
-    if _check_module_recursion( objct, targets, mname ): return True
-    if not callable( objct ): return False
-    mname_ = getattr( objct, '__module__', None )
-    if mname_ and mname != mname_: return False
-    qname_ = getattr( objct, '__qualname__', None )
-    if qname_ and not qname_.startswith( f"{qname}." ): return False
-    if (    targets & _interfaces.RecursionTargets.Function
-        and __.inspect.ismethod( objct )
-    ): return True
-    return _is_decoratable_core( objct, targets )
+) -> __.cabc.Iterator[ tuple[ str, _nomina.Documentable, object ] ]:
+    pmname = possessor.__module__
+    pqname = possessor.__qualname__
+    for aname, attribute in __.inspect.getmembers( possessor ):
+        attribute_, update_surface = (
+            _consider_class_attribute(
+                attribute, context, targets, pmname, pqname, aname ) )
+        if attribute_ is None: continue
+        if update_surface:
+            yield aname, attribute_, attribute
+            continue
+        yield aname, attribute_, attribute_
 
 
-def _is_decoratable_module_attribute(
-    objct: object, /, targets: _interfaces.RecursionTargets, mname: str
-) -> bool:
-    if _check_module_recursion( objct, targets, mname ): return True
-    if not callable( objct ): return False
-    mname_ = getattr( objct, '__module__', None )
-    if mname_ and mname != mname_: return False
-    return _is_decoratable_core( objct, targets )
-
-
-def _is_decoratable_core(
-    objct: object, /, targets: _interfaces.RecursionTargets
-) -> bool:
-    if (    targets & _interfaces.RecursionTargets.Class
-        and __.inspect.isclass( objct )
-    ): return True
-    if (    targets & _interfaces.RecursionTargets.Function
-        and __.inspect.isfunction( objct )
-    ): return objct.__name__ != '<lambda>'
-    return False
+def _survey_module_attributes(
+    possessor: __.types.ModuleType, /,
+    context: _interfaces.Context,
+    targets: _interfaces.RecursionTargets,
+) -> __.cabc.Iterator[ tuple[ str, _nomina.Documentable, object ] ]:
+    pmname = possessor.__name__
+    for aname, attribute in __.inspect.getmembers( possessor ):
+        attribute_, update_surface = (
+            _consider_module_attribute(
+                attribute, context, targets, pmname, aname ) )
+        if attribute_ is None: continue
+        if update_surface:
+            yield aname, attribute_, attribute
+            continue
+        yield aname, attribute_, attribute_

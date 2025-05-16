@@ -40,7 +40,6 @@ def introspect(
         return _introspect_function( possessor, context, cache, table )
     if __.inspect.ismodule( possessor ):
         return _introspect_module( possessor, context, cache, table )
-    # TODO? Additional descriptors, like properties.
     return ( )
 
 
