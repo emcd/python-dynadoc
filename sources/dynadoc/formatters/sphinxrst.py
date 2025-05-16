@@ -29,13 +29,21 @@ from .. import nomina as _nomina
 from . import __
 
 
+class Style( __.enum.Enum ):
+    ''' Style of formatter output. '''
+
+    Legible     = __.enum.auto( )
+    Pep8        = __.enum.auto( )
+
+
 def produce_fragment(
     possessor: _nomina.Documentable,
     informations: _interfaces.Informations,
     context: _interfaces.Context,
+    style: Style = Style.Legible,
 ) -> str:
     return '\n'.join(
-        _produce_fragment_partial( possessor, information, context = context )
+        _produce_fragment_partial( possessor, information, context, style )
         for information in informations )
 
 
@@ -47,51 +55,50 @@ def _extract_qualident( name: str, context: _interfaces.Context ) -> str:
 
 
 def _format_annotation(
-    annotation: __.typx.Any, context: _interfaces.Context
+    annotation: __.typx.Any, context: _interfaces.Context, style: Style
 ) -> str:
     if isinstance( annotation, list ):
         seqstr = ', '.join(
-            _format_annotation( element, context )
+            _format_annotation( element, context, style )
             for element in annotation ) # pyright: ignore[reportUnknownVariableType]
-        return f"[ {seqstr} ]"
+        return _stylize_delimiter( style, '[]', seqstr )
     origin = __.typx.get_origin( annotation )
     if origin is None:
         return _qualify_object_name( annotation, context )
     arguments = __.typx.get_args( annotation )
     if origin in ( __.types.UnionType, __.typx.Union ):
         return ' | '.join(
-            _format_annotation( argument, context ) for argument in arguments )
+            _format_annotation( argument, context, style )
+            for argument in arguments )
     oname = _qualify_object_name( origin, context )
     if not arguments: return oname
     if origin is __.typx.Literal:
         argstr = ', '.join( repr( argument ) for argument in arguments )
     else:
         argstr = ', '.join(
-            _format_annotation( argument, context ) for argument in arguments )
-    return f"{oname}[ {argstr} ]"
+            _format_annotation( argument, context, style )
+            for argument in arguments )
+    return _stylize_delimiter( style, '[]', argstr, oname )
 
 
 def _produce_fragment_partial(
     possessor: _nomina.Documentable,
     information: _interfaces.InformationBase,
     context: _interfaces.Context,
+    style: Style,
 ) -> str:
     if isinstance( information, _interfaces.ArgumentInformation ):
         return (
-            _produce_argument_text(
-                possessor, information, context = context ) )
+            _produce_argument_text( possessor, information, context, style ) )
     if isinstance( information, _interfaces.AttributeInformation ):
         return (
-            _produce_attribute_text(
-                possessor, information, context = context ) )
+            _produce_attribute_text( possessor, information, context, style ) )
     if isinstance( information, _interfaces.ExceptionInformation ):
         return (
-            _produce_exception_text(
-                possessor, information, context = context ) )
+            _produce_exception_text( possessor, information, context, style ) )
     if isinstance( information, _interfaces.ReturnInformation ):
         return (
-            _produce_return_text(
-                possessor, information, context = context ) )
+            _produce_return_text( possessor, information, context, style ) )
     context.notifier(
         'admonition', f"Unrecognized information: {information!r}" )
     return ''
@@ -101,9 +108,10 @@ def _produce_argument_text(
     possessor: _nomina.Documentable,
     information: _interfaces.ArgumentInformation,
     context: _interfaces.Context,
+    style: Style,
 ) -> str:
     description = information.description or ''
-    typetext = _format_annotation( information.annotation, context )
+    typetext = _format_annotation( information.annotation, context, style )
     lines: list[ str ] = [
         f":argument {information.name}: {description}",
         f":type {information.name}: {typetext}",
@@ -115,11 +123,12 @@ def _produce_attribute_text(
     possessor: _nomina.Documentable,
     information: _interfaces.AttributeInformation,
     context: _interfaces.Context,
+    style: Style,
 ) -> str:
     annotation = information.annotation
     description = information.description or ''
     name = information.name
-    typetext = _format_annotation( annotation, context )
+    typetext = _format_annotation( annotation, context, style )
     match information.association:
         case _interfaces.AttributeAssociation.Module: vlabel = 'var'
         case _interfaces.AttributeAssociation.Class: vlabel = 'cvar'
@@ -136,7 +145,7 @@ def _produce_attribute_text(
             value_a, context,
             _interfaces.AdjunctsData( ),
             _interfaces.AnnotationsCache( ) )
-        value_s = _format_annotation( value_ar, context )
+        value_s = _format_annotation( value_ar, context, style )
         lines.extend( [
             f".. py:type:: {name}",
             f"   :canonical: {value_s}",
@@ -160,6 +169,7 @@ def _produce_exception_text(
     possessor: _nomina.Documentable,
     information: _interfaces.ExceptionInformation,
     context: _interfaces.Context,
+    style: Style,
 ) -> str:
     lines: list[ str ] = [ ]
     annotation = information.annotation
@@ -168,7 +178,7 @@ def _produce_exception_text(
         annotations = __.typx.get_args( annotation )
     else: annotations = ( annotation, )
     for annotation_ in annotations:
-        typetext = _format_annotation( annotation_, context )
+        typetext = _format_annotation( annotation_, context, style )
         lines.append( f":raises {typetext}: {description}" )
     return '\n'.join( lines )
 
@@ -177,10 +187,11 @@ def _produce_return_text(
     possessor: _nomina.Documentable,
     information: _interfaces.ReturnInformation,
     context: _interfaces.Context,
+    style: Style,
 ) -> str:
     if information.annotation in ( None, __.types.NoneType ): return ''
     description = information.description or ''
-    typetext = _format_annotation( information.annotation, context )
+    typetext = _format_annotation( information.annotation, context, style )
     lines: list[ str ] = [ ]
     if description:
         lines.append( f":returns: {description}" )
@@ -207,3 +218,16 @@ def _qualify_object_name( # noqa: PLR0911
     mname = getattr( objct, '__module__', None )
     if mname: return f"{mname}.{qname}"
     return name
+
+
+def _stylize_delimiter(
+    style: Style,
+    delimiters: str,
+    content: str,
+    prefix: str = '',
+) -> str:
+    ld = delimiters[ 0 ]
+    rd = delimiters[ 1 ]
+    match style:
+        case Style.Legible: return f"{prefix}{ld} {content} {rd}"
+        case Style.Pep8: return f"{prefix}{ld}{content}{rd}"
