@@ -24,13 +24,14 @@
 from __future__ import annotations
 
 from . import __
+from . import context as _context
 from . import interfaces as _interfaces
 from . import nomina as _nomina
 
 
 def introspect(
     possessor: _nomina.Documentable,
-    context: _interfaces.Context,
+    context: _context.Context,
     cache: _interfaces.AnnotationsCache,
     table: _nomina.FragmentsTable,
 ) -> __.cabc.Sequence[ _interfaces.InformationBase ]:
@@ -54,7 +55,7 @@ def is_attribute_visible(
 
 def reduce_annotation(
     annotation: __.typx.Any,
-    context: _interfaces.Context,
+    context: _context.Context,
     adjuncts: _interfaces.AdjunctsData,
     cache: _interfaces.AnnotationsCache,
 ) -> __.typx.Any:
@@ -75,7 +76,7 @@ def reduce_annotation(
 
 
 def _access_annotations(
-    possessor: _nomina.Documentable, context: _interfaces.Context
+    possessor: _nomina.Documentable, context: _context.Context
 ) -> __.cabc.Mapping[ str, __.typx.Any ]:
     nomargs: _nomina.Variables = dict( eval_str = True )
     nomargs[ 'globals' ] = context.resolver_globals
@@ -98,7 +99,7 @@ def _classes_sequence_to_union(
 
 
 def _compile_description(
-    context: _interfaces.Context,
+    context: _context.Context,
     adjuncts: _interfaces.AdjunctsData,
     table: _nomina.FragmentsTable,
 ) -> str:
@@ -119,7 +120,7 @@ def _compile_description(
 def _filter_reconstitute_annotation(
     origin: __.typx.Any,
     arguments: __.cabc.Sequence[ __.typx.Any ],
-    context: _interfaces.Context,
+    context: _context.Context,
     adjuncts: _interfaces.AdjunctsData,
     cache: _interfaces.AnnotationsCache,
 ) -> __.typx.Any:
@@ -158,7 +159,7 @@ def _filter_reconstitute_annotation(
 
 def _introspect_class(
     possessor: type,
-    context: _interfaces.Context,
+    context: _context.Context,
     cache: _interfaces.AnnotationsCache,
     table: _nomina.FragmentsTable,
 ) -> __.cabc.Sequence[ _interfaces.InformationBase ]:
@@ -191,7 +192,7 @@ def _introspect_class(
 
 def _introspect_function(
     possessor: __.cabc.Callable[ ..., __.typx.Any ],
-    context: _interfaces.Context,
+    context: _context.Context,
     cache: _interfaces.AnnotationsCache,
     table: _nomina.FragmentsTable,
 ) -> __.cabc.Sequence[ _interfaces.InformationBase ]:
@@ -216,7 +217,7 @@ def _introspect_function(
 
 def _introspect_function_return(
     annotation: __.typx.Any,
-    context: _interfaces.Context,
+    context: _context.Context,
     cache: _interfaces.AnnotationsCache,
     table: _nomina.FragmentsTable,
 ) -> __.cabc.Sequence[ _interfaces.InformationBase ]:
@@ -239,7 +240,7 @@ def _introspect_function_return(
 def _introspect_function_valences(
     annotations: __.cabc.Mapping[ str, __.typx.Any ],
     signature: __.inspect.Signature,
-    context: _interfaces.Context,
+    context: _context.Context,
     cache: _interfaces.AnnotationsCache,
     table: _nomina.FragmentsTable,
 ) -> __.cabc.Sequence[ _interfaces.ArgumentInformation ]:
@@ -261,7 +262,7 @@ def _introspect_function_valences(
 
 def _introspect_module(
     possessor: __.types.ModuleType,
-    context: _interfaces.Context,
+    context: _context.Context,
     cache: _interfaces.AnnotationsCache,
     table: _nomina.FragmentsTable,
 ) -> __.cabc.Sequence[ _interfaces.InformationBase ]:
@@ -287,7 +288,7 @@ def _introspect_module(
 def _is_attribute_visible(
     name: str,
     annotation: __.typx.Any,
-    context: _interfaces.Context,
+    context: _context.Context,
     adjuncts: _interfaces.AdjunctsData,
     description: __.typx.Optional[ str ],
 ) -> bool:
@@ -307,7 +308,7 @@ def _is_attribute_visible(
 def _reduce_annotation_arguments(
     origin: __.typx.Any,
     arguments: __.cabc.Sequence[ __.typx.Any ],
-    context: _interfaces.Context,
+    context: _context.Context,
     adjuncts: _interfaces.AdjunctsData,
     cache: _interfaces.AnnotationsCache,
 ) -> __.cabc.Sequence[ __.typx.Any ]:
@@ -321,7 +322,7 @@ def _reduce_annotation_arguments(
 
 def _reduce_annotation_core(
     annotation: __.typx.Any,
-    context: _interfaces.Context,
+    context: _context.Context,
     adjuncts: _interfaces.AdjunctsData,
     cache: _interfaces.AnnotationsCache,
 ) -> __.typx.Any:
@@ -342,7 +343,7 @@ def _reduce_annotation_core(
 
 def _reduce_annotation_for_callable(
     arguments: __.cabc.Sequence[ __.typx.Any ],
-    context: _interfaces.Context,
+    context: _context.Context,
     adjuncts: _interfaces.AdjunctsData,
     cache: _interfaces.AnnotationsCache,
 ) -> tuple[ list[ __.typx.Any ] | __.types.EllipsisType, __.typx.Any ]:

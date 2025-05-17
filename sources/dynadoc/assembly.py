@@ -28,11 +28,23 @@
 from __future__ import annotations
 
 from . import __
+from . import context as _context
 from . import formatters as _formatters
 from . import interfaces as _interfaces
 from . import introspection as _introspection
 from . import nomina as _nomina
 from . import notification as _notification
+
+
+class Formatter( __.typx.Protocol ):
+    ''' Formatter for arguments, attributes, exceptions, and returns. '''
+
+    @staticmethod
+    def __call__(
+        possessor: _nomina.Documentable,
+        informations: _interfaces.Informations,
+        context: _context.Context,
+    ) -> str: raise NotImplementedError
 
 
 WithDocstringFragmentsArgument: __.typx.TypeAlias = __.typx.Annotated[
@@ -74,8 +86,8 @@ def produce_context( # noqa: PLR0913
         lambda fragment: fragment ),
     visibility_predicate: _interfaces.VisibilityPredicate = (
         _introspection.is_attribute_visible ),
-) -> _interfaces.Context:
-    return _interfaces.Context(
+) -> _context.Context:
+    return _context.Context(
         notifier = notifier,
         fragment_rectifier = fragment_rectifier,
         visibility_predicate = visibility_predicate,
@@ -91,8 +103,8 @@ formatter_default = _formatters.sphinxrst.produce_fragment
 def assign_module_docstring( # noqa: PLR0913
     module: _nomina.Module, /,
     *fragments: WithDocstringFragmentsArgument,
-    context: _interfaces.Context = context_default,
-    formatter: _interfaces.Formatter = formatter_default,
+    context: _context.Context = context_default,
+    formatter: Formatter = formatter_default,
     introspect: WithDocstringIntrospectArgument = True,
     preserve: WithDocstringPreserveArgument = True,
     recurse_into: WithDocstringRecurseIntoArgument = (
@@ -119,8 +131,8 @@ def assign_module_docstring( # noqa: PLR0913
 
 def with_docstring( # noqa: PLR0913
     *fragments: WithDocstringFragmentsArgument,
-    context: _interfaces.Context = context_default,
-    formatter: _interfaces.Formatter = formatter_default,
+    context: _context.Context = context_default,
+    formatter: Formatter = formatter_default,
     introspect: WithDocstringIntrospectArgument = True,
     preserve: WithDocstringPreserveArgument = True,
     recurse_into: WithDocstringRecurseIntoArgument = (
@@ -157,7 +169,7 @@ def _check_module_recursion(
 
 
 def _collect_fragments(
-    objct: _nomina.Documentable, /, context: _interfaces.Context, fqname: str
+    objct: _nomina.Documentable, /, context: _context.Context, fqname: str
 ) -> _interfaces.Fragments:
     fragments: _interfaces.Fragments = (
         getattr( objct, context.fragments_name, ( ) ) )
@@ -174,7 +186,7 @@ def _collect_fragments(
 
 def _consider_class_attribute( # noqa: C901,PLR0913
     attribute: object, /,
-    context: _interfaces.Context,
+    context: _context.Context,
     targets: _interfaces.RecursionTargets,
     pmname: str, pqname: str, aname: str,
 ) -> tuple[ __.typx.Optional[ _nomina.Documentable ], bool ]:
@@ -213,7 +225,7 @@ def _consider_class_attribute( # noqa: C901,PLR0913
 
 def _consider_module_attribute(
     attribute: object, /,
-    context: _interfaces.Context,
+    context: _context.Context,
     targets: _interfaces.RecursionTargets,
     pmname: str, aname: str,
 ) -> tuple[ __.typx.Optional[ _nomina.Documentable ], bool ]:
@@ -236,8 +248,8 @@ def _consider_module_attribute(
 
 def _decorate( # noqa: PLR0913
     objct: _nomina.Documentable, /,
-    context: _interfaces.Context,
-    formatter: _interfaces.Formatter,
+    context: _context.Context,
+    formatter: Formatter,
     introspect: bool,
     preserve: bool,
     recurse_into: _interfaces.RecursionTargets,
@@ -277,8 +289,8 @@ def _decorate( # noqa: PLR0913
 
 def _decorate_core( # noqa: PLR0913
     objct: _nomina.Documentable, /,
-    context: _interfaces.Context,
-    formatter: _interfaces.Formatter,
+    context: _context.Context,
+    formatter: Formatter,
     introspect: bool,
     preserve: bool,
     fragments: _interfaces.Fragments,
@@ -304,8 +316,8 @@ def _decorate_core( # noqa: PLR0913
 
 def _decorate_class_attributes( # noqa: PLR0913
     objct: type, /,
-    context: _interfaces.Context,
-    formatter: _interfaces.Formatter,
+    context: _context.Context,
+    formatter: Formatter,
     introspect: bool,
     preserve: bool,
     recurse_into: _interfaces.RecursionTargets,
@@ -333,8 +345,8 @@ def _decorate_class_attributes( # noqa: PLR0913
 
 def _decorate_module_attributes( # noqa: PLR0913
     module: __.types.ModuleType, /,
-    context: _interfaces.Context,
-    formatter: _interfaces.Formatter,
+    context: _context.Context,
+    formatter: Formatter,
     introspect: bool,
     preserve: bool,
     recurse_into: _interfaces.RecursionTargets,
@@ -360,7 +372,7 @@ def _decorate_module_attributes( # noqa: PLR0913
 
 
 def _process_fragments_argument(
-    context: _interfaces.Context,
+    context: _context.Context,
     fragments: _interfaces.Fragments,
     table: _nomina.FragmentsTable,
 ) -> __.cabc.Sequence[ str ]:
@@ -383,7 +395,7 @@ def _process_fragments_argument(
 
 def _survey_class_attributes(
     possessor: type, /,
-    context: _interfaces.Context,
+    context: _context.Context,
     targets: _interfaces.RecursionTargets,
 ) -> __.cabc.Iterator[ tuple[ str, _nomina.Documentable, object ] ]:
     pmname = possessor.__module__
@@ -401,7 +413,7 @@ def _survey_class_attributes(
 
 def _survey_module_attributes(
     possessor: __.types.ModuleType, /,
-    context: _interfaces.Context,
+    context: _context.Context,
     targets: _interfaces.RecursionTargets,
 ) -> __.cabc.Iterator[ tuple[ str, _nomina.Documentable, object ] ]:
     pmname = possessor.__name__

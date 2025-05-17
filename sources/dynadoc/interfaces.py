@@ -29,9 +29,6 @@ from . import __
 from . import nomina as _nomina
 
 
-_fragments_name_default = '_dynadoc_fragments_'
-
-
 try: from typing_extensions import Doc # pyright: ignore[reportAssignmentType]
 except ImportError:
 
@@ -127,45 +124,6 @@ class AttributeAssociation( __.enum.Enum ):
     Instance    = __.enum.auto( )
 
 
-@__.dcls.dataclass( frozen = True, kw_only = True, slots = True )
-class Context:
-    ''' Context for annotation evaluation, etc.... '''
-
-    notifier: Notifier
-    fragment_rectifier: FragmentRectifier
-    visibility_predicate: VisibilityPredicate
-    fragments_name: str = _fragments_name_default
-    invoker_globals: __.typx.Optional[ _nomina.Variables ] = None
-    resolver_globals: __.typx.Optional[ _nomina.Variables ] = None
-    resolver_locals: __.typx.Optional[ _nomina.Variables ] = None
-
-    def with_invoker_globals( self, level: int = 2 ) -> __.typx.Self:
-        ''' Returns new context with invoker globals from stack frame.
-
-            By default, the stack frame is that of the caller of the caller.
-        '''
-        iglobals = __.inspect.stack( )[ level ].frame.f_globals
-        return type( self )(
-            notifier = self.notifier,
-            fragment_rectifier = self.fragment_rectifier,
-            visibility_predicate = self.visibility_predicate,
-            fragments_name = self.fragments_name,
-            invoker_globals = iglobals,
-            resolver_globals = self.resolver_globals,
-            resolver_locals = self.resolver_locals )
-
-
-class Formatter( __.typx.Protocol ):
-    ''' Formatter for arguments, attributes, exceptions, and returns. '''
-
-    @staticmethod
-    def __call__(
-        possessor: _nomina.Documentable,
-        informations: Informations,
-        context: Context,
-    ) -> str: raise NotImplementedError
-
-
 class FragmentRectifier( __.typx.Protocol ):
     ''' Callback to clean documentation fragment.
 
@@ -216,6 +174,16 @@ class Notifier( __.typx.Protocol ):
     def __call__(
         level: _nomina.NotificationLevels, message: str
     ) -> None: raise NotImplementedError
+
+
+@__.dcls.dataclass( frozen = True, kw_only = True, slots = True )
+class RecursionControl:
+    ''' Various controls for recursive descent. '''
+
+    inheritance: bool
+    targets: RecursionTargets
+    # TODO? Maximum depth.
+    #       (Suggested by multiple LLMs; not convinced that it is needed.)
 
 
 class RecursionTargets( __.enum.IntFlag ):

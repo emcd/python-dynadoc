@@ -23,6 +23,7 @@
 
 from __future__ import annotations
 
+from .. import context as _context
 from .. import interfaces as _interfaces
 from .. import introspection as _introspection
 from .. import nomina as _nomina
@@ -39,7 +40,7 @@ class Style( __.enum.Enum ):
 def produce_fragment(
     possessor: _nomina.Documentable,
     informations: _interfaces.Informations,
-    context: _interfaces.Context,
+    context: _context.Context,
     style: Style = Style.Legible,
 ) -> str:
     return '\n'.join(
@@ -48,14 +49,14 @@ def produce_fragment(
 
 
 _qualident_regex = __.re.compile( r'''^([\w\.]+).*$''' )
-def _extract_qualident( name: str, context: _interfaces.Context ) -> str:
+def _extract_qualident( name: str, context: _context.Context ) -> str:
     extract = _qualident_regex.match( name )
     if extract is not None: return extract[ 1 ]
     return '<unknown>'
 
 
 def _format_annotation(
-    annotation: __.typx.Any, context: _interfaces.Context, style: Style
+    annotation: __.typx.Any, context: _context.Context, style: Style
 ) -> str:
     if isinstance( annotation, list ):
         seqstr = ', '.join(
@@ -84,7 +85,7 @@ def _format_annotation(
 def _produce_fragment_partial(
     possessor: _nomina.Documentable,
     information: _interfaces.InformationBase,
-    context: _interfaces.Context,
+    context: _context.Context,
     style: Style,
 ) -> str:
     if isinstance( information, _interfaces.ArgumentInformation ):
@@ -107,7 +108,7 @@ def _produce_fragment_partial(
 def _produce_argument_text(
     possessor: _nomina.Documentable,
     information: _interfaces.ArgumentInformation,
-    context: _interfaces.Context,
+    context: _context.Context,
     style: Style,
 ) -> str:
     description = information.description or ''
@@ -122,7 +123,7 @@ def _produce_argument_text(
 def _produce_attribute_text(
     possessor: _nomina.Documentable,
     information: _interfaces.AttributeInformation,
-    context: _interfaces.Context,
+    context: _context.Context,
     style: Style,
 ) -> str:
     annotation = information.annotation
@@ -168,7 +169,7 @@ def _produce_attribute_text(
 def _produce_exception_text(
     possessor: _nomina.Documentable,
     information: _interfaces.ExceptionInformation,
-    context: _interfaces.Context,
+    context: _context.Context,
     style: Style,
 ) -> str:
     lines: list[ str ] = [ ]
@@ -186,7 +187,7 @@ def _produce_exception_text(
 def _produce_return_text(
     possessor: _nomina.Documentable,
     information: _interfaces.ReturnInformation,
-    context: _interfaces.Context,
+    context: _context.Context,
     style: Style,
 ) -> str:
     if information.annotation in ( None, __.types.NoneType ): return ''
@@ -200,7 +201,7 @@ def _produce_return_text(
 
 
 def _qualify_object_name( # noqa: PLR0911
-    objct: object, context: _interfaces.Context
+    objct: object, context: _context.Context
 ) -> str:
     if objct is Ellipsis: return '...'
     if objct is __.types.NoneType: return 'None'
