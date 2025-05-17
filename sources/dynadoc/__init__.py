@@ -41,8 +41,8 @@ __version__ = '1.0a0'
 
 _context = assembly.produce_context(
     notifier = notification.notify_internal )
+_recursion = context.RecursionControl(
+    inheritance = True, targets = context.RecursionTargetsOmni )
 assembly.assign_module_docstring(
-    __.package_name,
-    context = _context,
-    recurse_into = context.RecursionTargetsOmni )
+    __.package_name, context = _context, recursion = _recursion )
 # TODO: Reclassify package modules as immutable and concealed.

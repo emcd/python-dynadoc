@@ -64,9 +64,9 @@ WithDocstringIntrospectArgument: __.typx.TypeAlias = __.typx.Annotated[
 WithDocstringPreserveArgument: __.typx.TypeAlias = __.typx.Annotated[
     bool, __.typx.Doc( ''' Preserve extant docstring? ''' )
 ]
-WithDocstringRecurseIntoArgument: __.typx.TypeAlias = __.typx.Annotated[
-    _context.RecursionTargets,
-    __.typx.Doc( ''' Which kinds of objects to recursively document. ''' ),
+WithDocstringRecursionArgument: __.typx.TypeAlias = __.typx.Annotated[
+    _context.RecursionControl,
+    __.typx.Doc( ''' How to handle recursion. ''' ),
 ]
 WithDocstringTableArgument: __.typx.TypeAlias = __.typx.Annotated[
     _nomina.FragmentsTable,
@@ -100,6 +100,9 @@ def produce_context( # noqa: PLR0913
 
 context_default = produce_context( )
 formatter_default = _formatters.sphinxrst.produce_fragment
+recursion_default = _context.RecursionControl(
+    inheritance = False,
+    targets = _context.RecursionTargets.Null )
 
 
 def assign_module_docstring( # noqa: PLR0913
@@ -109,10 +112,10 @@ def assign_module_docstring( # noqa: PLR0913
     formatter: Formatter = formatter_default,
     introspect: WithDocstringIntrospectArgument = True,
     preserve: WithDocstringPreserveArgument = True,
-    recurse_into: WithDocstringRecurseIntoArgument = (
-        _context.RecursionTargets.Null ),
+    recursion: WithDocstringRecursionArgument = recursion_default,
     table: WithDocstringTableArgument = __.dictproxy_empty,
 ) -> None:
+    # TODO: Move to decorators module.
     ''' Assembles docstring from fragments and assigns it to module. '''
     if isinstance( module, str ):
         module = __.sys.modules[ module ]
@@ -126,7 +129,7 @@ def assign_module_docstring( # noqa: PLR0913
         formatter = formatter,
         introspect = introspect,
         preserve = preserve,
-        recurse_into = recurse_into,
+        recursion = recursion,
         fragments = fragments,
         table = table )
 
@@ -137,8 +140,7 @@ def with_docstring( # noqa: PLR0913
     formatter: Formatter = formatter_default,
     introspect: WithDocstringIntrospectArgument = True,
     preserve: WithDocstringPreserveArgument = True,
-    recurse_into: WithDocstringRecurseIntoArgument = (
-        _context.RecursionTargets.Null ),
+    recursion: WithDocstringRecursionArgument = recursion_default,
     table: WithDocstringTableArgument = __.dictproxy_empty,
 ) -> _nomina.Decorator[ _nomina.D ]:
     ''' Assembles docstring from fragments and decorates object with it. '''
@@ -153,7 +155,7 @@ def with_docstring( # noqa: PLR0913
             formatter = formatter,
             introspect = introspect,
             preserve = preserve,
-            recurse_into = recurse_into,
+            recursion = recursion,
             fragments = fragments,
             table = table )
         return objct
@@ -162,9 +164,9 @@ def with_docstring( # noqa: PLR0913
 
 
 def _check_module_recursion(
-    objct: object, /, targets: _context.RecursionTargets, mname: str
+    objct: object, /, recursion: _context.RecursionControl, mname: str
 ) -> __.typx.TypeIs[ __.types.ModuleType ]:
-    if (    targets & _context.RecursionTargets.Module
+    if (    recursion.targets & _context.RecursionTargets.Module
         and __.inspect.ismodule( objct )
     ): return objct.__name__.startswith( f"{mname}." )
     return False
@@ -189,17 +191,20 @@ def _collect_fragments(
 def _consider_class_attribute( # noqa: C901,PLR0913
     attribute: object, /,
     context: _context.Context,
-    targets: _context.RecursionTargets,
+    recursion: _context.RecursionControl,
     pmname: str, pqname: str, aname: str,
 ) -> tuple[ __.typx.Optional[ _nomina.Documentable ], bool ]:
-    if _check_module_recursion( attribute, targets, pmname ):
+    if _check_module_recursion( attribute, recursion, pmname ):
         return attribute, False
     attribute_ = None
     update_surface = False
-    if (    not attribute_ and targets & _context.RecursionTargets.Class
+    if (    not attribute_
+        and recursion.targets & _context.RecursionTargets.Class
         and __.inspect.isclass( attribute )
     ): attribute_ = attribute
-    if not attribute_ and targets & _context.RecursionTargets.Descriptor:
+    if (    not attribute_
+        and recursion.targets & _context.RecursionTargets.Descriptor
+    ):
         if isinstance( attribute, property ) and attribute.fget:
             # Examine docstring and signature of getter method on property.
             attribute_ = attribute.fget
@@ -208,7 +213,9 @@ def _consider_class_attribute( # noqa: C901,PLR0913
         if __.inspect.isdatadescriptor( attribute ):
             # Ignore descriptors which we do not know how to handle.
             return None, False
-    if not attribute_ and targets & _context.RecursionTargets.Function:
+    if (    not attribute_
+        and recursion.targets & _context.RecursionTargets.Function
+    ):
         if __.inspect.ismethod( attribute ):
             # Methods proxy docstrings from their core functions.
             attribute_ = attribute.__func__
@@ -228,17 +235,19 @@ def _consider_class_attribute( # noqa: C901,PLR0913
 def _consider_module_attribute(
     attribute: object, /,
     context: _context.Context,
-    targets: _context.RecursionTargets,
+    recursion: _context.RecursionControl,
     pmname: str, aname: str,
 ) -> tuple[ __.typx.Optional[ _nomina.Documentable ], bool ]:
-    if _check_module_recursion( attribute, targets, pmname ):
+    if _check_module_recursion( attribute, recursion, pmname ):
         return attribute, False
     attribute_ = None
     update_surface = False
-    if (    not attribute_ and targets & _context.RecursionTargets.Class
+    if (    not attribute_
+        and recursion.targets & _context.RecursionTargets.Class
         and __.inspect.isclass( attribute )
     ): attribute_ = attribute
-    if (    not attribute_ and targets & _context.RecursionTargets.Function
+    if (    not attribute_
+        and recursion.targets & _context.RecursionTargets.Function
         and __.inspect.isfunction( attribute ) and aname != '<lambda>'
     ): attribute_ = attribute
     if attribute_:
@@ -254,13 +263,13 @@ def _decorate( # noqa: PLR0913
     formatter: Formatter,
     introspect: bool,
     preserve: bool,
-    recurse_into: _context.RecursionTargets,
+    recursion: _context.RecursionControl,
     fragments: _interfaces.Fragments,
     table: _nomina.FragmentsTable,
 ) -> None:
     if objct in _visitees: return # Prevent multiple decoration.
     _visitees.add( objct )
-    if recurse_into:
+    if recursion.targets:
         if __.inspect.isclass( objct ):
             _decorate_class_attributes(
                 objct,
@@ -268,7 +277,7 @@ def _decorate( # noqa: PLR0913
                 formatter = formatter,
                 introspect = introspect,
                 preserve = preserve,
-                recurse_into = recurse_into,
+                recursion = recursion,
                 table = table )
         elif __.inspect.ismodule( objct ):
             _decorate_module_attributes(
@@ -277,7 +286,7 @@ def _decorate( # noqa: PLR0913
                 formatter = formatter,
                 introspect = introspect,
                 preserve = preserve,
-                recurse_into = recurse_into,
+                recursion = recursion,
                 table = table )
     _decorate_core(
         objct,
@@ -322,13 +331,13 @@ def _decorate_class_attributes( # noqa: PLR0913
     formatter: Formatter,
     introspect: bool,
     preserve: bool,
-    recurse_into: _context.RecursionTargets,
+    recursion: _context.RecursionControl,
     table: _nomina.FragmentsTable,
 ) -> None:
     pmname = objct.__module__
     pqname = objct.__qualname__
     for aname, attribute, surface_attribute in (
-        _survey_class_attributes( objct, context, recurse_into )
+        _survey_class_attributes( objct, context, recursion )
     ):
         fqname = f"{pmname}.{pqname}.{aname}"
         fragments = _collect_fragments( attribute, context, fqname )
@@ -338,7 +347,7 @@ def _decorate_class_attributes( # noqa: PLR0913
             formatter = formatter,
             introspect = introspect,
             preserve = preserve,
-            recurse_into = recurse_into,
+            recursion = recursion,
             fragments = fragments,
             table = table )
         if attribute is not surface_attribute:
@@ -351,12 +360,12 @@ def _decorate_module_attributes( # noqa: PLR0913
     formatter: Formatter,
     introspect: bool,
     preserve: bool,
-    recurse_into: _context.RecursionTargets,
+    recursion: _context.RecursionControl,
     table: _nomina.FragmentsTable,
 ) -> None:
     pmname = module.__name__
     for aname, attribute, surface_attribute in (
-        _survey_module_attributes( module, context, recurse_into )
+        _survey_module_attributes( module, context, recursion )
     ):
         fqname = f"{pmname}.{aname}"
         fragments = _collect_fragments( attribute, context, fqname )
@@ -366,7 +375,7 @@ def _decorate_module_attributes( # noqa: PLR0913
             formatter = formatter,
             introspect = introspect,
             preserve = preserve,
-            recurse_into = recurse_into,
+            recursion = recursion,
             fragments = fragments,
             table = table )
         if attribute is not surface_attribute:
@@ -398,14 +407,14 @@ def _process_fragments_argument(
 def _survey_class_attributes(
     possessor: type, /,
     context: _context.Context,
-    targets: _context.RecursionTargets,
+    recursion: _context.RecursionControl,
 ) -> __.cabc.Iterator[ tuple[ str, _nomina.Documentable, object ] ]:
     pmname = possessor.__module__
     pqname = possessor.__qualname__
     for aname, attribute in __.inspect.getmembers( possessor ):
         attribute_, update_surface = (
             _consider_class_attribute(
-                attribute, context, targets, pmname, pqname, aname ) )
+                attribute, context, recursion, pmname, pqname, aname ) )
         if attribute_ is None: continue
         if update_surface:
             yield aname, attribute_, attribute
@@ -416,13 +425,13 @@ def _survey_class_attributes(
 def _survey_module_attributes(
     possessor: __.types.ModuleType, /,
     context: _context.Context,
-    targets: _context.RecursionTargets,
+    recursion: _context.RecursionControl,
 ) -> __.cabc.Iterator[ tuple[ str, _nomina.Documentable, object ] ]:
     pmname = possessor.__name__
     for aname, attribute in __.inspect.getmembers( possessor ):
         attribute_, update_surface = (
             _consider_module_attribute(
-                attribute, context, targets, pmname, aname ) )
+                attribute, context, recursion, pmname, aname ) )
         if attribute_ is None: continue
         if update_surface:
             yield aname, attribute_, attribute
