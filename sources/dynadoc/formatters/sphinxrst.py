@@ -111,12 +111,13 @@ def _produce_argument_text(
     context: _context.Context,
     style: Style,
 ) -> str:
+    annotation = information.annotation
     description = information.description or ''
-    typetext = _format_annotation( information.annotation, context, style )
-    lines: list[ str ] = [
-        f":argument {information.name}: {description}",
-        f":type {information.name}: {typetext}",
-    ]
+    lines: list[ str ] = [ ]
+    lines.append( f":argument {information.name}: {description}" )
+    if annotation is not _interfaces.absent:
+        typetext = _format_annotation( annotation, context, style )
+        lines.append( f":type {information.name}: {typetext}" )
     return '\n'.join( lines )
 
 
@@ -129,40 +130,52 @@ def _produce_attribute_text(
     annotation = information.annotation
     description = information.description or ''
     name = information.name
-    typetext = _format_annotation( annotation, context, style )
     match information.association:
-        case _interfaces.AttributeAssociation.Module: vlabel = 'var'
+        case _interfaces.AttributeAssociation.Module:
+            return _produce_module_attribute_text(
+                possessor, information, context, style )
         case _interfaces.AttributeAssociation.Class: vlabel = 'cvar'
         case _interfaces.AttributeAssociation.Instance: vlabel = 'ivar'
     lines: list[ str ] = [ ]
-    if vlabel in ( 'cvar', 'ivar' ):
-        lines.extend( [
-            f":{vlabel} {name}: {description}",
-            f":vartype {name}: {typetext}",
-        ] )
-    elif annotation is __.typx.TypeAlias:
+    lines.append( f":{vlabel} {name}: {description}" )
+    if annotation is not _interfaces.absent:
+        typetext = _format_annotation( annotation, context, style )
+        lines.append( f":vartype {name}: {typetext}" )
+    return '\n'.join( lines )
+
+
+def _produce_module_attribute_text(
+    possessor: _nomina.Documentable,
+    information: _interfaces.AttributeInformation,
+    context: _context.Context,
+    style: Style,
+) -> str:
+    annotation = information.annotation
+    description = information.description or ''
+    name = information.name
+    value = getattr( possessor, name, _interfaces.absent )
+    lines: list[ str ] = [ ]
+    if annotation is __.typx.TypeAlias:
+        lines.append( f".. py:type:: {name}" )
         value_a = getattr( possessor, name )
-        value_ar = _introspection.reduce_annotation(
-            value_a, context,
-            _interfaces.AdjunctsData( ),
-            _interfaces.AnnotationsCache( ) )
-        value_s = _format_annotation( value_ar, context, style )
-        lines.extend( [
-            f".. py:type:: {name}",
-            f"   :canonical: {value_s}",
-            '',
-            f"   {description}",
-        ] )
-    # Note: No way to inject data docstring as of 2025-05-11.
-    #       Autodoc will read doc comments and pseudo-docstrings,
-    #       but we have no means of supplying description via a field.
-    # else:
-    #     lines.extend( [
-    #         f".. autodata:: {name}",
-    #         # f".. py:data:: {name}",
-    #         # f"   :type: {typetext}",
-    #         # TODO: ':value:' <- value
-    #     ] )
+        if value is not _interfaces.absent:
+            value_ar = _introspection.reduce_annotation(
+                value_a, context,
+                _interfaces.AdjunctsData( ),
+                _interfaces.AnnotationsCache( ) )
+            value_s = _format_annotation( value_ar, context, style )
+            lines.append( f"   :canonical: {value_s}" )
+        lines.extend( [ '', f"   {description}" ] )
+    else:
+        # Note: No way to inject data docstring as of 2025-05-11.
+        #       Autodoc will read doc comments and pseudo-docstrings,
+        #       but we have no means of supplying description via a field.
+        lines.append( f".. py:data:: {name}" )
+        if annotation is not _interfaces.absent:
+            typetext = _format_annotation( annotation, context, style )
+            lines.append( f"    :type: {typetext}" )
+        if value is not _interfaces.absent:
+            lines.append( f"    :value: {value!r}" )
     return '\n'.join( lines )
 
 

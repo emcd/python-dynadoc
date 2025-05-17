@@ -35,16 +35,14 @@ from .assembly import *
 from .interfaces import *
 
 
-__version__: str
+__version__: __.typx.Annotated[ str, Visibility.Reveal ]
 __version__ = '1.0a0'
 
 
 _context = assembly.produce_context(
     notifier = notification.notify_internal )
 _recursion = context.RecursionControl(
-    inheritance = True,
-    limiters = ( context.avoid_enum_inheritance, ),
-    targets = context.RecursionTargetsOmni )
+    inheritance = True, targets = context.RecursionTargetsOmni )
 assembly.assign_module_docstring(
     __.package_name, context = _context, recursion = _recursion )
 # TODO: Reclassify package modules as immutable and concealed.

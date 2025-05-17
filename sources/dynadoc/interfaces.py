@@ -25,6 +25,10 @@ from . import __
 from . import nomina as _nomina
 
 
+absent = object( )
+incomplete = object( )
+
+
 try: from typing_extensions import Doc # pyright: ignore[reportAssignmentType]
 except ImportError:
 
@@ -82,9 +86,6 @@ class AnnotationsCache:
         Has special values for absent and incomplete entries.
     '''
 
-    absent: __.typx.ClassVar[ object ] = object( )
-    incomplete: __.typx.ClassVar[ object ] = object( )
-
     entries: dict[ __.typx.Any, __.typx.Any ] = (
         __.dcls.field( default_factory = dict[ __.typx.Any, __.typx.Any ] ) )
 
@@ -93,7 +94,7 @@ class AnnotationsCache:
 
             Returns absence sentinel if entry does not exist.
         '''
-        return self.entries.get( original, self.absent )
+        return self.entries.get( original, absent )
 
     def enter(
         self,

@@ -122,11 +122,11 @@ class RecursionControl:
             targets = targets )
 
 
-def avoid_enum_inheritance(
-    objct: object, recursion: RecursionControl
-) -> RecursionControl:
-    ''' Enums inherit copious amounts of documentation. Avoids this. '''
-    if isinstance( objct, __.enum.EnumMeta ):
-        return recursion.with_limit(
-            RecursionLimit( avoid_inheritance = True ) )
-    return recursion
+# def avoid_enum_inheritance(
+#     objct: object, recursion: RecursionControl
+# ) -> RecursionControl:
+#     ''' Enums inherit copious amounts of documentation. Avoids this. '''
+#     if isinstance( objct, __.enum.EnumMeta ):
+#         return recursion.with_limit(
+#             RecursionLimit( avoid_inheritance = True ) )
+#     return recursion

@@ -50,7 +50,9 @@ def is_attribute_visible(
 ) -> bool:
     return (
         bool( description )
-        or ( name.startswith( '__' ) and name.endswith( '__' ) )
+        # or (    name.startswith( '__' )
+        #     and name.endswith( '__' )
+        #     and len( name ) > 4 )
         or not name.startswith( '_' ) )
 
 
@@ -62,14 +64,14 @@ def reduce_annotation(
 ) -> __.typx.Any:
     annotation_r = cache.access( annotation )
     # Avoid infinite recursion from reference cycles.
-    if annotation_r is cache.incomplete:
+    if annotation_r is _interfaces.incomplete:
         emessage = (
             f"Annotation with circular reference {annotation!r}; "
             "returning Any." )
         context.notifier( 'admonition', emessage )
         return cache.enter( annotation, __.typx.Any )
     # Short-circuit on cache hit.
-    if annotation_r is not cache.absent: return annotation_r
+    if annotation_r is not _interfaces.absent: return annotation_r
     cache.enter( annotation ) # mark as incomplete
     return cache.enter(
         annotation,
@@ -173,7 +175,22 @@ def _introspect_class(
             annotations_.update( annotations_b )
         annotations = annotations_
     else: annotations = _access_annotations( possessor, context )
-    if not annotations: return ( )
+    informations: list[ _interfaces.InformationBase ] = [ ]
+    informations.extend( _introspect_class_annotations(
+        possessor, context, annotations, recursion, cache, table ) )
+    informations.extend( _introspect_class_attributes(
+        possessor, context, annotations ) )
+    return tuple( informations )
+
+
+def _introspect_class_annotations( # noqa: PLR0913
+    possessor: type, /,
+    context: _context.Context,
+    annotations: __.cabc.Mapping[ str, __.typx.Any ],
+    recursion: _context.RecursionControl,
+    cache: _interfaces.AnnotationsCache,
+    table: _nomina.FragmentsTable,
+) -> __.cabc.Sequence[ _interfaces.InformationBase ]:
     informations: list[ _interfaces.InformationBase ] = [ ]
     for name, annotation in annotations.items( ):
         adjuncts = _interfaces.AdjunctsData( )
@@ -192,7 +209,30 @@ def _introspect_class(
             annotation = annotation_,
             description = description,
             association = association ) )
-    return tuple( informations )
+    return informations
+
+
+def _introspect_class_attributes(
+    possessor: type, /,
+    context: _context.Context,
+    annotations: __.cabc.Mapping[ str, __.typx.Any ],
+) -> __.cabc.Sequence[ _interfaces.InformationBase ]:
+    informations: list[ _interfaces.InformationBase ] = [ ]
+    adjuncts = _interfaces.AdjunctsData( ) # dummy value
+    for name, attribute in __.inspect.getmembers( possessor ):
+        if name in annotations: continue # already processed
+        if not _is_attribute_visible(
+            name, _interfaces.absent, context, adjuncts, None
+        ): continue
+        if callable( attribute ): continue # separately documented
+        if __.inspect.isbuiltin( attribute ): continue # ditto
+        if __.inspect.isdatadescriptor( attribute ): continue # ditto
+        informations.append( _interfaces.AttributeInformation(
+            name = name,
+            annotation = _interfaces.absent,
+            description = None,
+            association = _interfaces.AttributeAssociation.Class ) )
+    return informations
 
 
 def _introspect_function(
