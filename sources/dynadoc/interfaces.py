@@ -28,7 +28,7 @@ from . import nomina as _nomina
 try: from typing_extensions import Doc # pyright: ignore[reportAssignmentType]
 except ImportError:
 
-    @__.dcls.dataclass( frozen = True, kw_only = True, slots = True )
+    @__.dcls.dataclass( frozen = True, slots = True )
     class Doc:
         ''' Description of argument or attribute.
 

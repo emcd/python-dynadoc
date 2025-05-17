@@ -49,7 +49,7 @@ class Formatter( __.typx.Protocol ):
 
 WithDocstringFragmentsArgument: __.typx.TypeAlias = __.typx.Annotated[
     _interfaces.Fragment,
-    __.typx.Doc(
+    _interfaces.Doc(
         ''' Fragments from which to produce a docstring.
 
             If fragment is a string, then it will be used as an index
@@ -59,18 +59,18 @@ WithDocstringFragmentsArgument: __.typx.TypeAlias = __.typx.Annotated[
         ''' ),
 ]
 WithDocstringIntrospectArgument: __.typx.TypeAlias = __.typx.Annotated[
-    bool, __.typx.Doc( ''' Introspect classes and functions? ''' )
+    bool, _interfaces.Doc( ''' Introspect classes and functions? ''' )
 ]
 WithDocstringPreserveArgument: __.typx.TypeAlias = __.typx.Annotated[
-    bool, __.typx.Doc( ''' Preserve extant docstring? ''' )
+    bool, _interfaces.Doc( ''' Preserve extant docstring? ''' )
 ]
 WithDocstringRecursionArgument: __.typx.TypeAlias = __.typx.Annotated[
     _context.RecursionControl,
-    __.typx.Doc( ''' How to handle recursion. ''' ),
+    _interfaces.Doc( ''' How to handle recursion. ''' ),
 ]
 WithDocstringTableArgument: __.typx.TypeAlias = __.typx.Annotated[
     _nomina.FragmentsTable,
-    __.typx.Doc( ''' Table from which to copy docstring fragments. ''' ),
+    _interfaces.Doc( ''' Table from which to copy docstring fragments. ''' ),
 ]
 
 
