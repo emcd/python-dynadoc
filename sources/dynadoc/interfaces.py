@@ -21,10 +21,6 @@
 ''' Public interfaces for formatters, etc.... '''
 
 
-from __future__ import annotations
-
-import typing as _typing  # https://github.com/python/cpython/issues/133956
-
 from . import __
 from . import nomina as _nomina
 
@@ -86,11 +82,8 @@ class AnnotationsCache:
         Has special values for absent and incomplete entries.
     '''
 
-    # TODO: Python 3.14: Replace '_typing' with '__.typx'.
-    # Note: Must use 'typing.ClassVar' for "reasons":
-    #       https://github.com/python/cpython/issues/133956
-    absent: _typing.ClassVar[ object ] = object( )
-    incomplete: _typing.ClassVar[ object ] = object( )
+    absent: __.typx.ClassVar[ object ] = object( )
+    incomplete: __.typx.ClassVar[ object ] = object( )
 
     entries: dict[ __.typx.Any, __.typx.Any ] = (
         __.dcls.field( default_factory = dict[ __.typx.Any, __.typx.Any ] ) )
@@ -174,33 +167,6 @@ class Notifier( __.typx.Protocol ):
     def __call__(
         level: _nomina.NotificationLevels, message: str
     ) -> None: raise NotImplementedError
-
-
-@__.dcls.dataclass( frozen = True, kw_only = True, slots = True )
-class RecursionControl:
-    ''' Various controls for recursive descent. '''
-
-    inheritance: bool
-    targets: RecursionTargets
-    # TODO? Maximum depth.
-    #       (Suggested by multiple LLMs; not convinced that it is needed.)
-
-
-class RecursionTargets( __.enum.IntFlag ):
-    ''' Kinds of objects to recursively document. '''
-
-    Null        = 0
-    Class       = __.enum.auto( )
-    Descriptor  = __.enum.auto( )
-    Function    = __.enum.auto( )
-    Module      = __.enum.auto( )
-
-RecursionTargetsSansModule = (
-        RecursionTargets.Class
-    |   RecursionTargets.Descriptor
-    |   RecursionTargets.Function )
-RecursionTargetsOmni = (
-    RecursionTargetsSansModule | RecursionTargets.Module )
 
 
 class Visibility( __.enum.Enum ):

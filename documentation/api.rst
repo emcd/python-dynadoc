@@ -36,6 +36,12 @@ Module ``dynadoc.assembly``
 .. automodule:: dynadoc.assembly
 
 
+Module ``dynadoc.context``
+-------------------------------------------------------------------------------
+
+.. automodule:: dynadoc.context
+
+
 Module ``dynadoc.interfaces``
 -------------------------------------------------------------------------------
 

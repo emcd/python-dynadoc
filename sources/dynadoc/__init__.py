@@ -22,6 +22,7 @@
 
 
 from . import __
+from . import context
 from . import formatters
 from . import introspection
 from . import nomina
@@ -29,6 +30,7 @@ from . import notification
 # --- BEGIN: Injected by Copier ---
 # --- END: Injected by Copier ---
 
+# TODO: Collect public interfaces into API module and wildcard export that.
 from .assembly import *
 from .interfaces import *
 
@@ -42,5 +44,5 @@ _context = assembly.produce_context(
 assembly.assign_module_docstring(
     __.package_name,
     context = _context,
-    recurse_into = interfaces.RecursionTargetsOmni )
+    recurse_into = context.RecursionTargetsOmni )
 # TODO: Reclassify package modules as immutable and concealed.

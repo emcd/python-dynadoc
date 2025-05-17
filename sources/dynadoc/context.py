@@ -55,3 +55,30 @@ class Context:
             invoker_globals = iglobals,
             resolver_globals = self.resolver_globals,
             resolver_locals = self.resolver_locals )
+
+
+class RecursionTargets( __.enum.IntFlag ):
+    ''' Kinds of objects to recursively document. '''
+
+    Null        = 0
+    Class       = __.enum.auto( )
+    Descriptor  = __.enum.auto( )
+    Function    = __.enum.auto( )
+    Module      = __.enum.auto( )
+
+RecursionTargetsSansModule = (
+        RecursionTargets.Class
+    |   RecursionTargets.Descriptor
+    |   RecursionTargets.Function )
+RecursionTargetsOmni = (
+    RecursionTargetsSansModule | RecursionTargets.Module )
+
+
+@__.dcls.dataclass( frozen = True, kw_only = True, slots = True )
+class RecursionControl:
+    ''' Various controls for recursive descent. '''
+
+    inheritance: bool
+    targets: RecursionTargets
+    # TODO? Maximum depth.
+    #       (Suggested by multiple LLMs; not convinced that it is needed.)
