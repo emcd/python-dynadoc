@@ -100,9 +100,7 @@ def produce_context( # noqa: PLR0913
 
 context_default = produce_context( )
 formatter_default = _formatters.sphinxrst.produce_fragment
-recursion_default = _context.RecursionControl(
-    inheritance = False,
-    targets = _context.RecursionTargets.Null )
+recursion_default = _context.RecursionControl( )
 
 
 def assign_module_docstring( # noqa: PLR0913
@@ -294,6 +292,7 @@ def _decorate( # noqa: PLR0913
         formatter = formatter,
         introspect = introspect,
         preserve = preserve,
+        recursion = recursion,
         fragments = fragments,
         table = table )
 
@@ -304,6 +303,7 @@ def _decorate_core( # noqa: PLR0913
     formatter: Formatter,
     introspect: bool,
     preserve: bool,
+    recursion: _context.RecursionControl,
     fragments: _interfaces.Fragments,
     table: _nomina.FragmentsTable,
 ) -> None:
@@ -317,7 +317,9 @@ def _decorate_core( # noqa: PLR0913
         cache = _interfaces.AnnotationsCache( )
         informations = (
             _introspection.introspect(
-                objct, context = context, cache = cache, table = table ) )
+                objct,
+                context = context, recursion = recursion,
+                cache = cache, table = table ) )
         fragments_.append(
             formatter( objct, informations, context = context ) )
     docstring = '\n\n'.join(
@@ -341,13 +343,15 @@ def _decorate_class_attributes( # noqa: PLR0913
     ):
         fqname = f"{pmname}.{pqname}.{aname}"
         fragments = _collect_fragments( attribute, context, fqname )
+        recursion_ = _limit_recursion( attribute, context, recursion, fqname )
+        recursion_ = recursion_.evaluate_limits_for( attribute )
         _decorate(
             attribute,
             context = context,
             formatter = formatter,
             introspect = introspect,
             preserve = preserve,
-            recursion = recursion,
+            recursion = recursion_,
             fragments = fragments,
             table = table )
         if attribute is not surface_attribute:
@@ -369,17 +373,37 @@ def _decorate_module_attributes( # noqa: PLR0913
     ):
         fqname = f"{pmname}.{aname}"
         fragments = _collect_fragments( attribute, context, fqname )
+        recursion_ = _limit_recursion( attribute, context, recursion, fqname )
+        recursion_ = recursion_.evaluate_limits_for( attribute )
         _decorate(
             attribute,
             context = context,
             formatter = formatter,
             introspect = introspect,
             preserve = preserve,
-            recursion = recursion,
+            recursion = recursion_,
             fragments = fragments,
             table = table )
         if attribute is not surface_attribute:
             surface_attribute.__doc__ = attribute.__doc__
+
+
+def _limit_recursion(
+    objct: _nomina.Documentable, /,
+    context: _context.Context,
+    recursion: _context.RecursionControl,
+    fqname: str,
+) -> _context.RecursionControl:
+    limit: _context.RecursionLimit = (
+        getattr(
+            objct,
+            context.recursion_limit_name,
+            _context.RecursionLimit( ) ) )
+    if not isinstance( limit, _context.RecursionLimit ):
+        emessage = f"Invalid recursion limit on {fqname}: {limit!r}"
+        context.notifier( 'error', emessage )
+        return recursion
+    return recursion.with_limit( limit )
 
 
 def _process_fragments_argument(
