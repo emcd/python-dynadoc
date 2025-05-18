@@ -21,8 +21,6 @@
 ''' Introspection of argument, attribute, and return annotations. '''
 
 
-from __future__ import annotations
-
 from . import __
 from . import context as _context
 from . import interfaces as _interfaces
@@ -200,9 +198,9 @@ def _introspect_class_annotations(
             name, annotation_, context, adjuncts, description
         ): continue
         association = (
-            _interfaces.AttributeAssociation.Class
+            _interfaces.AttributeAssociations.Class
             if 'ClassVar' in adjuncts.traits
-            else _interfaces.AttributeAssociation.Instance )
+            else _interfaces.AttributeAssociations.Instance )
         informations.append( _interfaces.AttributeInformation(
             name = name,
             annotation = annotation_,
@@ -224,12 +222,16 @@ def _introspect_class_attributes(
             name, _interfaces.absent, context, adjuncts, None
         ): continue
         if callable( attribute ): continue # separately documented
-        if __.inspect.isdatadescriptor( attribute ): continue # ditto
+        # if __.inspect.isdatadescriptor( attribute ): continue # ditto
+        annotation_ = _interfaces.absent
+        if __.inspect.ismodule( attribute ):
+            annotation_ = __.types.ModuleType
+            # TODO: Suppress values for references to modules.
         informations.append( _interfaces.AttributeInformation(
             name = name,
-            annotation = _interfaces.absent,
+            annotation = annotation_,
             description = None,
-            association = _interfaces.AttributeAssociation.Class ) )
+            association = _interfaces.AttributeAssociations.Class ) )
     return informations
 
 
@@ -342,7 +344,7 @@ def _introspect_module_annotations(
             name = name,
             annotation = annotation_,
             description = description,
-            association = _interfaces.AttributeAssociation.Module ) )
+            association = _interfaces.AttributeAssociations.Module ) )
     return informations
 
 
@@ -353,17 +355,22 @@ def _introspect_module_attributes(
 ) -> __.cabc.Sequence[ _interfaces.InformationBase ]:
     informations: list[ _interfaces.InformationBase ] = [ ]
     adjuncts = _interfaces.AdjunctsData( ) # dummy value
+    attribute: object
     for name, attribute in __.inspect.getmembers( possessor ):
         if name in annotations: continue # already processed
         if not _is_attribute_visible(
             name, _interfaces.absent, context, adjuncts, None
         ): continue
         if callable( attribute ): continue # separately documented
+        annotation_ = _interfaces.absent
+        if __.inspect.ismodule( attribute ):
+            annotation_ = __.types.ModuleType
+            # TODO: Suppress values for references to modules.
         informations.append( _interfaces.AttributeInformation(
             name = name,
-            annotation = _interfaces.absent,
+            annotation = annotation_,
             description = None,
-            association = _interfaces.AttributeAssociation.Module ) )
+            association = _interfaces.AttributeAssociations.Module ) )
     return informations
 
 
@@ -376,11 +383,11 @@ def _is_attribute_visible(
 ) -> bool:
     visibility = next(
         (   extra for extra in adjuncts.extras
-            if isinstance( extra, _interfaces.Visibility ) ),
-        _interfaces.Visibility.Default )
+            if isinstance( extra, _interfaces.Visibilities ) ),
+        _interfaces.Visibilities.Default )
     match visibility:
-        case _interfaces.Visibility.Conceal: return False
-        case _interfaces.Visibility.Reveal: return True
+        case _interfaces.Visibilities.Conceal: return False
+        case _interfaces.Visibilities.Reveal: return True
         case _:
             return (
                 context.visibility_predicate(

@@ -21,8 +21,6 @@
 ''' Catalog of common type aliases. '''
 
 
-from __future__ import annotations
-
 from . import __
 
 

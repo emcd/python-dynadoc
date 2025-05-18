@@ -25,8 +25,6 @@
 #       annotations should be resolvable.
 
 
-from __future__ import annotations
-
 from . import __
 from . import context as _context
 from . import formatters as _formatters
@@ -117,13 +115,9 @@ def assign_module_docstring( # noqa: PLR0913
     ''' Assembles docstring from fragments and assigns it to module. '''
     if isinstance( module, str ):
         module = __.sys.modules[ module ]
-    context_ = (
-        context
-        if not introspect or context.invoker_globals is not None
-        else context.with_invoker_globals( ) )
     _decorate(
         module,
-        context = context_,
+        context = context,
         formatter = formatter,
         introspect = introspect,
         preserve = preserve,
@@ -141,15 +135,12 @@ def with_docstring( # noqa: PLR0913
     recursion: WithDocstringRecursionArgument = recursion_default,
     table: WithDocstringTableArgument = __.dictproxy_empty,
 ) -> _nomina.Decorator[ _nomina.D ]:
+    # TODO: Move to decorators module.
     ''' Assembles docstring from fragments and decorates object with it. '''
     def decorate( objct: _nomina.D ) -> _nomina.D:
-        context_ = (
-            context
-            if not introspect or context.invoker_globals is not None
-            else context.with_invoker_globals( ) )
         _decorate(
             objct,
-            context = context_,
+            context = context,
             formatter = formatter,
             introspect = introspect,
             preserve = preserve,

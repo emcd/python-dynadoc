@@ -21,6 +21,4 @@
 ''' Formatters for arguments, attributes, exceptions, and returns. '''
 
 
-from __future__ import annotations
-
 from . import sphinxrst

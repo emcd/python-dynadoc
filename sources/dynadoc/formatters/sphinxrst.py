@@ -21,8 +21,6 @@
 ''' Sphinx reStructuredText formatters. '''
 
 
-from __future__ import annotations
-
 from .. import context as _context
 from .. import interfaces as _interfaces
 from .. import introspection as _introspection
@@ -131,11 +129,11 @@ def _produce_attribute_text(
     description = information.description or ''
     name = information.name
     match information.association:
-        case _interfaces.AttributeAssociation.Module:
+        case _interfaces.AttributeAssociations.Module:
             return _produce_module_attribute_text(
                 possessor, information, context, style )
-        case _interfaces.AttributeAssociation.Class: vlabel = 'cvar'
-        case _interfaces.AttributeAssociation.Instance: vlabel = 'ivar'
+        case _interfaces.AttributeAssociations.Class: vlabel = 'cvar'
+        case _interfaces.AttributeAssociations.Instance: vlabel = 'ivar'
     lines: list[ str ] = [ ]
     lines.append( f":{vlabel} {name}: {description}" )
     if annotation is not _interfaces.absent:

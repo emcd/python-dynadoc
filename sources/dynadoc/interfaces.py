@@ -25,6 +25,7 @@ from . import __
 from . import nomina as _nomina
 
 
+# TODO? Enum for sentinels.
 absent = object( )
 incomplete = object( )
 
@@ -111,11 +112,32 @@ class AnnotationsCache:
         return reduction
 
 
-class AttributeAssociation( __.enum.Enum ):
+class AttributeAssociations( __.enum.Enum ):
 
     Module      = __.enum.auto( )
     Class       = __.enum.auto( )
     Instance    = __.enum.auto( )
+
+
+class ValuationModes( __.enum.Enum ):
+    ''' Annotation for how default value is determined.
+
+        Accept means to use assigned value.
+        Suppress means to use no value.
+        Surrogate means to use surrogate value.
+    '''
+
+    Accept      = __.enum.auto( )
+    Suppress    = __.enum.auto( )
+    Surrogate   = __.enum.auto( )
+
+
+@__.dcls.dataclass( frozen = True, kw_only = True, slots = True )
+class Default:
+    ''' How to process default value. '''
+
+    mode: ValuationModes = ValuationModes.Accept
+    surrogate: __.typx.Any = absent
 
 
 class FragmentRectifier( __.typx.Protocol ):
@@ -141,13 +163,15 @@ class ArgumentInformation( InformationBase ):
 
     name: str
     paramspec: __.inspect.Parameter
+    # default: Default
 
 
 @__.dcls.dataclass( frozen = True, kw_only = True, slots = True )
 class AttributeInformation( InformationBase ):
 
     name: str
-    association: AttributeAssociation
+    association: AttributeAssociations
+    # default: Default
 
 
 @__.dcls.dataclass( frozen = True, kw_only = True, slots = True )
@@ -170,7 +194,7 @@ class Notifier( __.typx.Protocol ):
     ) -> None: raise NotImplementedError
 
 
-class Visibility( __.enum.Enum ):
+class Visibilities( __.enum.Enum ):
     ''' Annotation to determine visibility of attribute.
 
         Default means to defer to visibility predicate in use.

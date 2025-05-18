@@ -21,8 +21,6 @@
 ''' Assorted utilities for notification. '''
 
 
-from __future__ import annotations
-
 from . import __
 from . import nomina as _nomina
 

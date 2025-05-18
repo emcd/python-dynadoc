@@ -35,7 +35,7 @@ from .assembly import *
 from .interfaces import *
 
 
-__version__: __.typx.Annotated[ str, Visibility.Reveal ]
+__version__: __.typx.Annotated[ str, Visibilities.Reveal ]
 __version__ = '1.0a0'
 
 

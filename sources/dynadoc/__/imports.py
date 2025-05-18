@@ -23,8 +23,6 @@
 # ruff: noqa: F401
 
 
-from __future__ import annotations
-
 import                      builtins
 import collections.abc as   cabc
 import dataclasses as       dcls

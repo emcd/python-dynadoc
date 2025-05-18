@@ -99,6 +99,7 @@ class RecursionLimit:
 
 @__.dcls.dataclass( frozen = True, kw_only = True, slots = True )
 class RecursionControl:
+    # TODO? Rename to 'IntrospectionControl'.
     ''' Controls for recursive descent. '''
 
     inheritance: bool = False
