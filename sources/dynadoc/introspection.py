@@ -38,10 +38,36 @@ def introspect(
         return _introspect_class(
             possessor, context, introspection, cache, table )
     if __.inspect.isfunction( possessor ) and possessor.__name__ != '<lambda>':
-        return _introspect_function( possessor, context, cache, table )
+        return _introspect_function(
+            possessor, context, cache, table )
     if __.inspect.ismodule( possessor ):
-        return _introspect_module( possessor, context, cache, table )
+        return _introspect_module(
+            possessor, context, introspection, cache, table )
     return ( )
+
+
+def introspect_special_classes( # noqa: PLR0913
+    objct: type,
+    context: _context.Context,
+    introspection: _context.IntrospectionControl,
+    annotations: _nomina.Annotations,
+    cache: _interfaces.AnnotationsCache,
+    table: _nomina.FragmentsTable,
+) -> __.typx.Optional[ _interfaces.Informations ]:
+    ''' Introspects special classes in Python standard library.
+
+        E.g., enum members are collected as class variables.
+    '''
+    informations: list[ _interfaces.InformationBase ] = [ ]
+    if isinstance( objct, __.enum.EnumMeta ):
+        for name, member in objct.__members__.items( ): # noqa: PERF102
+            informations.append( _interfaces.AttributeInformation(
+                name = name,
+                annotation = objct,
+                description = None,
+                association = _interfaces.AttributeAssociations.Class ) )
+        return informations
+    return None
 
 
 def is_attribute_visible(
@@ -167,7 +193,7 @@ def _introspect_class(
     table: _nomina.FragmentsTable,
 ) -> __.cabc.Sequence[ _interfaces.InformationBase ]:
     annotations_: dict[ str, __.typx.Any ] = { }
-    if introspection.inheritance:
+    if introspection.class_control.inheritance:
         # Descendant annotations override ancestor annotations.
         for class_ in reversed( possessor.__mro__ ):
             annotations_b = _access_annotations( class_, context )
@@ -175,10 +201,20 @@ def _introspect_class(
         annotations = annotations_
     else: annotations = _access_annotations( possessor, context )
     informations: list[ _interfaces.InformationBase ] = [ ]
-    informations.extend( _introspect_class_annotations(
-        possessor, context, annotations, cache, table ) )
-    informations.extend( _introspect_class_attributes(
-        possessor, context, annotations ) )
+    for introspector in introspection.class_control.introspectors:
+        informations_ = introspector(
+            possessor,
+            context = context, introspection = introspection,
+            annotations = annotations, cache = cache, table = table )
+        if informations_ is not None:
+            informations.extend( informations_ )
+            break
+    else:
+        informations.extend( _introspect_class_annotations(
+            possessor, context, annotations, cache, table ) )
+        if introspection.class_control.scan_attributes:
+            informations.extend( _introspect_class_attributes(
+                possessor, context, annotations ) )
     return tuple( informations )
 
 
@@ -312,6 +348,7 @@ def _introspect_function_valences(
 def _introspect_module(
     possessor: __.types.ModuleType,
     context: _context.Context,
+    introspection: _context.IntrospectionControl,
     cache: _interfaces.AnnotationsCache,
     table: _nomina.FragmentsTable,
 ) -> __.cabc.Sequence[ _interfaces.InformationBase ]:
@@ -320,8 +357,9 @@ def _introspect_module(
     informations: list[ _interfaces.InformationBase ] = [ ]
     informations.extend( _introspect_module_annotations(
         possessor, context, annotations, cache, table ) )
-    informations.extend( _introspect_module_attributes(
-        possessor, context, annotations ) )
+    if introspection.module_control.scan_attributes:
+        informations.extend( _introspect_module_attributes(
+            possessor, context, annotations ) )
     return tuple( informations )
 
 

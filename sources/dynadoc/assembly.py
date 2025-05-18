@@ -292,14 +292,15 @@ def _decorate_core( # noqa: PLR0913
         if fragment: fragments_.append( fragment )
     fragments_.extend(
         _process_fragments_argument( context, fragments, table ) )
-    cache = _interfaces.AnnotationsCache( )
-    informations = (
-        _introspection.introspect(
-            objct,
-            context = context, introspection = introspection,
-            cache = cache, table = table ) )
-    fragments_.append(
-        formatter( objct, informations, context = context ) )
+    if introspection.enable:
+        cache = _interfaces.AnnotationsCache( )
+        informations = (
+            _introspection.introspect(
+                objct,
+                context = context, introspection = introspection,
+                cache = cache, table = table ) )
+        fragments_.append(
+            formatter( objct, informations, context = context ) )
     docstring = '\n\n'.join(
         fragment for fragment in filter( None, fragments_ ) ).rstrip( )
     objct.__doc__ = docstring if docstring else None

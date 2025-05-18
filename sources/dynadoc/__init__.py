@@ -41,8 +41,12 @@ __version__ = '1.0a0'
 
 _context = assembly.produce_context(
     notifier = notification.notify_internal )
+_introspection_cc = context.ClassIntrospectionControl(
+    inheritance = True,
+    introspectors = ( introspection.introspect_special_classes, ) )
 _introspection = context.IntrospectionControl(
-    inheritance = True, targets = context.IntrospectionTargetsOmni )
+    class_control = _introspection_cc,
+    targets = context.IntrospectionTargetsOmni )
 assembly.assign_module_docstring(
     __.package_name, context = _context, introspection = _introspection )
 # TODO: Reclassify package modules as immutable and concealed.

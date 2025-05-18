@@ -28,6 +28,7 @@ Decoratable: __.typx.TypeAlias = type | __.cabc.Callable[ ..., __.typx.Any ]
 Documentable: __.typx.TypeAlias = __.types.ModuleType | Decoratable
 D = __.typx.TypeVar( 'D', bound = Decoratable )
 
+Annotations: __.typx.TypeAlias = __.cabc.Mapping[ str, __.typx.Any ]
 Decorator: __.typx.TypeAlias = __.cabc.Callable[ [ D ], D ]
 FragmentsTable: __.typx.TypeAlias = __.cabc.Mapping[ str, str ]
 Module: __.typx.TypeAlias = str | __.types.ModuleType

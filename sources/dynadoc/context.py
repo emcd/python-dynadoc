@@ -60,6 +60,67 @@ class Context:
             resolver_locals = self.resolver_locals )
 
 
+class ClassIntrospector( __.typx.Protocol ):
+    ''' Custom introspector for class annotations and attributes. '''
+
+    @staticmethod
+    def __call__( # noqa: PLR0913
+        objct: type, /,
+        context: Context,
+        introspection: 'IntrospectionControl',
+        annotations: _nomina.Annotations,
+        cache: _interfaces.AnnotationsCache,
+        table: _nomina.FragmentsTable,
+    ) -> __.typx.Optional[ _interfaces.Informations ]:
+        raise NotImplementedError
+
+ClassIntrospectors: __.typx.TypeAlias = (
+    __.cabc.Sequence[ ClassIntrospector ] )
+
+
+@__.dcls.dataclass( frozen = True, kw_only = True, slots = True )
+class ClassIntrospectionLimit:
+    ''' Limits on class introspection behavior. '''
+
+    avoid_inheritance: bool = False
+    ignore_attributes: bool = False
+
+
+@__.dcls.dataclass( frozen = True, kw_only = True, slots = True )
+class ClassIntrospectionControl:
+    ''' Controls on class introspection behavior. '''
+
+    inheritance: bool = False
+    introspectors: ClassIntrospectors = ( )
+    scan_attributes: bool = False
+
+    def with_limit( self, limit: ClassIntrospectionLimit ) -> __.typx.Self:
+        inheritance = self.inheritance and not limit.avoid_inheritance
+        scan_attributes = self.scan_attributes and not limit.ignore_attributes
+        return type( self )(
+            inheritance = inheritance,
+            introspectors = self.introspectors,
+            scan_attributes = scan_attributes )
+
+
+@__.dcls.dataclass( frozen = True, kw_only = True, slots = True )
+class ModuleIntrospectionLimit:
+    ''' Limits on module introspection behavior. '''
+
+    ignore_attributes: bool = False
+
+
+@__.dcls.dataclass( frozen = True, kw_only = True, slots = True )
+class ModuleIntrospectionControl:
+    ''' Controls on module introspection behavior. '''
+
+    scan_attributes: bool = False
+
+    def with_limit( self, limit: ModuleIntrospectionLimit ) -> __.typx.Self:
+        scan_attributes = self.scan_attributes and not limit.ignore_attributes
+        return type( self )( scan_attributes = scan_attributes )
+
+
 class IntrospectionLimiter( __.typx.Protocol ):
     ''' Can return modified introspection control for attribute. '''
 
@@ -92,9 +153,10 @@ IntrospectionTargetsOmni = (
 
 @__.dcls.dataclass( frozen = True, kw_only = True, slots = True )
 class IntrospectionLimit:
-    ''' Limitations on recursive descent. '''
+    ''' Limits on introspection behavior. '''
 
-    avoid_inheritance: bool = False
+    class_limit: ClassIntrospectionLimit = ClassIntrospectionLimit( )
+    module_limit: ModuleIntrospectionLimit = ModuleIntrospectionLimit( )
     targets_exclusions: IntrospectionTargets = IntrospectionTargets.Null
 
 
@@ -102,11 +164,11 @@ class IntrospectionLimit:
 class IntrospectionControl:
     ''' Controls on introspection behavior. '''
 
-    inheritance: bool = False
+    enable: bool = True
+    class_control: ClassIntrospectionControl = ClassIntrospectionControl( )
+    module_control: ModuleIntrospectionControl = ModuleIntrospectionControl( )
     limiters: IntrospectionLimiters = ( )
     targets: IntrospectionTargets = IntrospectionTargets.Null
-    # TODO: Predicate to determine if scan unannotated attributes.
-    #       Use case: scan enums but nothing else.
     # TODO? Maximum depth.
     #       (Suggested by multiple LLMs; not convinced that it is needed.)
 
@@ -117,10 +179,13 @@ class IntrospectionControl:
         return introspection_
 
     def with_limit( self, limit: IntrospectionLimit ) -> __.typx.Self:
-        inheritance = self.inheritance and not limit.avoid_inheritance
+        class_control = self.class_control.with_limit( limit.class_limit )
+        module_control = self.module_control.with_limit( limit.module_limit )
         targets = self.targets & ~limit.targets_exclusions
         return type( self )(
-            inheritance = inheritance,
+            enable = self.enable,
+            class_control = class_control,
+            module_control = module_control,
             limiters = self.limiters,
             targets = targets )
 
