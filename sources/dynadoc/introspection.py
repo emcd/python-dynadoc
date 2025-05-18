@@ -177,17 +177,16 @@ def _introspect_class(
     else: annotations = _access_annotations( possessor, context )
     informations: list[ _interfaces.InformationBase ] = [ ]
     informations.extend( _introspect_class_annotations(
-        possessor, context, annotations, recursion, cache, table ) )
+        possessor, context, annotations, cache, table ) )
     informations.extend( _introspect_class_attributes(
         possessor, context, annotations ) )
     return tuple( informations )
 
 
-def _introspect_class_annotations( # noqa: PLR0913
+def _introspect_class_annotations(
     possessor: type, /,
     context: _context.Context,
     annotations: __.cabc.Mapping[ str, __.typx.Any ],
-    recursion: _context.RecursionControl,
     cache: _interfaces.AnnotationsCache,
     table: _nomina.FragmentsTable,
 ) -> __.cabc.Sequence[ _interfaces.InformationBase ]:
@@ -225,7 +224,6 @@ def _introspect_class_attributes(
             name, _interfaces.absent, context, adjuncts, None
         ): continue
         if callable( attribute ): continue # separately documented
-        if __.inspect.isbuiltin( attribute ): continue # ditto
         if __.inspect.isdatadescriptor( attribute ): continue # ditto
         informations.append( _interfaces.AttributeInformation(
             name = name,
@@ -292,11 +290,14 @@ def _introspect_function_valences(
     informations: list[ _interfaces.ArgumentInformation ] = [ ]
     for name, param in signature.parameters.items( ):
         annotation = annotations.get( name, param.annotation )
-        if annotation is param.empty: continue
-        adjuncts = _interfaces.AdjunctsData( )
-        annotation_ = reduce_annotation(
-            annotation, context, adjuncts, cache )
-        description = _compile_description( context, adjuncts, table )
+        if annotation is param.empty:
+            annotation_ = _interfaces.absent
+            description = None
+        else:
+            adjuncts = _interfaces.AdjunctsData( )
+            annotation_ = reduce_annotation(
+                annotation, context, adjuncts, cache )
+            description = _compile_description( context, adjuncts, table )
         informations.append( _interfaces.ArgumentInformation(
             name = name,
             annotation = annotation_,
@@ -314,6 +315,21 @@ def _introspect_module(
     annotations = _access_annotations( possessor, context )
     if not annotations: return ( )
     informations: list[ _interfaces.InformationBase ] = [ ]
+    informations.extend( _introspect_module_annotations(
+        possessor, context, annotations, cache, table ) )
+    informations.extend( _introspect_module_attributes(
+        possessor, context, annotations ) )
+    return tuple( informations )
+
+
+def _introspect_module_annotations(
+    possessor: __.types.ModuleType, /,
+    context: _context.Context,
+    annotations: __.cabc.Mapping[ str, __.typx.Any ],
+    cache: _interfaces.AnnotationsCache,
+    table: _nomina.FragmentsTable,
+) -> __.cabc.Sequence[ _interfaces.InformationBase ]:
+    informations: list[ _interfaces.InformationBase ] = [ ]
     for name, annotation in annotations.items( ):
         adjuncts = _interfaces.AdjunctsData( )
         annotation_ = reduce_annotation(
@@ -327,7 +343,28 @@ def _introspect_module(
             annotation = annotation_,
             description = description,
             association = _interfaces.AttributeAssociation.Module ) )
-    return tuple( informations )
+    return informations
+
+
+def _introspect_module_attributes(
+    possessor: __.types.ModuleType, /,
+    context: _context.Context,
+    annotations: __.cabc.Mapping[ str, __.typx.Any ],
+) -> __.cabc.Sequence[ _interfaces.InformationBase ]:
+    informations: list[ _interfaces.InformationBase ] = [ ]
+    adjuncts = _interfaces.AdjunctsData( ) # dummy value
+    for name, attribute in __.inspect.getmembers( possessor ):
+        if name in annotations: continue # already processed
+        if not _is_attribute_visible(
+            name, _interfaces.absent, context, adjuncts, None
+        ): continue
+        if callable( attribute ): continue # separately documented
+        informations.append( _interfaces.AttributeInformation(
+            name = name,
+            annotation = _interfaces.absent,
+            description = None,
+            association = _interfaces.AttributeAssociation.Module ) )
+    return informations
 
 
 def _is_attribute_visible(
