@@ -30,12 +30,13 @@ from . import nomina as _nomina
 def introspect(
     possessor: _nomina.Documentable, /,
     context: _context.Context,
-    recursion: _context.RecursionControl,
+    introspection: _context.IntrospectionControl,
     cache: _interfaces.AnnotationsCache,
     table: _nomina.FragmentsTable,
 ) -> __.cabc.Sequence[ _interfaces.InformationBase ]:
     if __.inspect.isclass( possessor ):
-        return _introspect_class( possessor, context, recursion, cache, table )
+        return _introspect_class(
+            possessor, context, introspection, cache, table )
     if __.inspect.isfunction( possessor ) and possessor.__name__ != '<lambda>':
         return _introspect_function( possessor, context, cache, table )
     if __.inspect.ismodule( possessor ):
@@ -161,12 +162,12 @@ def _filter_reconstitute_annotation(
 def _introspect_class(
     possessor: type,
     context: _context.Context,
-    recursion: _context.RecursionControl,
+    introspection: _context.IntrospectionControl,
     cache: _interfaces.AnnotationsCache,
     table: _nomina.FragmentsTable,
 ) -> __.cabc.Sequence[ _interfaces.InformationBase ]:
     annotations_: dict[ str, __.typx.Any ] = { }
-    if recursion.inheritance:
+    if introspection.inheritance:
         # Descendant annotations override ancestor annotations.
         for class_ in reversed( possessor.__mro__ ):
             annotations_b = _access_annotations( class_, context )

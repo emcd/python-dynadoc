@@ -27,7 +27,7 @@ from . import nomina as _nomina
 
 
 _fragments_name_default = '_dynadoc_fragments_'
-_recursion_limit_name_default = '_dynadoc_recursion_limit_'
+_introspection_limit_name_default = '_dynadoc_introspection_limit_'
 
 
 @__.dcls.dataclass( frozen = True, kw_only = True, slots = True )
@@ -38,7 +38,7 @@ class Context:
     fragment_rectifier: _interfaces.FragmentRectifier
     visibility_predicate: _interfaces.VisibilityPredicate
     fragments_name: str = _fragments_name_default
-    recursion_limit_name: str = _recursion_limit_name_default
+    introspection_limit_name: str = _introspection_limit_name_default
     invoker_globals: __.typx.Optional[ _nomina.Variables ] = None
     resolver_globals: __.typx.Optional[ _nomina.Variables ] = None
     resolver_locals: __.typx.Optional[ _nomina.Variables ] = None
@@ -54,24 +54,25 @@ class Context:
             fragment_rectifier = self.fragment_rectifier,
             visibility_predicate = self.visibility_predicate,
             fragments_name = self.fragments_name,
-            recursion_limit_name = self.recursion_limit_name,
+            introspection_limit_name = self.introspection_limit_name,
             invoker_globals = iglobals,
             resolver_globals = self.resolver_globals,
             resolver_locals = self.resolver_locals )
 
 
-class RecursionLimiter( __.typx.Protocol ):
-    ''' Can return modified recursion control for attribute. '''
+class IntrospectionLimiter( __.typx.Protocol ):
+    ''' Can return modified introspection control for attribute. '''
 
     @staticmethod
     def __call__(
-        objct: object, recursion: 'RecursionControl'
-    ) -> 'RecursionControl': raise NotImplementedError
+        objct: object, introspection: 'IntrospectionControl'
+    ) -> 'IntrospectionControl': raise NotImplementedError
 
-RecursionLimiters: __.typx.TypeAlias = __.cabc.Sequence[ RecursionLimiter ]
+IntrospectionLimiters: __.typx.TypeAlias = (
+    __.cabc.Sequence[ IntrospectionLimiter ] )
 
 
-class RecursionTargets( __.enum.IntFlag ):
+class IntrospectionTargets( __.enum.IntFlag ):
     ''' Kinds of objects to recursively document. '''
 
     Null        = 0
@@ -81,40 +82,41 @@ class RecursionTargets( __.enum.IntFlag ):
     Module      = __.enum.auto( )
 
 
-RecursionTargetsSansModule = (
-        RecursionTargets.Class
-    |   RecursionTargets.Descriptor
-    |   RecursionTargets.Function )
-RecursionTargetsOmni = (
-    RecursionTargetsSansModule | RecursionTargets.Module )
+IntrospectionTargetsSansModule = (
+        IntrospectionTargets.Class
+    |   IntrospectionTargets.Descriptor
+    |   IntrospectionTargets.Function )
+IntrospectionTargetsOmni = (
+    IntrospectionTargetsSansModule | IntrospectionTargets.Module )
 
 
 @__.dcls.dataclass( frozen = True, kw_only = True, slots = True )
-class RecursionLimit:
+class IntrospectionLimit:
     ''' Limitations on recursive descent. '''
 
     avoid_inheritance: bool = False
-    targets_exclusions: RecursionTargets = RecursionTargets.Null
+    targets_exclusions: IntrospectionTargets = IntrospectionTargets.Null
 
 
 @__.dcls.dataclass( frozen = True, kw_only = True, slots = True )
-class RecursionControl:
-    # TODO? Rename to 'IntrospectionControl'.
-    ''' Controls for recursive descent. '''
+class IntrospectionControl:
+    ''' Controls on introspection behavior. '''
 
     inheritance: bool = False
-    limiters: RecursionLimiters = ( )
-    targets: RecursionTargets = RecursionTargets.Null
+    limiters: IntrospectionLimiters = ( )
+    targets: IntrospectionTargets = IntrospectionTargets.Null
+    # TODO: Predicate to determine if scan unannotated attributes.
+    #       Use case: scan enums but nothing else.
     # TODO? Maximum depth.
     #       (Suggested by multiple LLMs; not convinced that it is needed.)
 
-    def evaluate_limits_for( self, objct: object ) -> 'RecursionControl':
-        recursion_ = self
+    def evaluate_limits_for( self, objct: object ) -> 'IntrospectionControl':
+        introspection_ = self
         for limiter in self.limiters:
-            recursion_ = limiter( objct, recursion_ )
-        return recursion_
+            introspection_ = limiter( objct, introspection_ )
+        return introspection_
 
-    def with_limit( self, limit: RecursionLimit ) -> __.typx.Self:
+    def with_limit( self, limit: IntrospectionLimit ) -> __.typx.Self:
         inheritance = self.inheritance and not limit.avoid_inheritance
         targets = self.targets & ~limit.targets_exclusions
         return type( self )(
