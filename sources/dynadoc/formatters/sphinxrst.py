@@ -151,19 +151,24 @@ def _produce_module_attribute_text(
     annotation = information.annotation
     description = information.description or ''
     name = information.name
-    value = getattr( possessor, name, _interfaces.absent )
+    match information.default.mode:
+        case _interfaces.ValuationModes.Accept:
+            value = getattr( possessor, name, _interfaces.absent )
+        case _interfaces.ValuationModes.Suppress:
+            value = _interfaces.absent
+        case _interfaces.ValuationModes.Surrogate:
+            value = _interfaces.absent
     lines: list[ str ] = [ ]
     if annotation is __.typx.TypeAlias:
         lines.append( f".. py:type:: {name}" )
-        value_a = getattr( possessor, name )
         if value is not _interfaces.absent:
             value_ar = _introspection.reduce_annotation(
-                value_a, context,
+                value, context,
                 _interfaces.AdjunctsData( ),
                 _interfaces.AnnotationsCache( ) )
             value_s = _format_annotation( value_ar, context, style )
             lines.append( f"   :canonical: {value_s}" )
-        lines.extend( [ '', f"   {description}" ] )
+        if description: lines.extend( [ '', f"   {description}" ] )
     else:
         # Note: No way to inject data docstring as of 2025-05-11.
         #       Autodoc will read doc comments and pseudo-docstrings,

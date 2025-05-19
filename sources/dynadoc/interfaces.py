@@ -163,7 +163,7 @@ class ArgumentInformation( InformationBase ):
 
     name: str
     paramspec: __.inspect.Parameter
-    # default: Default
+    default: Default
 
 
 @__.dcls.dataclass( frozen = True, kw_only = True, slots = True )
@@ -171,7 +171,7 @@ class AttributeInformation( InformationBase ):
 
     name: str
     association: AttributeAssociations
-    # default: Default
+    default: Default
 
 
 @__.dcls.dataclass( frozen = True, kw_only = True, slots = True )

@@ -27,6 +27,11 @@ from . import interfaces as _interfaces
 from . import nomina as _nomina
 
 
+_default_default = _interfaces.Default( )
+_default_suppress = _interfaces.Default(
+    mode = _interfaces.ValuationModes.Suppress )
+
+
 def introspect(
     possessor: _nomina.Documentable, /,
     context: _context.Context,
@@ -65,7 +70,8 @@ def introspect_special_classes( # noqa: PLR0913
                 name = name,
                 annotation = objct,
                 description = None,
-                association = _interfaces.AttributeAssociations.Class ) )
+                association = _interfaces.AttributeAssociations.Class,
+                default = _default_suppress ) )
         return informations
     return None
 
@@ -143,6 +149,16 @@ def _compile_description(
             else: fragments.append( table[ name ] )
     return '\n\n'.join(
         context.fragment_rectifier( fragment ) for fragment in fragments )
+
+
+def _determine_default_valuator(
+    context: _context.Context,
+    adjuncts: _interfaces.AdjunctsData,
+) -> _interfaces.Default:
+    return next(
+        (   extra for extra in adjuncts.extras
+            if isinstance( extra, _interfaces.Default ) ),
+        _default_default )
 
 
 def _filter_reconstitute_annotation(
@@ -238,11 +254,13 @@ def _introspect_class_annotations(
             _interfaces.AttributeAssociations.Class
             if 'ClassVar' in adjuncts.traits
             else _interfaces.AttributeAssociations.Instance )
+        default = _determine_default_valuator( context, adjuncts )
         informations.append( _interfaces.AttributeInformation(
             name = name,
             annotation = annotation_,
             description = description,
-            association = association ) )
+            association = association,
+            default = default ) )
     return informations
 
 
@@ -259,16 +277,12 @@ def _introspect_class_attributes(
             name, _interfaces.absent, context, adjuncts, None
         ): continue
         if callable( attribute ): continue # separately documented
-        # if __.inspect.isdatadescriptor( attribute ): continue # ditto
-        annotation_ = _interfaces.absent
-        if __.inspect.ismodule( attribute ):
-            annotation_ = __.types.ModuleType
-            # TODO: Suppress values for references to modules.
         informations.append( _interfaces.AttributeInformation(
             name = name,
-            annotation = annotation_,
+            annotation = _interfaces.absent,
             description = None,
-            association = _interfaces.AttributeAssociations.Class ) )
+            association = _interfaces.AttributeAssociations.Class,
+            default = _default_default ) )
     return informations
 
 
@@ -329,19 +343,22 @@ def _introspect_function_valences(
     informations: list[ _interfaces.ArgumentInformation ] = [ ]
     for name, param in signature.parameters.items( ):
         annotation = annotations.get( name, param.annotation )
+        adjuncts = _interfaces.AdjunctsData( )
         if annotation is param.empty:
             annotation_ = _interfaces.absent
             description = None
         else:
-            adjuncts = _interfaces.AdjunctsData( )
             annotation_ = reduce_annotation(
                 annotation, context, adjuncts, cache )
             description = _compile_description( context, adjuncts, table )
+        if param.default is param.empty: default = _default_suppress
+        else: default = _determine_default_valuator( context, adjuncts )
         informations.append( _interfaces.ArgumentInformation(
             name = name,
             annotation = annotation_,
             description = description,
-            paramspec = param ) )
+            paramspec = param,
+            default = default ) )
     return tuple( informations )
 
 
@@ -379,11 +396,13 @@ def _introspect_module_annotations(
         if not _is_attribute_visible(
             name, annotation_, context, adjuncts, description
         ): continue
+        default = _determine_default_valuator( context, adjuncts )
         informations.append( _interfaces.AttributeInformation(
             name = name,
             annotation = annotation_,
             description = description,
-            association = _interfaces.AttributeAssociations.Module ) )
+            association = _interfaces.AttributeAssociations.Module,
+            default = default ) )
     return informations
 
 
@@ -401,15 +420,12 @@ def _introspect_module_attributes(
             name, _interfaces.absent, context, adjuncts, None
         ): continue
         if callable( attribute ): continue # separately documented
-        annotation_ = _interfaces.absent
-        if __.inspect.ismodule( attribute ):
-            annotation_ = __.types.ModuleType
-            # TODO: Suppress values for references to modules.
         informations.append( _interfaces.AttributeInformation(
             name = name,
-            annotation = annotation_,
+            annotation = _interfaces.absent,
             description = None,
-            association = _interfaces.AttributeAssociations.Module ) )
+            association = _interfaces.AttributeAssociations.Module,
+            default = _default_default ) )
     return informations
 
 
