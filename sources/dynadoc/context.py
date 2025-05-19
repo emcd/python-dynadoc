@@ -36,7 +36,7 @@ class Context:
 
     notifier: _interfaces.Notifier
     fragment_rectifier: _interfaces.FragmentRectifier
-    visibility_predicate: _interfaces.VisibilityPredicate
+    visibility_decider: _interfaces.VisibilityDecider
     fragments_name: str = _fragments_name_default
     introspection_limit_name: str = _introspection_limit_name_default
     invoker_globals: __.typx.Optional[ _nomina.Variables ] = None
@@ -52,7 +52,7 @@ class Context:
         return type( self )(
             notifier = self.notifier,
             fragment_rectifier = self.fragment_rectifier,
-            visibility_predicate = self.visibility_predicate,
+            visibility_decider = self.visibility_decider,
             fragments_name = self.fragments_name,
             introspection_limit_name = self.introspection_limit_name,
             invoker_globals = iglobals,

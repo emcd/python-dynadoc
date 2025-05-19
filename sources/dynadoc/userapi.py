@@ -18,20 +18,23 @@
 #============================================================================#
 
 
-''' Catalog of common type aliases. '''
+''' Interface for regular use of package. '''
+
+# ruff: noqa: F401,F403
 
 
-from . import __
-
-
-Decoratable: __.typx.TypeAlias = type | __.cabc.Callable[ ..., __.typx.Any ]
-Documentable: __.typx.TypeAlias = __.types.ModuleType | Decoratable
-D = __.typx.TypeVar( 'D', bound = Decoratable )
-
-Annotations: __.typx.TypeAlias = __.cabc.Mapping[ str, __.typx.Any ]
-Decorator: __.typx.TypeAlias = __.cabc.Callable[ [ D ], D ]
-FragmentsTable: __.typx.TypeAlias = __.cabc.Mapping[ str, str ]
-Module: __.typx.TypeAlias = str | __.types.ModuleType
-NotificationLevels: __.typx.TypeAlias = (
-    __.typx.Literal[ 'admonition', 'error' ] )
-Variables: __.typx.TypeAlias = __.cabc.Mapping[ str, __.typx.Any ]
+from .assembly import assign_module_docstring, with_docstring
+from .context import *
+from .factories import *
+from .interfaces import (
+    Default,
+    Doc,
+    Findex,
+    FragmentRectifier,
+    Notifier,
+    Raises,
+    ValuationModes,
+    Visibilities,
+    VisibilityDecider,
+)
+from .nomina import NotificationLevels

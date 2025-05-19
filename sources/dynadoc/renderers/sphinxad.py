@@ -18,13 +18,9 @@
 #============================================================================#
 
 
-''' Sphinx reStructuredText formatters. '''
+''' Sphinx Autodoc reStructuredText renderers. '''
 
 
-from .. import context as _context
-from .. import interfaces as _interfaces
-from .. import introspection as _introspection
-from .. import nomina as _nomina
 from . import __
 
 
@@ -36,9 +32,9 @@ class Style( __.enum.Enum ):
 
 
 def produce_fragment(
-    possessor: _nomina.Documentable,
-    informations: _interfaces.Informations,
-    context: _context.Context,
+    possessor: __.Documentable,
+    informations: __.Informations,
+    context: __.Context,
     style: Style = Style.Legible,
 ) -> str:
     return '\n'.join(
@@ -47,14 +43,14 @@ def produce_fragment(
 
 
 _qualident_regex = __.re.compile( r'''^([\w\.]+).*$''' )
-def _extract_qualident( name: str, context: _context.Context ) -> str:
+def _extract_qualident( name: str, context: __.Context ) -> str:
     extract = _qualident_regex.match( name )
     if extract is not None: return extract[ 1 ]
     return '<unknown>'
 
 
 def _format_annotation(
-    annotation: __.typx.Any, context: _context.Context, style: Style
+    annotation: __.typx.Any, context: __.Context, style: Style
 ) -> str:
     if isinstance( annotation, list ):
         seqstr = ', '.join(
@@ -81,21 +77,21 @@ def _format_annotation(
 
 
 def _produce_fragment_partial(
-    possessor: _nomina.Documentable,
-    information: _interfaces.InformationBase,
-    context: _context.Context,
+    possessor: __.Documentable,
+    information: __.InformationBase,
+    context: __.Context,
     style: Style,
 ) -> str:
-    if isinstance( information, _interfaces.ArgumentInformation ):
+    if isinstance( information, __.ArgumentInformation ):
         return (
             _produce_argument_text( possessor, information, context, style ) )
-    if isinstance( information, _interfaces.AttributeInformation ):
+    if isinstance( information, __.AttributeInformation ):
         return (
             _produce_attribute_text( possessor, information, context, style ) )
-    if isinstance( information, _interfaces.ExceptionInformation ):
+    if isinstance( information, __.ExceptionInformation ):
         return (
             _produce_exception_text( possessor, information, context, style ) )
-    if isinstance( information, _interfaces.ReturnInformation ):
+    if isinstance( information, __.ReturnInformation ):
         return (
             _produce_return_text( possessor, information, context, style ) )
     context.notifier(
@@ -104,68 +100,68 @@ def _produce_fragment_partial(
 
 
 def _produce_argument_text(
-    possessor: _nomina.Documentable,
-    information: _interfaces.ArgumentInformation,
-    context: _context.Context,
+    possessor: __.Documentable,
+    information: __.ArgumentInformation,
+    context: __.Context,
     style: Style,
 ) -> str:
     annotation = information.annotation
     description = information.description or ''
     lines: list[ str ] = [ ]
     lines.append( f":argument {information.name}: {description}" )
-    if annotation is not _interfaces.absent:
+    if annotation is not __.absent:
         typetext = _format_annotation( annotation, context, style )
         lines.append( f":type {information.name}: {typetext}" )
     return '\n'.join( lines )
 
 
 def _produce_attribute_text(
-    possessor: _nomina.Documentable,
-    information: _interfaces.AttributeInformation,
-    context: _context.Context,
+    possessor: __.Documentable,
+    information: __.AttributeInformation,
+    context: __.Context,
     style: Style,
 ) -> str:
     annotation = information.annotation
     description = information.description or ''
     name = information.name
     match information.association:
-        case _interfaces.AttributeAssociations.Module:
+        case __.AttributeAssociations.Module:
             return _produce_module_attribute_text(
                 possessor, information, context, style )
-        case _interfaces.AttributeAssociations.Class: vlabel = 'cvar'
-        case _interfaces.AttributeAssociations.Instance: vlabel = 'ivar'
+        case __.AttributeAssociations.Class: vlabel = 'cvar'
+        case __.AttributeAssociations.Instance: vlabel = 'ivar'
     lines: list[ str ] = [ ]
     lines.append( f":{vlabel} {name}: {description}" )
-    if annotation is not _interfaces.absent:
+    if annotation is not __.absent:
         typetext = _format_annotation( annotation, context, style )
         lines.append( f":vartype {name}: {typetext}" )
     return '\n'.join( lines )
 
 
 def _produce_module_attribute_text(
-    possessor: _nomina.Documentable,
-    information: _interfaces.AttributeInformation,
-    context: _context.Context,
+    possessor: __.Documentable,
+    information: __.AttributeInformation,
+    context: __.Context,
     style: Style,
 ) -> str:
     annotation = information.annotation
     description = information.description or ''
     name = information.name
     match information.default.mode:
-        case _interfaces.ValuationModes.Accept:
-            value = getattr( possessor, name, _interfaces.absent )
-        case _interfaces.ValuationModes.Suppress:
-            value = _interfaces.absent
-        case _interfaces.ValuationModes.Surrogate:
-            value = _interfaces.absent
+        case __.ValuationModes.Accept:
+            value = getattr( possessor, name, __.absent )
+        case __.ValuationModes.Suppress:
+            value = __.absent
+        case __.ValuationModes.Surrogate:
+            value = __.absent
     lines: list[ str ] = [ ]
     if annotation is __.typx.TypeAlias:
         lines.append( f".. py:type:: {name}" )
-        if value is not _interfaces.absent:
-            value_ar = _introspection.reduce_annotation(
+        if value is not __.absent:
+            value_ar = __.reduce_annotation(
                 value, context,
-                _interfaces.AdjunctsData( ),
-                _interfaces.AnnotationsCache( ) )
+                __.AdjunctsData( ),
+                __.AnnotationsCache( ) )
             value_s = _format_annotation( value_ar, context, style )
             lines.append( f"   :canonical: {value_s}" )
         if description: lines.extend( [ '', f"   {description}" ] )
@@ -174,18 +170,18 @@ def _produce_module_attribute_text(
         #       Autodoc will read doc comments and pseudo-docstrings,
         #       but we have no means of supplying description via a field.
         lines.append( f".. py:data:: {name}" )
-        if annotation is not _interfaces.absent:
+        if annotation is not __.absent:
             typetext = _format_annotation( annotation, context, style )
             lines.append( f"    :type: {typetext}" )
-        if value is not _interfaces.absent:
+        if value is not __.absent:
             lines.append( f"    :value: {value!r}" )
     return '\n'.join( lines )
 
 
 def _produce_exception_text(
-    possessor: _nomina.Documentable,
-    information: _interfaces.ExceptionInformation,
-    context: _context.Context,
+    possessor: __.Documentable,
+    information: __.ExceptionInformation,
+    context: __.Context,
     style: Style,
 ) -> str:
     lines: list[ str ] = [ ]
@@ -201,9 +197,9 @@ def _produce_exception_text(
 
 
 def _produce_return_text(
-    possessor: _nomina.Documentable,
-    information: _interfaces.ReturnInformation,
-    context: _context.Context,
+    possessor: __.Documentable,
+    information: __.ReturnInformation,
+    context: __.Context,
     style: Style,
 ) -> str:
     if information.annotation in ( None, __.types.NoneType ): return ''
@@ -217,7 +213,7 @@ def _produce_return_text(
 
 
 def _qualify_object_name( # noqa: PLR0911
-    objct: object, context: _context.Context
+    objct: object, context: __.Context
 ) -> str:
     if objct is Ellipsis: return '...'
     if objct is __.types.NoneType: return 'None'

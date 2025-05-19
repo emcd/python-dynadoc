@@ -207,7 +207,7 @@ class Visibilities( __.enum.Enum ):
     Reveal      = __.enum.auto( )
 
 
-class VisibilityPredicate( __.typx.Protocol ):
+class VisibilityDecider( __.typx.Protocol ):
     ''' Callback to determine attribute visibility. '''
 
     @staticmethod

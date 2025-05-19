@@ -18,20 +18,33 @@
 #============================================================================#
 
 
-''' Catalog of common type aliases. '''
+''' Factories and registries. '''
+# TODO? Registry for deferred decoration.
 
 
 from . import __
+from . import context as _context
+from . import interfaces as _interfaces
+from . import introspection as _introspection
+from . import nomina as _nomina
+from . import notification as _notification
 
 
-Decoratable: __.typx.TypeAlias = type | __.cabc.Callable[ ..., __.typx.Any ]
-Documentable: __.typx.TypeAlias = __.types.ModuleType | Decoratable
-D = __.typx.TypeVar( 'D', bound = Decoratable )
-
-Annotations: __.typx.TypeAlias = __.cabc.Mapping[ str, __.typx.Any ]
-Decorator: __.typx.TypeAlias = __.cabc.Callable[ [ D ], D ]
-FragmentsTable: __.typx.TypeAlias = __.cabc.Mapping[ str, str ]
-Module: __.typx.TypeAlias = str | __.types.ModuleType
-NotificationLevels: __.typx.TypeAlias = (
-    __.typx.Literal[ 'admonition', 'error' ] )
-Variables: __.typx.TypeAlias = __.cabc.Mapping[ str, __.typx.Any ]
+def produce_context( # noqa: PLR0913
+    invoker_globals: __.typx.Optional[ _nomina.Variables ] = None,
+    resolver_globals: __.typx.Optional[ _nomina.Variables ] = None,
+    resolver_locals: __.typx.Optional[ _nomina.Variables ] = None,
+    notifier: _interfaces.Notifier = _notification.notify,
+    fragment_rectifier: _interfaces.FragmentRectifier = (
+        lambda fragment: fragment ),
+    visibility_decider: _interfaces.VisibilityDecider = (
+        _introspection.is_attribute_visible ),
+) -> _context.Context:
+    # TODO: Document.
+    return _context.Context(
+        notifier = notifier,
+        fragment_rectifier = fragment_rectifier,
+        visibility_decider = visibility_decider,
+        invoker_globals = invoker_globals,
+        resolver_globals = resolver_globals,
+        resolver_locals = resolver_locals )

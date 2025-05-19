@@ -18,7 +18,7 @@
 #============================================================================#
 
 
-''' Docstring assembly. '''
+''' Docstring assembly and decoration. '''
 # TODO? with_docstring_defer
 #       Registers with_docstring partial function in registry.
 #       Registry can be executed after modules are loaded and all string
@@ -27,11 +27,11 @@
 
 from . import __
 from . import context as _context
-from . import formatters as _formatters
+from . import factories as _factories
 from . import interfaces as _interfaces
 from . import introspection as _introspection
 from . import nomina as _nomina
-from . import notification as _notification
+from . import renderers as _renderers
 
 
 class Formatter( __.typx.Protocol ):
@@ -72,29 +72,8 @@ WithDocstringTableArgument: __.typx.TypeAlias = __.typx.Annotated[
 _visitees: __.weakref.WeakSet[ _nomina.Documentable ] = __.weakref.WeakSet( )
 
 
-def produce_context( # noqa: PLR0913
-    invoker_globals: __.typx.Optional[ _nomina.Variables ] = None,
-    resolver_globals: __.typx.Optional[ _nomina.Variables ] = None,
-    resolver_locals: __.typx.Optional[ _nomina.Variables ] = None,
-    notifier: _interfaces.Notifier = _notification.notify,
-    fragment_rectifier: _interfaces.FragmentRectifier = (
-        lambda fragment: fragment ),
-    visibility_predicate: _interfaces.VisibilityPredicate = (
-        _introspection.is_attribute_visible ),
-) -> _context.Context:
-    # TODO: Move to factories module.
-    # TODO: Document.
-    return _context.Context(
-        notifier = notifier,
-        fragment_rectifier = fragment_rectifier,
-        visibility_predicate = visibility_predicate,
-        invoker_globals = invoker_globals,
-        resolver_globals = resolver_globals,
-        resolver_locals = resolver_locals )
-
-
-context_default = produce_context( )
-formatter_default = _formatters.sphinxrst.produce_fragment
+context_default = _factories.produce_context( )
+formatter_default = _renderers.sphinxad.produce_fragment
 introspection_default = _context.IntrospectionControl( )
 
 

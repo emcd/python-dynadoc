@@ -42,6 +42,12 @@ Module ``dynadoc.context``
 .. automodule:: dynadoc.context
 
 
+Module ``dynadoc.factories``
+-------------------------------------------------------------------------------
+
+.. automodule:: dynadoc.factories
+
+
 Module ``dynadoc.interfaces``
 -------------------------------------------------------------------------------
 
@@ -60,13 +66,13 @@ Module ``dynadoc.nomina``
 .. automodule:: dynadoc.nomina
 
 
-Subpackage ``dynadoc.formatters``
+Subpackage ``dynadoc.renderers``
 ===============================================================================
 
-.. automodule:: dynadoc.formatters
+.. automodule:: dynadoc.renderers
 
 
-Module ``dynadoc.formatters.sphinxrst``
+Module ``dynadoc.renderers.sphinxad``
 -------------------------------------------------------------------------------
 
-.. automodule:: dynadoc.formatters.sphinxrst
+.. automodule:: dynadoc.renderers.sphinxad

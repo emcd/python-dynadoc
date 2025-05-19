@@ -444,9 +444,7 @@ def _is_attribute_visible(
         case _interfaces.Visibilities.Conceal: return False
         case _interfaces.Visibilities.Reveal: return True
         case _:
-            return (
-                context.visibility_predicate(
-                    name, annotation, description ) )
+            return context.visibility_decider( name, annotation, description )
 
 
 def _reduce_annotation_arguments(

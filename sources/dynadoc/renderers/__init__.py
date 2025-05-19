@@ -18,9 +18,7 @@
 #============================================================================#
 
 
-''' Internals for formatters. '''
-
-# ruff: noqa: F403
+''' Renderers for arguments, attributes, exceptions, and returns. '''
 
 
-from ..__ import *
+from . import sphinxad
