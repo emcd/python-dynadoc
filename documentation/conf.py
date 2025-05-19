@@ -120,7 +120,8 @@ html_static_path = [ '_static' ]
 
 autodoc_default_options = {
     'member-order': 'groupwise',
-    'inherited-members': True,
+    'members': True,
+    # 'inherited-members': True,
     'show-inheritance': True,
     'special-members': '__call__',
     # 'undoc-members': True,

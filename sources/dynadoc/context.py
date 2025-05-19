@@ -173,6 +173,7 @@ class IntrospectionControl:
     #       (Suggested by multiple LLMs; not convinced that it is needed.)
 
     def evaluate_limits_for( self, objct: object ) -> 'IntrospectionControl':
+        ''' Determine which introspection limits apply to object. '''
         introspection_ = self
         for limiter in self.limiters:
             introspection_ = limiter( objct, introspection_ )
