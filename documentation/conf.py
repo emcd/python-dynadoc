@@ -81,6 +81,7 @@ nitpick_ignore = [
     ( 'py:class', "dynadoc.context.Context" ),
     ( 'py:class', "dynadoc.context.RecursionTargets" ),
     ( 'py:class', "dynadoc.nomina.D" ),
+    ( 'py:class', "dynadoc.xtnsapi.Renderer" ),
     ( 'py:class', "types.Annotated" ),
     ( 'py:class', "typing_extensions.Any" ),
     ( 'py:class', "typing_extensions.Self" ),

@@ -30,6 +30,7 @@ from . import introspection
 from . import nomina
 from . import notification
 from . import renderers
+from . import xtnsapi
 # --- BEGIN: Injected by Copier ---
 # --- END: Injected by Copier ---
 

@@ -20,13 +20,67 @@
 
 ''' Interface for extension development. '''
 
-# ruff: noqa: F403
+# ruff: noqa: F403,F405
 
 
-from .assembly import *
+from . import __
+
 from .context import *
-from .factories import *
 from .interfaces import *
 from .introspection import *
 from .nomina import *
 from .notification import *
+
+
+ContextArgument: __.typx.TypeAlias = __.typx.Annotated[
+    Context, Fname( 'context' )
+]
+FragmentsArgumentMultivalent: __.typx.TypeAlias = __.typx.Annotated[
+    Fragment,
+    Doc(
+        ''' Fragments from which to produce a docstring.
+
+            If fragment is a string, then it will be used as an index
+            into a table of docstring fragments.
+            If fragment is a :pep:`727` ``Doc`` object, then the value of its
+            ``documentation`` attribute will be incorporated.
+        ''' ),
+]
+InformationsArgument: __.typx.TypeAlias = __.typx.Annotated[
+    Informations,
+    Doc(
+        ''' Information extracted from object introspection. ''' ),
+]
+IntrospectionArgument: __.typx.TypeAlias = __.typx.Annotated[
+    IntrospectionControl, Fname( 'introspection' )
+]
+PossessorArgument: __.typx.TypeAlias = __.typx.Annotated[
+    Documentable, Doc( ''' Object being documented. ''' ),
+]
+PreserveArgument: __.typx.TypeAlias = __.typx.Annotated[
+    bool, Doc( ''' Preserve extant docstring? ''' )
+]
+RendererArgument: __.typx.TypeAlias = __.typx.Annotated[
+    'Renderer', Fname( 'renderer' )
+]
+TableArgument: __.typx.TypeAlias = __.typx.Annotated[
+    FragmentsTable,
+    Doc( ''' Table from which to copy docstring fragments. ''' ),
+]
+
+RendererReturnValue: __.typx.TypeAlias = __.typx.Annotated[
+    str, Doc( ''' Rendered docstring fragment. ''' )
+]
+class Renderer( __.typx.Protocol ):
+    ''' (Protocol for fragment renderer.) '''
+
+    _dynadoc_fragments_ = ( 'renderer', )
+
+    @staticmethod
+    def __call__(
+        possessor: PossessorArgument,
+        informations: InformationsArgument,
+        context: ContextArgument,
+    ) -> RendererReturnValue:
+        ''' (Signature for fragment renderer.) '''
+        raise NotImplementedError

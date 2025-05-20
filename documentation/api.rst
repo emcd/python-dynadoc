@@ -66,6 +66,12 @@ Module ``dynadoc.nomina``
 .. automodule:: dynadoc.nomina
 
 
+Module ``dynadoc.xtnsapi``
+-------------------------------------------------------------------------------
+
+.. automodule:: dynadoc.xtnsapi
+
+
 Subpackage ``dynadoc.renderers``
 ===============================================================================
 

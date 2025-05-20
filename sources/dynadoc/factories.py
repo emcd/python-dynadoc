@@ -23,50 +23,45 @@
 
 
 from . import __
-from . import context as _context
-from . import interfaces as _interfaces
-from . import introspection as _introspection
-from . import nomina as _nomina
-from . import notification as _notification
+from . import xtnsapi as _xtnsapi
 
 
 InvokerGlobalsArgument: __.typx.TypeAlias = __.typx.Annotated[
-    __.typx.Optional[ _nomina.Variables ],
-    _interfaces.Doc(
+    __.typx.Optional[ _xtnsapi.Variables ],
+    _xtnsapi.Doc(
         ''' Dictionary of globals from the frame of a caller.
 
             Used by renderers for determing whether to fully-qualify a name.
         ''' ),
 ]
 ResolverGlobalsArgument: __.typx.TypeAlias = __.typx.Annotated[
-    __.typx.Optional[ _nomina.Variables ],
-    _interfaces.Doc(
+    __.typx.Optional[ _xtnsapi.Variables ],
+    _xtnsapi.Doc(
         ''' Dictionary of globals for annotation resolution.
 
             Used for resolving string annotations.
         ''' ),
 ]
 ResolverLocalsArgument: __.typx.TypeAlias = __.typx.Annotated[
-    __.typx.Optional[ _nomina.Variables ],
-    _interfaces.Doc(
+    __.typx.Optional[ _xtnsapi.Variables ],
+    _xtnsapi.Doc(
         ''' Dictionary of locals for annotation resolution.
 
             Used for resolving string annotations.
         ''' ),
 ]
 NotifierArgument: __.typx.TypeAlias = __.typx.Annotated[
-    _interfaces.Notifier,
-    _interfaces.Doc(
-        ''' Callback for notification of warnings and errors. ''' ),
+    _xtnsapi.Notifier,
+    _xtnsapi.Doc( ''' Callback for notification of warnings and errors. ''' ),
 ]
 FragmentRectifierArgument: __.typx.TypeAlias = __.typx.Annotated[
-    _interfaces.FragmentRectifier,
-    _interfaces.Doc(
+    _xtnsapi.FragmentRectifier,
+    _xtnsapi.Doc(
         ''' Function to clean and normalize docstring fragments. ''' ),
 ]
 VisibilityDeciderArgument: __.typx.TypeAlias = __.typx.Annotated[
-    _interfaces.VisibilityDecider,
-    _interfaces.Doc(
+    _xtnsapi.VisibilityDecider,
+    _xtnsapi.Doc(
         ''' Function to determine if an attribute should be documented. ''' ),
 ]
 
@@ -75,12 +70,12 @@ def produce_context( # noqa: PLR0913
     invoker_globals: InvokerGlobalsArgument = None,
     resolver_globals: ResolverGlobalsArgument = None,
     resolver_locals: ResolverLocalsArgument = None,
-    notifier: NotifierArgument = _notification.notify,
+    notifier: NotifierArgument = _xtnsapi.notify,
     fragment_rectifier: FragmentRectifierArgument = (
         lambda fragment: fragment ),
     visibility_decider: VisibilityDeciderArgument = (
-        _introspection.is_attribute_visible ),
-) -> _context.Context:
+        _xtnsapi.is_attribute_visible ),
+) -> _xtnsapi.Context:
     ''' Creates context data transfer object.
 
         Reasonable defaults are used for arguments that are not supplied.
@@ -93,7 +88,7 @@ def produce_context( # noqa: PLR0913
         that are specified as strings. If not provided, annotations will be
         resolved in the context where they are evaluated.
     '''
-    return _context.Context(
+    return _xtnsapi.Context(
         notifier = notifier,
         fragment_rectifier = fragment_rectifier,
         visibility_decider = visibility_decider,

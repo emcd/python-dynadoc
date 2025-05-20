@@ -26,101 +26,43 @@
 
 
 from . import __
-from . import context as _context
 from . import factories as _factories
-from . import interfaces as _interfaces
-from . import introspection as _introspection
-from . import nomina as _nomina
 from . import renderers as _renderers
+from . import xtnsapi as _xtnsapi
 
 
-ContextArgument: __.typx.TypeAlias = __.typx.Annotated[
-    _context.Context, _interfaces.Fname( 'context' )
-]
-FragmentsArgumentMultivalent: __.typx.TypeAlias = __.typx.Annotated[
-    _interfaces.Fragment,
-    _interfaces.Doc(
-        ''' Fragments from which to produce a docstring.
-
-            If fragment is a string, then it will be used as an index
-            into a table of docstring fragments.
-            If fragment is a :pep:`727` ``Doc`` object, then the value of its
-            ``documentation`` attribute will be incorporated.
-        ''' ),
-]
-InformationsArgument: __.typx.TypeAlias = __.typx.Annotated[
-    _interfaces.Informations,
-    _interfaces.Doc(
-        ''' Information extracted from object introspection. ''' ),
-]
-IntrospectionArgument: __.typx.TypeAlias = __.typx.Annotated[
-    _context.IntrospectionControl, _interfaces.Fname( 'introspection' )
-]
-PossessorArgument: __.typx.TypeAlias = __.typx.Annotated[
-    _nomina.Documentable,
-    _interfaces.Doc( ''' Object being documented. ''' ),
-]
-PreserveArgument: __.typx.TypeAlias = __.typx.Annotated[
-    bool, _interfaces.Doc( ''' Preserve extant docstring? ''' )
-]
-RendererArgument: __.typx.TypeAlias = __.typx.Annotated[
-    'Renderer', _interfaces.Fname( 'renderer' )
-]
-TableArgument: __.typx.TypeAlias = __.typx.Annotated[
-    _nomina.FragmentsTable,
-    _interfaces.Doc( ''' Table from which to copy docstring fragments. ''' ),
-]
-
-RendererReturnValue: __.typx.TypeAlias = __.typx.Annotated[
-    str, _interfaces.Doc( ''' Rendered docstring fragment. ''' )
-]
-class Renderer( __.typx.Protocol ):
-    ''' (Protocol for fragment renderer.) '''
-
-    _dynadoc_fragments_ = ( 'renderer', )
-
-    @staticmethod
-    def __call__(
-        possessor: PossessorArgument,
-        informations: InformationsArgument,
-        context: ContextArgument,
-    ) -> RendererReturnValue:
-        ''' (Signature for fragment renderer.) '''
-        raise NotImplementedError
-
-
-_visitees: __.weakref.WeakSet[ _nomina.Documentable ] = __.weakref.WeakSet( )
+_visitees: __.weakref.WeakSet[ _xtnsapi.Documentable ] = __.weakref.WeakSet( )
 
 
 context_default: __.typx.Annotated[
-    _context.Context,
-    _interfaces.Doc(
+    _xtnsapi.Context,
+    _xtnsapi.Doc(
         ''' Default context for introspection and rendering. ''' ),
-    _interfaces.Fname( 'context' ),
-    _interfaces.Default( mode = _interfaces.ValuationModes.Suppress ),
+    _xtnsapi.Fname( 'context' ),
+    _xtnsapi.Default( mode = _xtnsapi.ValuationModes.Suppress ),
 ] = _factories.produce_context( )
 introspection_default: __.typx.Annotated[
-    _context.IntrospectionControl,
-    _interfaces.Doc( ''' Default introspection control. ''' ),
-    _interfaces.Fname( 'introspection' ),
-    _interfaces.Default( mode = _interfaces.ValuationModes.Suppress ),
-] = _context.IntrospectionControl( )
+    _xtnsapi.IntrospectionControl,
+    _xtnsapi.Doc( ''' Default introspection control. ''' ),
+    _xtnsapi.Fname( 'introspection' ),
+    _xtnsapi.Default( mode = _xtnsapi.ValuationModes.Suppress ),
+] = _xtnsapi.IntrospectionControl( )
 renderer_default: __.typx.Annotated[
-    Renderer,
-    _interfaces.Doc( ''' Default renderer for docstring fragments. ''' ),
-    _interfaces.Fname( 'renderer' ),
-    _interfaces.Default( mode = _interfaces.ValuationModes.Suppress ),
-] = __.typx.cast( Renderer, _renderers.sphinxad.produce_fragment )
+    _xtnsapi.Renderer,
+    _xtnsapi.Doc( ''' Default renderer for docstring fragments. ''' ),
+    _xtnsapi.Fname( 'renderer' ),
+    _xtnsapi.Default( mode = _xtnsapi.ValuationModes.Suppress ),
+] = __.typx.cast( _xtnsapi.Renderer, _renderers.sphinxad.produce_fragment )
 
 
 def assign_module_docstring( # noqa: PLR0913
-    module: _nomina.Module, /,
-    *fragments: FragmentsArgumentMultivalent,
-    context: ContextArgument = context_default,
-    introspection: IntrospectionArgument = introspection_default,
-    preserve: PreserveArgument = True,
-    renderer: RendererArgument = renderer_default,
-    table: TableArgument = __.dictproxy_empty,
+    module: _xtnsapi.Module, /,
+    *fragments: _xtnsapi.FragmentsArgumentMultivalent,
+    context: _xtnsapi.ContextArgument = context_default,
+    introspection: _xtnsapi.IntrospectionArgument = introspection_default,
+    preserve: _xtnsapi.PreserveArgument = True,
+    renderer: _xtnsapi.RendererArgument = renderer_default,
+    table: _xtnsapi.TableArgument = __.dictproxy_empty,
 ) -> None:
     ''' Assembles docstring from fragments and assigns it to module. '''
     if isinstance( module, str ):
@@ -136,15 +78,15 @@ def assign_module_docstring( # noqa: PLR0913
 
 
 def with_docstring(
-    *fragments: FragmentsArgumentMultivalent,
-    context: ContextArgument = context_default,
-    introspection: IntrospectionArgument = introspection_default,
-    preserve: PreserveArgument = True,
-    renderer: RendererArgument = renderer_default,
-    table: TableArgument = __.dictproxy_empty,
-) -> _nomina.Decorator[ _nomina.D ]:
+    *fragments: _xtnsapi.FragmentsArgumentMultivalent,
+    context: _xtnsapi.ContextArgument = context_default,
+    introspection: _xtnsapi.IntrospectionArgument = introspection_default,
+    preserve: _xtnsapi.PreserveArgument = True,
+    renderer: _xtnsapi.RendererArgument = renderer_default,
+    table: _xtnsapi.TableArgument = __.dictproxy_empty,
+) -> _xtnsapi.Decorator[ _xtnsapi.D ]:
     ''' Assembles docstring from fragments and decorates object with it. '''
-    def decorate( objct: _nomina.D ) -> _nomina.D:
+    def decorate( objct: _xtnsapi.D ) -> _xtnsapi.D:
         _decorate(
             objct,
             context = context,
@@ -160,26 +102,26 @@ def with_docstring(
 
 def _check_module_recursion(
     objct: object, /,
-    introspection: _context.IntrospectionControl,
+    introspection: _xtnsapi.IntrospectionControl,
     mname: str
 ) -> __.typx.TypeIs[ __.types.ModuleType ]:
-    if (    introspection.targets & _context.IntrospectionTargets.Module
+    if (    introspection.targets & _xtnsapi.IntrospectionTargets.Module
         and __.inspect.ismodule( objct )
     ): return objct.__name__.startswith( f"{mname}." )
     return False
 
 
 def _collect_fragments(
-    objct: _nomina.Documentable, /, context: _context.Context, fqname: str
-) -> _interfaces.Fragments:
-    fragments: _interfaces.Fragments = (
+    objct: _xtnsapi.Documentable, /, context: _xtnsapi.Context, fqname: str
+) -> _xtnsapi.Fragments:
+    fragments: _xtnsapi.Fragments = (
         getattr( objct, context.fragments_name, ( ) ) )
     if not isinstance( fragments, __.cabc.Sequence ):
         emessage = f"Invalid fragments sequence on {fqname}: {fragments!r}"
         context.notifier( 'error', emessage )
         fragments = ( )
     for fragment in fragments:
-        if not isinstance( fragment, ( str, _interfaces.Doc ) ):
+        if not isinstance( fragment, ( str, _xtnsapi.Doc ) ):
             emessage = f"Invalid fragment on {fqname}: {fragment!r}"
             context.notifier( 'error', emessage )
     return fragments
@@ -187,20 +129,20 @@ def _collect_fragments(
 
 def _consider_class_attribute( # noqa: C901,PLR0913
     attribute: object, /,
-    context: _context.Context,
-    introspection: _context.IntrospectionControl,
+    context: _xtnsapi.Context,
+    introspection: _xtnsapi.IntrospectionControl,
     pmname: str, pqname: str, aname: str,
-) -> tuple[ __.typx.Optional[ _nomina.Documentable ], bool ]:
+) -> tuple[ __.typx.Optional[ _xtnsapi.Documentable ], bool ]:
     if _check_module_recursion( attribute, introspection, pmname ):
         return attribute, False
     attribute_ = None
     update_surface = False
     if (    not attribute_
-        and introspection.targets & _context.IntrospectionTargets.Class
+        and introspection.targets & _xtnsapi.IntrospectionTargets.Class
         and __.inspect.isclass( attribute )
     ): attribute_ = attribute
     if (    not attribute_
-        and introspection.targets & _context.IntrospectionTargets.Descriptor
+        and introspection.targets & _xtnsapi.IntrospectionTargets.Descriptor
     ):
         if isinstance( attribute, property ) and attribute.fget:
             # Examine docstring and signature of getter method on property.
@@ -211,7 +153,7 @@ def _consider_class_attribute( # noqa: C901,PLR0913
             # Ignore descriptors which we do not know how to handle.
             return None, False
     if (    not attribute_
-        and introspection.targets & _context.IntrospectionTargets.Function
+        and introspection.targets & _xtnsapi.IntrospectionTargets.Function
     ):
         if __.inspect.ismethod( attribute ):
             # Methods proxy docstrings from their core functions.
@@ -231,20 +173,20 @@ def _consider_class_attribute( # noqa: C901,PLR0913
 
 def _consider_module_attribute(
     attribute: object, /,
-    context: _context.Context,
-    introspection: _context.IntrospectionControl,
+    context: _xtnsapi.Context,
+    introspection: _xtnsapi.IntrospectionControl,
     pmname: str, aname: str,
-) -> tuple[ __.typx.Optional[ _nomina.Documentable ], bool ]:
+) -> tuple[ __.typx.Optional[ _xtnsapi.Documentable ], bool ]:
     if _check_module_recursion( attribute, introspection, pmname ):
         return attribute, False
     attribute_ = None
     update_surface = False
     if (    not attribute_
-        and introspection.targets & _context.IntrospectionTargets.Class
+        and introspection.targets & _xtnsapi.IntrospectionTargets.Class
         and __.inspect.isclass( attribute )
     ): attribute_ = attribute
     if (    not attribute_
-        and introspection.targets & _context.IntrospectionTargets.Function
+        and introspection.targets & _xtnsapi.IntrospectionTargets.Function
         and __.inspect.isfunction( attribute ) and aname != '<lambda>'
     ): attribute_ = attribute
     if attribute_:
@@ -255,13 +197,13 @@ def _consider_module_attribute(
 
 
 def _decorate( # noqa: PLR0913
-    objct: _nomina.Documentable, /,
-    context: _context.Context,
-    introspection: _context.IntrospectionControl,
+    objct: _xtnsapi.Documentable, /,
+    context: _xtnsapi.Context,
+    introspection: _xtnsapi.IntrospectionControl,
     preserve: bool,
-    renderer: Renderer,
-    fragments: _interfaces.Fragments,
-    table: _nomina.FragmentsTable,
+    renderer: _xtnsapi.Renderer,
+    fragments: _xtnsapi.Fragments,
+    table: _xtnsapi.FragmentsTable,
 ) -> None:
     if objct in _visitees: return # Prevent multiple decoration.
     _visitees.add( objct )
@@ -293,13 +235,13 @@ def _decorate( # noqa: PLR0913
 
 
 def _decorate_core( # noqa: PLR0913
-    objct: _nomina.Documentable, /,
-    context: _context.Context,
-    introspection: _context.IntrospectionControl,
+    objct: _xtnsapi.Documentable, /,
+    context: _xtnsapi.Context,
+    introspection: _xtnsapi.IntrospectionControl,
     preserve: bool,
-    renderer: Renderer,
-    fragments: _interfaces.Fragments,
-    table: _nomina.FragmentsTable,
+    renderer: _xtnsapi.Renderer,
+    fragments: _xtnsapi.Fragments,
+    table: _xtnsapi.FragmentsTable,
 ) -> None:
     fragments_: list[ str ] = [ ]
     if preserve:
@@ -308,9 +250,9 @@ def _decorate_core( # noqa: PLR0913
     fragments_.extend(
         _process_fragments_argument( context, fragments, table ) )
     if introspection.enable:
-        cache = _interfaces.AnnotationsCache( )
+        cache = _xtnsapi.AnnotationsCache( )
         informations = (
-            _introspection.introspect(
+            _xtnsapi.introspect(
                 objct,
                 context = context, introspection = introspection,
                 cache = cache, table = table ) )
@@ -323,11 +265,11 @@ def _decorate_core( # noqa: PLR0913
 
 def _decorate_class_attributes( # noqa: PLR0913
     objct: type, /,
-    context: _context.Context,
-    introspection: _context.IntrospectionControl,
+    context: _xtnsapi.Context,
+    introspection: _xtnsapi.IntrospectionControl,
     preserve: bool,
-    renderer: Renderer,
-    table: _nomina.FragmentsTable,
+    renderer: _xtnsapi.Renderer,
+    table: _xtnsapi.FragmentsTable,
 ) -> None:
     pmname = objct.__module__
     pqname = objct.__qualname__
@@ -353,11 +295,11 @@ def _decorate_class_attributes( # noqa: PLR0913
 
 def _decorate_module_attributes( # noqa: PLR0913
     module: __.types.ModuleType, /,
-    context: _context.Context,
-    introspection: _context.IntrospectionControl,
+    context: _xtnsapi.Context,
+    introspection: _xtnsapi.IntrospectionControl,
     preserve: bool,
-    renderer: Renderer,
-    table: _nomina.FragmentsTable,
+    renderer: _xtnsapi.Renderer,
+    table: _xtnsapi.FragmentsTable,
 ) -> None:
     pmname = module.__name__
     for aname, attribute, surface_attribute in (
@@ -381,17 +323,17 @@ def _decorate_module_attributes( # noqa: PLR0913
 
 
 def _limit_introspection(
-    objct: _nomina.Documentable, /,
-    context: _context.Context,
-    introspection: _context.IntrospectionControl,
+    objct: _xtnsapi.Documentable, /,
+    context: _xtnsapi.Context,
+    introspection: _xtnsapi.IntrospectionControl,
     fqname: str,
-) -> _context.IntrospectionControl:
-    limit: _context.IntrospectionLimit = (
+) -> _xtnsapi.IntrospectionControl:
+    limit: _xtnsapi.IntrospectionLimit = (
         getattr(
             objct,
             context.introspection_limit_name,
-            _context.IntrospectionLimit( ) ) )
-    if not isinstance( limit, _context.IntrospectionLimit ):
+            _xtnsapi.IntrospectionLimit( ) ) )
+    if not isinstance( limit, _xtnsapi.IntrospectionLimit ):
         emessage = f"Invalid introspection limit on {fqname}: {limit!r}"
         context.notifier( 'error', emessage )
         return introspection
@@ -399,13 +341,13 @@ def _limit_introspection(
 
 
 def _process_fragments_argument(
-    context: _context.Context,
-    fragments: _interfaces.Fragments,
-    table: _nomina.FragmentsTable,
+    context: _xtnsapi.Context,
+    fragments: _xtnsapi.Fragments,
+    table: _xtnsapi.FragmentsTable,
 ) -> __.cabc.Sequence[ str ]:
     fragments_: list[ str ] = [ ]
     for fragment in fragments:
-        if isinstance( fragment, _interfaces.Doc ):
+        if isinstance( fragment, _xtnsapi.Doc ):
             fragment_r = fragment.documentation
         elif isinstance( fragment, str ):
             if fragment not in table:
@@ -422,9 +364,9 @@ def _process_fragments_argument(
 
 def _survey_class_attributes(
     possessor: type, /,
-    context: _context.Context,
-    introspection: _context.IntrospectionControl,
-) -> __.cabc.Iterator[ tuple[ str, _nomina.Documentable, object ] ]:
+    context: _xtnsapi.Context,
+    introspection: _xtnsapi.IntrospectionControl,
+) -> __.cabc.Iterator[ tuple[ str, _xtnsapi.Documentable, object ] ]:
     pmname = possessor.__module__
     pqname = possessor.__qualname__
     for aname, attribute in __.inspect.getmembers( possessor ):
@@ -440,9 +382,9 @@ def _survey_class_attributes(
 
 def _survey_module_attributes(
     possessor: __.types.ModuleType, /,
-    context: _context.Context,
-    introspection: _context.IntrospectionControl,
-) -> __.cabc.Iterator[ tuple[ str, _nomina.Documentable, object ] ]:
+    context: _xtnsapi.Context,
+    introspection: _xtnsapi.IntrospectionControl,
+) -> __.cabc.Iterator[ tuple[ str, _xtnsapi.Documentable, object ] ]:
     pmname = possessor.__name__
     for aname, attribute in __.inspect.getmembers( possessor ):
         attribute_, update_surface = (
