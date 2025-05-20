@@ -18,15 +18,25 @@
 #============================================================================#
 
 
-''' Common constants, imports, and utilities. '''
+''' Docstring fragments. '''
 
 
-from .doctab import *
-from .imports import *
+from . import imports as __
 
 
-T = typx.TypeVar( 'T' )
+_FragmentsTable: __.typx.TypeAlias = __.cabc.Mapping[ str, str ]
+fragments: _FragmentsTable = __.types.MappingProxyType( {
 
+    'context':
+    ''' Data transfer object for introspection and rendering behaviors.
 
-dictproxy_empty: cabc.Mapping[ str, str ] = types.MappingProxyType( { } )
-package_name = __name__.split( '.', maxsplit = 1 )[ 0 ]
+        Controls how annotations are resolved and how fragments are
+        processed.
+    ''',
+
+    'introspection': ''' If to introspect and how. ''',
+
+    'renderer':
+    ''' Produces docstring fragment from object and information about it. ''',
+
+} )

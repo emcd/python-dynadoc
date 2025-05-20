@@ -30,7 +30,7 @@ from . import nomina as _nomina
 from . import notification as _notification
 
 
-ProduceContextInvokerGlobalsArgument: __.typx.TypeAlias = __.typx.Annotated[
+InvokerGlobalsArgument: __.typx.TypeAlias = __.typx.Annotated[
     __.typx.Optional[ _nomina.Variables ],
     _interfaces.Doc(
         ''' Dictionary of globals from the frame of a caller.
@@ -38,7 +38,7 @@ ProduceContextInvokerGlobalsArgument: __.typx.TypeAlias = __.typx.Annotated[
             Used by renderers for determing whether to fully-qualify a name.
         ''' ),
 ]
-ProduceContextResolverGlobalsArgument: __.typx.TypeAlias = __.typx.Annotated[
+ResolverGlobalsArgument: __.typx.TypeAlias = __.typx.Annotated[
     __.typx.Optional[ _nomina.Variables ],
     _interfaces.Doc(
         ''' Dictionary of globals for annotation resolution.
@@ -46,7 +46,7 @@ ProduceContextResolverGlobalsArgument: __.typx.TypeAlias = __.typx.Annotated[
             Used for resolving string annotations.
         ''' ),
 ]
-ProduceContextResolverLocalsArgument: __.typx.TypeAlias = __.typx.Annotated[
+ResolverLocalsArgument: __.typx.TypeAlias = __.typx.Annotated[
     __.typx.Optional[ _nomina.Variables ],
     _interfaces.Doc(
         ''' Dictionary of locals for annotation resolution.
@@ -54,17 +54,17 @@ ProduceContextResolverLocalsArgument: __.typx.TypeAlias = __.typx.Annotated[
             Used for resolving string annotations.
         ''' ),
 ]
-ProduceContextNotifierArgument: __.typx.TypeAlias = __.typx.Annotated[
+NotifierArgument: __.typx.TypeAlias = __.typx.Annotated[
     _interfaces.Notifier,
     _interfaces.Doc(
         ''' Callback for notification of warnings and errors. ''' ),
 ]
-ProduceContextFragmentRectifierArgument: __.typx.TypeAlias = __.typx.Annotated[
+FragmentRectifierArgument: __.typx.TypeAlias = __.typx.Annotated[
     _interfaces.FragmentRectifier,
     _interfaces.Doc(
         ''' Function to clean and normalize docstring fragments. ''' ),
 ]
-ProduceContextVisibilityDeciderArgument: __.typx.TypeAlias = __.typx.Annotated[
+VisibilityDeciderArgument: __.typx.TypeAlias = __.typx.Annotated[
     _interfaces.VisibilityDecider,
     _interfaces.Doc(
         ''' Function to determine if an attribute should be documented. ''' ),
@@ -72,13 +72,13 @@ ProduceContextVisibilityDeciderArgument: __.typx.TypeAlias = __.typx.Annotated[
 
 
 def produce_context( # noqa: PLR0913
-    invoker_globals: ProduceContextInvokerGlobalsArgument = None,
-    resolver_globals: ProduceContextResolverGlobalsArgument = None,
-    resolver_locals: ProduceContextResolverLocalsArgument = None,
-    notifier: ProduceContextNotifierArgument = _notification.notify,
-    fragment_rectifier: ProduceContextFragmentRectifierArgument = (
+    invoker_globals: InvokerGlobalsArgument = None,
+    resolver_globals: ResolverGlobalsArgument = None,
+    resolver_locals: ResolverLocalsArgument = None,
+    notifier: NotifierArgument = _notification.notify,
+    fragment_rectifier: FragmentRectifierArgument = (
         lambda fragment: fragment ),
-    visibility_decider: ProduceContextVisibilityDeciderArgument = (
+    visibility_decider: VisibilityDeciderArgument = (
         _introspection.is_attribute_visible ),
 ) -> _context.Context:
     ''' Creates context data transfer object.

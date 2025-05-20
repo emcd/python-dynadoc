@@ -48,5 +48,8 @@ _introspection_cc = ClassIntrospectionControl(
 _introspection = IntrospectionControl(
     class_control = _introspection_cc, targets = IntrospectionTargetsOmni )
 assign_module_docstring(
-    __.package_name, context = _context, introspection = _introspection )
+    __.package_name,
+    context = _context,
+    introspection = _introspection,
+    table = __.fragments )
 # TODO: Reclassify package modules as immutable and concealed.

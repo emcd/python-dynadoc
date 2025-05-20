@@ -34,46 +34,10 @@ from . import nomina as _nomina
 from . import renderers as _renderers
 
 
-RendererContextArgument: __.typx.TypeAlias = __.typx.Annotated[
-    _context.Context,
-    _interfaces.Doc( ''' Context for docstring generation. ''' ),
+ContextArgument: __.typx.TypeAlias = __.typx.Annotated[
+    _context.Context, _interfaces.Fname( 'context' )
 ]
-RendererInformationsArgument: __.typx.TypeAlias = __.typx.Annotated[
-    _interfaces.Informations,
-    _interfaces.Doc(
-        ''' Information extracted from object introspection. ''' ),
-]
-RendererPossessorArgument: __.typx.TypeAlias = __.typx.Annotated[
-    _nomina.Documentable,
-    _interfaces.Doc( ''' Object being documented. ''' ),
-]
-RendererReturnValue: __.typx.TypeAlias = __.typx.Annotated[
-    str,
-    _interfaces.Doc( ''' Formatted docstring fragment. ''' ),
-]
-
-
-class Renderer( __.typx.Protocol ):
-    ''' Renderer for arguments, attributes, exceptions, and returns. '''
-
-    @staticmethod
-    def __call__(
-        possessor: RendererPossessorArgument,
-        informations: RendererInformationsArgument,
-        context: RendererContextArgument,
-    ) -> RendererReturnValue: raise NotImplementedError
-
-
-WithDocstringContextArgument: __.typx.TypeAlias = __.typx.Annotated[
-    _context.Context,
-    _interfaces.Doc(
-        ''' Context for docstring generation and introspection.
-
-            Controls how annotations are resolved and how fragments are
-            processed.
-        ''' ),
-]
-WithDocstringFragmentsArgument: __.typx.TypeAlias = __.typx.Annotated[
+FragmentsArgumentMultivalent: __.typx.TypeAlias = __.typx.Annotated[
     _interfaces.Fragment,
     _interfaces.Doc(
         ''' Fragments from which to produce a docstring.
@@ -84,43 +48,79 @@ WithDocstringFragmentsArgument: __.typx.TypeAlias = __.typx.Annotated[
             ``documentation`` attribute will be incorporated.
         ''' ),
 ]
-WithDocstringIntrospectionArgument: __.typx.TypeAlias = __.typx.Annotated[
-    _context.IntrospectionControl,
-    _interfaces.Doc( ''' If to introspect and how. ''' ),
+InformationsArgument: __.typx.TypeAlias = __.typx.Annotated[
+    _interfaces.Informations,
+    _interfaces.Doc(
+        ''' Information extracted from object introspection. ''' ),
 ]
-WithDocstringPreserveArgument: __.typx.TypeAlias = __.typx.Annotated[
+IntrospectionArgument: __.typx.TypeAlias = __.typx.Annotated[
+    _context.IntrospectionControl, _interfaces.Fname( 'introspection' )
+]
+PossessorArgument: __.typx.TypeAlias = __.typx.Annotated[
+    _nomina.Documentable,
+    _interfaces.Doc( ''' Object being documented. ''' ),
+]
+PreserveArgument: __.typx.TypeAlias = __.typx.Annotated[
     bool, _interfaces.Doc( ''' Preserve extant docstring? ''' )
 ]
-WithDocstringRendererArgument: __.typx.TypeAlias = __.typx.Annotated[
-    Renderer,
-    _interfaces.Doc(
-        ''' Renderer for converting information to docstring fragments.
-
-            Determines the format of the generated docstring components.
-        ''' ),
+RendererArgument: __.typx.TypeAlias = __.typx.Annotated[
+    'Renderer', _interfaces.Fname( 'renderer' )
 ]
-WithDocstringTableArgument: __.typx.TypeAlias = __.typx.Annotated[
+TableArgument: __.typx.TypeAlias = __.typx.Annotated[
     _nomina.FragmentsTable,
     _interfaces.Doc( ''' Table from which to copy docstring fragments. ''' ),
 ]
+
+RendererReturnValue: __.typx.TypeAlias = __.typx.Annotated[
+    str, _interfaces.Doc( ''' Rendered docstring fragment. ''' )
+]
+class Renderer( __.typx.Protocol ):
+    ''' (Protocol for fragment renderer.) '''
+
+    _dynadoc_fragments_ = ( 'renderer', )
+
+    @staticmethod
+    def __call__(
+        possessor: PossessorArgument,
+        informations: InformationsArgument,
+        context: ContextArgument,
+    ) -> RendererReturnValue:
+        ''' (Signature for fragment renderer.) '''
+        raise NotImplementedError
 
 
 _visitees: __.weakref.WeakSet[ _nomina.Documentable ] = __.weakref.WeakSet( )
 
 
-context_default = _factories.produce_context( )
-renderer_default = _renderers.sphinxad.produce_fragment
-introspection_default = _context.IntrospectionControl( )
+context_default: __.typx.Annotated[
+    _context.Context,
+    _interfaces.Doc(
+        ''' Default context for introspection and rendering. ''' ),
+    _interfaces.Fname( 'context' ),
+    _interfaces.Default( mode = _interfaces.ValuationModes.Suppress ),
+] = _factories.produce_context( )
+introspection_default: __.typx.Annotated[
+    _context.IntrospectionControl,
+    _interfaces.Doc( ''' Default introspection control. ''' ),
+    _interfaces.Fname( 'introspection' ),
+    _interfaces.Default( mode = _interfaces.ValuationModes.Suppress ),
+] = _context.IntrospectionControl( )
+renderer_default: __.typx.Annotated[
+    Renderer,
+    _interfaces.Doc( ''' Default renderer for docstring fragments. ''' ),
+    _interfaces.Fname( 'renderer' ),
+    _interfaces.Default( mode = _interfaces.ValuationModes.Suppress ),
+] = __.typx.cast( Renderer, _renderers.sphinxad.produce_fragment )
 
 
 def assign_module_docstring( # noqa: PLR0913
     module: _nomina.Module, /,
-    *fragments: WithDocstringFragmentsArgument,
-    context: WithDocstringContextArgument = context_default,
-    introspection: WithDocstringIntrospectionArgument = introspection_default,
-    preserve: WithDocstringPreserveArgument = True,
-    renderer: WithDocstringRendererArgument = renderer_default,
-    table: WithDocstringTableArgument = __.dictproxy_empty,
+    *fragments: FragmentsArgumentMultivalent,
+    context: ContextArgument = context_default,
+    introspection: IntrospectionArgument = introspection_default,
+    preserve: PreserveArgument = True,
+    renderer: RendererArgument = renderer_default,
+    table: TableArgument = __.dictproxy_empty,
 ) -> None:
     ''' Assembles docstring from fragments and assigns it to module. '''
     if isinstance( module, str ):
@@ -136,12 +136,12 @@ def assign_module_docstring( # noqa: PLR0913
 
 
 def with_docstring(
-    *fragments: WithDocstringFragmentsArgument,
-    context: WithDocstringContextArgument = context_default,
-    introspection: WithDocstringIntrospectionArgument = introspection_default,
-    preserve: WithDocstringPreserveArgument = True,
-    renderer: WithDocstringRendererArgument = renderer_default,
-    table: WithDocstringTableArgument = __.dictproxy_empty,
+    *fragments: FragmentsArgumentMultivalent,
+    context: ContextArgument = context_default,
+    introspection: IntrospectionArgument = introspection_default,
+    preserve: PreserveArgument = True,
+    renderer: RendererArgument = renderer_default,
+    table: TableArgument = __.dictproxy_empty,
 ) -> _nomina.Decorator[ _nomina.D ]:
     ''' Assembles docstring from fragments and decorates object with it. '''
     def decorate( objct: _nomina.D ) -> _nomina.D:
