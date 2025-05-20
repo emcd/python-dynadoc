@@ -24,4 +24,4 @@
 
 
 from ..__ import *
-from ..xtsnapi import *
+from ..xtnsapi import *
