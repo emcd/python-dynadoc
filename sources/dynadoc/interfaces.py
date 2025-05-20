@@ -25,11 +25,6 @@ from . import __
 from . import nomina as _nomina
 
 
-# TODO? Enum for sentinels.
-absent = object( )
-incomplete = object( )
-
-
 try: from typing_extensions import Doc # pyright: ignore[reportAssignmentType]
 except ImportError:
 
@@ -63,6 +58,21 @@ class Raises:
 
     classes: type[ BaseException ] | __.cabc.Sequence[ type[ BaseException ] ]
     description: __.typx.Optional[ str ] = None
+
+
+class Sentinels( __.enum.Enum ):
+    ''' Sentinel values used in various parts of the package. '''
+
+    Absent      = __.enum.auto( )
+    Incomplete  = __.enum.auto( )
+
+
+absent: __.typx.Annotated[
+    Sentinels, Doc( ''' Indicates annotation or other data is missing. ''' )
+] = Sentinels.Absent
+incomplete: __.typx.Annotated[
+    Sentinels, Doc( ''' Indicates annotation reduction is incomplete. ''' ),
+] = Sentinels.Incomplete
 
 
 @__.dcls.dataclass( frozen = True, kw_only = True, slots = True )
