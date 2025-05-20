@@ -30,17 +30,69 @@ from . import nomina as _nomina
 from . import notification as _notification
 
 
+ProduceContextInvokerGlobalsArgument: __.typx.TypeAlias = __.typx.Annotated[
+    __.typx.Optional[ _nomina.Variables ],
+    _interfaces.Doc(
+        ''' Dictionary of globals from the frame of a caller.
+
+            Used by renderers for determing whether to fully-qualify a name.
+        ''' ),
+]
+ProduceContextResolverGlobalsArgument: __.typx.TypeAlias = __.typx.Annotated[
+    __.typx.Optional[ _nomina.Variables ],
+    _interfaces.Doc(
+        ''' Dictionary of globals for annotation resolution.
+
+            Used for resolving string annotations.
+        ''' ),
+]
+ProduceContextResolverLocalsArgument: __.typx.TypeAlias = __.typx.Annotated[
+    __.typx.Optional[ _nomina.Variables ],
+    _interfaces.Doc(
+        ''' Dictionary of locals for annotation resolution.
+
+            Used for resolving string annotations.
+        ''' ),
+]
+ProduceContextNotifierArgument: __.typx.TypeAlias = __.typx.Annotated[
+    _interfaces.Notifier,
+    _interfaces.Doc(
+        ''' Callback for notification of warnings and errors. ''' ),
+]
+ProduceContextFragmentRectifierArgument: __.typx.TypeAlias = __.typx.Annotated[
+    _interfaces.FragmentRectifier,
+    _interfaces.Doc(
+        ''' Function to clean and normalize docstring fragments. ''' ),
+]
+ProduceContextVisibilityDeciderArgument: __.typx.TypeAlias = __.typx.Annotated[
+    _interfaces.VisibilityDecider,
+    _interfaces.Doc(
+        ''' Function to determine if an attribute should be documented. ''' ),
+]
+
+
 def produce_context( # noqa: PLR0913
-    invoker_globals: __.typx.Optional[ _nomina.Variables ] = None,
-    resolver_globals: __.typx.Optional[ _nomina.Variables ] = None,
-    resolver_locals: __.typx.Optional[ _nomina.Variables ] = None,
-    notifier: _interfaces.Notifier = _notification.notify,
-    fragment_rectifier: _interfaces.FragmentRectifier = (
+    invoker_globals: ProduceContextInvokerGlobalsArgument = None,
+    resolver_globals: ProduceContextResolverGlobalsArgument = None,
+    resolver_locals: ProduceContextResolverLocalsArgument = None,
+    notifier: ProduceContextNotifierArgument = _notification.notify,
+    fragment_rectifier: ProduceContextFragmentRectifierArgument = (
         lambda fragment: fragment ),
-    visibility_decider: _interfaces.VisibilityDecider = (
+    visibility_decider: ProduceContextVisibilityDeciderArgument = (
         _introspection.is_attribute_visible ),
 ) -> _context.Context:
-    # TODO: Document.
+    ''' Creates context data transfer object.
+
+        Reasonable defaults are used for arguments that are not supplied.
+
+        The context is for annotation evaluation and docstring generation.
+        Controls how annotations are resolved, how fragments are processed,
+        and how notifications are issued.
+
+        The globals and locals dictionaries are used for resolving annotations
+        that are specified as strings. If not provided, annotations will be
+        resolved in the context where they are evaluated.
+    '''
     return _context.Context(
         notifier = notifier,
         fragment_rectifier = fragment_rectifier,

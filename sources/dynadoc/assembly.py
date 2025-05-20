@@ -34,8 +34,8 @@ from . import nomina as _nomina
 from . import renderers as _renderers
 
 
-class Formatter( __.typx.Protocol ):
-    ''' Formatter for arguments, attributes, exceptions, and returns. '''
+class Renderer( __.typx.Protocol ):
+    ''' Renderer for arguments, attributes, exceptions, and returns. '''
 
     @staticmethod
     def __call__(
@@ -73,7 +73,7 @@ _visitees: __.weakref.WeakSet[ _nomina.Documentable ] = __.weakref.WeakSet( )
 
 
 context_default = _factories.produce_context( )
-formatter_default = _renderers.sphinxad.produce_fragment
+renderer_default = _renderers.sphinxad.produce_fragment
 introspection_default = _context.IntrospectionControl( )
 
 
@@ -81,9 +81,9 @@ def assign_module_docstring( # noqa: PLR0913
     module: _nomina.Module, /,
     *fragments: WithDocstringFragmentsArgument,
     context: _context.Context = context_default,
-    formatter: Formatter = formatter_default,
     introspection: WithDocstringIntrospectionArgument = introspection_default,
     preserve: WithDocstringPreserveArgument = True,
+    renderer: Renderer = renderer_default,
     table: WithDocstringTableArgument = __.dictproxy_empty,
 ) -> None:
     ''' Assembles docstring from fragments and assigns it to module. '''
@@ -92,9 +92,9 @@ def assign_module_docstring( # noqa: PLR0913
     _decorate(
         module,
         context = context,
-        formatter = formatter,
         introspection = introspection,
         preserve = preserve,
+        renderer = renderer,
         fragments = fragments,
         table = table )
 
@@ -102,7 +102,7 @@ def assign_module_docstring( # noqa: PLR0913
 def with_docstring(
     *fragments: WithDocstringFragmentsArgument,
     context: _context.Context = context_default,
-    formatter: Formatter = formatter_default,
+    renderer: Renderer = renderer_default,
     introspection: WithDocstringIntrospectionArgument = introspection_default,
     preserve: WithDocstringPreserveArgument = True,
     table: WithDocstringTableArgument = __.dictproxy_empty,
@@ -112,9 +112,9 @@ def with_docstring(
         _decorate(
             objct,
             context = context,
-            formatter = formatter,
             introspection = introspection,
             preserve = preserve,
+            renderer = renderer,
             fragments = fragments,
             table = table )
         return objct
@@ -221,9 +221,9 @@ def _consider_module_attribute(
 def _decorate( # noqa: PLR0913
     objct: _nomina.Documentable, /,
     context: _context.Context,
-    formatter: Formatter,
     introspection: _context.IntrospectionControl,
     preserve: bool,
+    renderer: Renderer,
     fragments: _interfaces.Fragments,
     table: _nomina.FragmentsTable,
 ) -> None:
@@ -234,24 +234,24 @@ def _decorate( # noqa: PLR0913
             _decorate_class_attributes(
                 objct,
                 context = context,
-                formatter = formatter,
                 introspection = introspection,
                 preserve = preserve,
+                renderer = renderer,
                 table = table )
         elif __.inspect.ismodule( objct ):
             _decorate_module_attributes(
                 objct,
                 context = context,
-                formatter = formatter,
                 introspection = introspection,
                 preserve = preserve,
+                renderer = renderer,
                 table = table )
     _decorate_core(
         objct,
         context = context,
-        formatter = formatter,
         introspection = introspection,
         preserve = preserve,
+        renderer = renderer,
         fragments = fragments,
         table = table )
 
@@ -259,9 +259,9 @@ def _decorate( # noqa: PLR0913
 def _decorate_core( # noqa: PLR0913
     objct: _nomina.Documentable, /,
     context: _context.Context,
-    formatter: Formatter,
     introspection: _context.IntrospectionControl,
     preserve: bool,
+    renderer: Renderer,
     fragments: _interfaces.Fragments,
     table: _nomina.FragmentsTable,
 ) -> None:
@@ -279,7 +279,7 @@ def _decorate_core( # noqa: PLR0913
                 context = context, introspection = introspection,
                 cache = cache, table = table ) )
         fragments_.append(
-            formatter( objct, informations, context = context ) )
+            renderer( objct, informations, context = context ) )
     docstring = '\n\n'.join(
         fragment for fragment in filter( None, fragments_ ) ).rstrip( )
     objct.__doc__ = docstring if docstring else None
@@ -288,9 +288,9 @@ def _decorate_core( # noqa: PLR0913
 def _decorate_class_attributes( # noqa: PLR0913
     objct: type, /,
     context: _context.Context,
-    formatter: Formatter,
     introspection: _context.IntrospectionControl,
     preserve: bool,
+    renderer: Renderer,
     table: _nomina.FragmentsTable,
 ) -> None:
     pmname = objct.__module__
@@ -306,9 +306,9 @@ def _decorate_class_attributes( # noqa: PLR0913
         _decorate(
             attribute,
             context = context,
-            formatter = formatter,
             introspection = introspection_,
             preserve = preserve,
+            renderer = renderer,
             fragments = fragments,
             table = table )
         if attribute is not surface_attribute:
@@ -318,9 +318,9 @@ def _decorate_class_attributes( # noqa: PLR0913
 def _decorate_module_attributes( # noqa: PLR0913
     module: __.types.ModuleType, /,
     context: _context.Context,
-    formatter: Formatter,
     introspection: _context.IntrospectionControl,
     preserve: bool,
+    renderer: Renderer,
     table: _nomina.FragmentsTable,
 ) -> None:
     pmname = module.__name__
@@ -335,9 +335,9 @@ def _decorate_module_attributes( # noqa: PLR0913
         _decorate(
             attribute,
             context = context,
-            formatter = formatter,
             introspection = introspection_,
             preserve = preserve,
+            renderer = renderer,
             fragments = fragments,
             table = table )
         if attribute is not surface_attribute:
