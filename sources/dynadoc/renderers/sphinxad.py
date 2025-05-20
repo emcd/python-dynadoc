@@ -37,6 +37,11 @@ def produce_fragment(
     context: __.Context,
     style: Style = Style.Legible,
 ) -> str:
+    ''' Produces a reStructuredText docstring fragment.
+
+        Combines information from object introspection into a formatted
+        docstring fragment suitable for Sphinx Autodoc.
+    '''
     return '\n'.join(
         _produce_fragment_partial( possessor, information, context, style )
         for information in informations )

@@ -32,13 +32,49 @@ _default_suppress = _interfaces.Default(
     mode = _interfaces.ValuationModes.Suppress )
 
 
+IntrospectCacheArgument: __.typx.TypeAlias = __.typx.Annotated[
+    _interfaces.AnnotationsCache,
+    _interfaces.Doc(
+        ''' Cache for annotation reduction to avoid redundant processing.
+        ''' ),
+]
+IntrospectContextArgument: __.typx.TypeAlias = __.typx.Annotated[
+    _context.Context,
+    _interfaces.Doc(
+        ''' Context for annotation evaluation and notification. ''' ),
+]
+IntrospectIntrospectionArgument: __.typx.TypeAlias = __.typx.Annotated[
+    _context.IntrospectionControl,
+    _interfaces.Doc(
+        ''' Control settings for introspection behavior. ''' ),
+]
+IntrospectPossessorArgument: __.typx.TypeAlias = __.typx.Annotated[
+    _nomina.Documentable,
+    _interfaces.Doc(
+        ''' Object to introspect for documentable information.
+
+            Can be a module, class, or function.
+        ''' ),
+]
+IntrospectTableArgument: __.typx.TypeAlias = __.typx.Annotated[
+    _nomina.FragmentsTable,
+    _interfaces.Doc(
+        ''' Table of named docstring fragments to resolve references. ''' ),
+]
+
+
 def introspect(
-    possessor: _nomina.Documentable, /,
-    context: _context.Context,
-    introspection: _context.IntrospectionControl,
-    cache: _interfaces.AnnotationsCache,
-    table: _nomina.FragmentsTable,
+    possessor: IntrospectPossessorArgument, /,
+    context: IntrospectContextArgument,
+    introspection: IntrospectIntrospectionArgument,
+    cache: IntrospectCacheArgument,
+    table: IntrospectTableArgument,
 ) -> __.cabc.Sequence[ _interfaces.InformationBase ]:
+    ''' Introspects object to extract documentable information.
+
+        Dispatches to appropriate introspection function based on the type
+        of the object being introspected (class, function, or module).
+    '''
     if __.inspect.isclass( possessor ):
         return _introspect_class(
             possessor, context, introspection, cache, table )
@@ -79,6 +115,11 @@ def introspect_special_classes( # noqa: PLR0913
 def is_attribute_visible(
     name: str, annotation: __.typx.Any, description: __.typx.Optional[ str ]
 ) -> bool:
+    ''' Determines if an attribute should be visible in documentation.
+
+        Default visibility predicate that considers attributes with
+        descriptions or public names (not starting with underscore) as visible.
+    '''
     return (
         bool( description )
         # or (    name.startswith( '__' )
@@ -93,6 +134,12 @@ def reduce_annotation(
     adjuncts: _interfaces.AdjunctsData,
     cache: _interfaces.AnnotationsCache,
 ) -> __.typx.Any:
+    ''' Reduces a complex type annotation to a simpler form.
+
+        Processes type annotations, extracting metadata from Annotated types
+        and simplifying complex generic types. Uses cache to avoid redundant
+        processing and prevent infinite recursion from reference cycles.
+    '''
     annotation_r = cache.access( annotation )
     # Avoid infinite recursion from reference cycles.
     if annotation_r is _interfaces.incomplete:
@@ -141,7 +188,7 @@ def _compile_description(
     for extra in adjuncts.extras:
         if isinstance( extra, _interfaces.Doc ):
             fragments.append( extra.documentation )
-        elif isinstance( extra, _interfaces.Findex ):
+        elif isinstance( extra, _interfaces.Fname ):
             name = extra.name
             if name not in table:
                 emessage = f"Fragment '{name}' not in provided table."

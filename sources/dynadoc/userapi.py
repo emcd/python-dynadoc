@@ -29,7 +29,7 @@ from .factories import *
 from .interfaces import (
     Default,
     Doc,
-    Findex,
+    Fname,
     FragmentRectifier,
     Notifier,
     Raises,

@@ -34,17 +34,45 @@ from . import nomina as _nomina
 from . import renderers as _renderers
 
 
+RendererContextArgument: __.typx.TypeAlias = __.typx.Annotated[
+    _context.Context,
+    _interfaces.Doc( ''' Context for docstring generation. ''' ),
+]
+RendererInformationsArgument: __.typx.TypeAlias = __.typx.Annotated[
+    _interfaces.Informations,
+    _interfaces.Doc(
+        ''' Information extracted from object introspection. ''' ),
+]
+RendererPossessorArgument: __.typx.TypeAlias = __.typx.Annotated[
+    _nomina.Documentable,
+    _interfaces.Doc( ''' Object being documented. ''' ),
+]
+RendererReturnValue: __.typx.TypeAlias = __.typx.Annotated[
+    str,
+    _interfaces.Doc( ''' Formatted docstring fragment. ''' ),
+]
+
+
 class Renderer( __.typx.Protocol ):
     ''' Renderer for arguments, attributes, exceptions, and returns. '''
 
     @staticmethod
     def __call__(
-        possessor: _nomina.Documentable,
-        informations: _interfaces.Informations,
-        context: _context.Context,
-    ) -> str: raise NotImplementedError
+        possessor: RendererPossessorArgument,
+        informations: RendererInformationsArgument,
+        context: RendererContextArgument,
+    ) -> RendererReturnValue: raise NotImplementedError
 
 
+WithDocstringContextArgument: __.typx.TypeAlias = __.typx.Annotated[
+    _context.Context,
+    _interfaces.Doc(
+        ''' Context for docstring generation and introspection.
+
+            Controls how annotations are resolved and how fragments are
+            processed.
+        ''' ),
+]
 WithDocstringFragmentsArgument: __.typx.TypeAlias = __.typx.Annotated[
     _interfaces.Fragment,
     _interfaces.Doc(
@@ -63,6 +91,14 @@ WithDocstringIntrospectionArgument: __.typx.TypeAlias = __.typx.Annotated[
 WithDocstringPreserveArgument: __.typx.TypeAlias = __.typx.Annotated[
     bool, _interfaces.Doc( ''' Preserve extant docstring? ''' )
 ]
+WithDocstringRendererArgument: __.typx.TypeAlias = __.typx.Annotated[
+    Renderer,
+    _interfaces.Doc(
+        ''' Renderer for converting information to docstring fragments.
+
+            Determines the format of the generated docstring components.
+        ''' ),
+]
 WithDocstringTableArgument: __.typx.TypeAlias = __.typx.Annotated[
     _nomina.FragmentsTable,
     _interfaces.Doc( ''' Table from which to copy docstring fragments. ''' ),
@@ -80,10 +116,10 @@ introspection_default = _context.IntrospectionControl( )
 def assign_module_docstring( # noqa: PLR0913
     module: _nomina.Module, /,
     *fragments: WithDocstringFragmentsArgument,
-    context: _context.Context = context_default,
+    context: WithDocstringContextArgument = context_default,
     introspection: WithDocstringIntrospectionArgument = introspection_default,
     preserve: WithDocstringPreserveArgument = True,
-    renderer: Renderer = renderer_default,
+    renderer: WithDocstringRendererArgument = renderer_default,
     table: WithDocstringTableArgument = __.dictproxy_empty,
 ) -> None:
     ''' Assembles docstring from fragments and assigns it to module. '''
@@ -101,10 +137,10 @@ def assign_module_docstring( # noqa: PLR0913
 
 def with_docstring(
     *fragments: WithDocstringFragmentsArgument,
-    context: _context.Context = context_default,
-    renderer: Renderer = renderer_default,
+    context: WithDocstringContextArgument = context_default,
     introspection: WithDocstringIntrospectionArgument = introspection_default,
     preserve: WithDocstringPreserveArgument = True,
+    renderer: WithDocstringRendererArgument = renderer_default,
     table: WithDocstringTableArgument = __.dictproxy_empty,
 ) -> _nomina.Decorator[ _nomina.D ]:
     ''' Assembles docstring from fragments and decorates object with it. '''

@@ -42,14 +42,14 @@ Fragment: __.typx.TypeAlias = str | Doc
 Fragments: __.typx.TypeAlias = __.cabc.Sequence[ Fragment ]
 
 
-@__.dcls.dataclass( frozen = True, kw_only = True, slots = True )
-class Findex:
+@__.dcls.dataclass( frozen = True, slots = True )
+class Fname:
     ''' Name of documentation fragment in table. '''
 
     name: str
 
 
-@__.dcls.dataclass( frozen = True, kw_only = True, slots = True )
+@__.dcls.dataclass( frozen = True, slots = True )
 class Raises:
     ''' Class and description of exception which can be raised.
 
