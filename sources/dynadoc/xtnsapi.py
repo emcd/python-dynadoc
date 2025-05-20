@@ -46,13 +46,27 @@ FragmentsArgumentMultivalent: __.typx.TypeAlias = __.typx.Annotated[
             ``documentation`` attribute will be incorporated.
         ''' ),
 ]
+FragmentRectifierArgument: __.typx.TypeAlias = __.typx.Annotated[
+    FragmentRectifier,
+    Doc( ''' Cleans and normalizes docstring fragments. ''' ),
+]
 InformationsArgument: __.typx.TypeAlias = __.typx.Annotated[
     Informations,
-    Doc(
-        ''' Information extracted from object introspection. ''' ),
+    Doc( ''' Information extracted from object introspection. ''' ),
 ]
 IntrospectionArgument: __.typx.TypeAlias = __.typx.Annotated[
     IntrospectionControl, Fname( 'introspection' )
+]
+InvokerGlobalsArgument: __.typx.TypeAlias = __.typx.Annotated[
+    __.typx.Optional[ Variables ],
+    Doc(
+        ''' Dictionary of globals from the frame of a caller.
+
+            Used by renderers for determing whether to fully-qualify a name.
+        ''' ),
+]
+NotifierArgument: __.typx.TypeAlias = __.typx.Annotated[
+    Notifier, Doc( ''' Notifies of warnings and errors. ''' ),
 ]
 PossessorArgument: __.typx.TypeAlias = __.typx.Annotated[
     Documentable, Doc( ''' Object being documented. ''' ),
@@ -63,10 +77,31 @@ PreserveArgument: __.typx.TypeAlias = __.typx.Annotated[
 RendererArgument: __.typx.TypeAlias = __.typx.Annotated[
     'Renderer', Fname( 'renderer' )
 ]
+ResolverGlobalsArgument: __.typx.TypeAlias = __.typx.Annotated[
+    __.typx.Optional[ Variables ],
+    Doc(
+        ''' Dictionary of globals for annotation resolution.
+
+            Used for resolving string annotations.
+        ''' ),
+]
+ResolverLocalsArgument: __.typx.TypeAlias = __.typx.Annotated[
+    __.typx.Optional[ Variables ],
+    Doc(
+        ''' Dictionary of locals for annotation resolution.
+
+            Used for resolving string annotations.
+        ''' ),
+]
 TableArgument: __.typx.TypeAlias = __.typx.Annotated[
     FragmentsTable,
     Doc( ''' Table from which to copy docstring fragments. ''' ),
 ]
+VisibilityDeciderArgument: __.typx.TypeAlias = __.typx.Annotated[
+    VisibilityDecider,
+    Doc( ''' Determines if an attribute should be documented. ''' ),
+]
+
 
 RendererReturnValue: __.typx.TypeAlias = __.typx.Annotated[
     str, Doc( ''' Rendered docstring fragment. ''' )
