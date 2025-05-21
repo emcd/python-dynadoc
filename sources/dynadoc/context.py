@@ -50,7 +50,10 @@ class Context:
     notifier: __.typx.Annotated[
         _interfaces.Notifier, _interfaces.Fname( 'notifier' )
     ]
-    fragment_rectifier: _interfaces.FragmentRectifier
+    fragment_rectifier: __.typx.Annotated[
+        _interfaces.FragmentRectifier,
+        _interfaces.Fname( 'fragment rectifier' ),
+    ]
     visibility_decider: _interfaces.VisibilityDecider
     fragments_name: str = _fragments_name_default
     introspection_limit_name: str = _introspection_limit_name_default

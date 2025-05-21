@@ -35,13 +35,23 @@ def notify( level: _xtnsapi.NotificationLevels, message: str ) -> None:
         skip_file_prefixes = ( str( _package_location ), ) )
 
 
+def rectify_fragment(
+    fragment: str, source: _xtnsapi.FragmentSources
+) -> str:
+    ''' Cleans and normalizes fragment according to source. '''
+    match source:
+        case _xtnsapi.FragmentSources.Annotation: return fragment
+        case _xtnsapi.FragmentSources.Renderer: return fragment
+        case _: return __.inspect.cleandoc( fragment )
+
+
 def produce_context( # noqa: PLR0913
     invoker_globals: _xtnsapi.InvokerGlobalsArgument = None,
     resolver_globals: _xtnsapi.ResolverGlobalsArgument = None,
     resolver_locals: _xtnsapi.ResolverLocalsArgument = None,
     notifier: _xtnsapi.NotifierArgument = notify,
     fragment_rectifier: _xtnsapi.FragmentRectifierArgument = (
-        lambda fragment: fragment ),
+        rectify_fragment ),
     visibility_decider: _xtnsapi.VisibilityDeciderArgument = (
         _xtnsapi.is_attribute_visible ),
 ) -> _xtnsapi.Context:

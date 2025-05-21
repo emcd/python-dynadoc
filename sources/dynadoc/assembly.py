@@ -358,7 +358,8 @@ def _process_fragments_argument(
             emessage = f"Fragment {fragment!r} is invalid. Must be Doc or str."
             context.notifier( 'error', emessage )
             continue
-        fragments_.append( context.fragment_rectifier( fragment_r ) )
+        fragments_.append( context.fragment_rectifier(
+            fragment_r, source = _xtnsapi.FragmentSources.Argument ) )
     return fragments_
 
 

@@ -34,6 +34,9 @@ fragments: _FragmentsTable = __.types.MappingProxyType( {
         processed.
     ''',
 
+    'fragment rectifier':
+    ''' Cleans and normalizes documentation fragment. ''',
+
     'introspection': ''' If to introspect and how. ''',
 
     'notifier': ''' Notifies of warnings and errors. ''',

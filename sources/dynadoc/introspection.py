@@ -195,7 +195,9 @@ def _compile_description(
                 context.notifier( 'error', emessage )
             else: fragments.append( table[ name ] )
     return '\n\n'.join(
-        context.fragment_rectifier( fragment ) for fragment in fragments )
+        context.fragment_rectifier(
+            fragment, source = _interfaces.FragmentSources.Annotation )
+        for fragment in fragments )
 
 
 def _determine_default_valuator(

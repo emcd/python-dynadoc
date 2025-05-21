@@ -150,14 +150,23 @@ class Default:
     surrogate: __.typx.Any = absent
 
 
-class FragmentRectifier( __.typx.Protocol ):
-    ''' Callback to clean documentation fragment.
+class FragmentSources( __.enum.Enum ):
+    ''' Possible sources for documentation fragments. '''
 
-        Example: inspect.cleandoc
-    '''
+    Annotation  = __.enum.auto( )
+    Argument    = __.enum.auto( ) # *fragments
+    Attribute   = __.enum.auto( ) # _dynadoc_fragments_
+    Docstring   = __.enum.auto( )
+    Renderer    = __.enum.auto( )
+
+
+class FragmentRectifier( __.typx.Protocol ):
+    ''' Cleans and normalizes documentation fragment. '''
 
     @staticmethod
-    def __call__( fragment: str ) -> str: raise NotImplementedError
+    def __call__( fragment: str, source: FragmentSources ) -> str:
+        ''' (Signature for fragment rectifier.) '''
+        raise NotImplementedError
 
 
 @__.dcls.dataclass( frozen = True, kw_only = True, slots = True )
