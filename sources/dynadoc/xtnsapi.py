@@ -34,6 +34,9 @@ from .nomina import *
 ContextArgument: __.typx.TypeAlias = __.typx.Annotated[
     Context, Fname( 'context' )
 ]
+FragmentRectifierArgument: __.typx.TypeAlias = __.typx.Annotated[
+    FragmentRectifier, Fname( 'fragment rectifier' )
+]
 FragmentsArgumentMultivalent: __.typx.TypeAlias = __.typx.Annotated[
     Fragment,
     Doc(
@@ -45,9 +48,8 @@ FragmentsArgumentMultivalent: __.typx.TypeAlias = __.typx.Annotated[
             ``documentation`` attribute will be incorporated.
         ''' ),
 ]
-FragmentRectifierArgument: __.typx.TypeAlias = __.typx.Annotated[
-    FragmentRectifier,
-    Doc( ''' Cleans and normalizes docstring fragments. ''' ),
+FragmentsNameArgument: __.typx.TypeAlias = __.typx.Annotated[
+    str, Fname( 'fragments name' )
 ]
 InformationsArgument: __.typx.TypeAlias = __.typx.Annotated[
     Informations,
@@ -56,13 +58,11 @@ InformationsArgument: __.typx.TypeAlias = __.typx.Annotated[
 IntrospectionArgument: __.typx.TypeAlias = __.typx.Annotated[
     IntrospectionControl, Fname( 'introspection' )
 ]
+IntrospectionLimitNameArgument: __.typx.TypeAlias = __.typx.Annotated[
+    str, Fname( 'introspection limit name' )
+]
 InvokerGlobalsArgument: __.typx.TypeAlias = __.typx.Annotated[
-    __.typx.Optional[ Variables ],
-    Doc(
-        ''' Dictionary of globals from the frame of a caller.
-
-            Used by renderers for determing whether to fully-qualify a name.
-        ''' ),
+    __.typx.Optional[ Variables ], Fname( 'invoker globals' )
 ]
 NotifierArgument: __.typx.TypeAlias = __.typx.Annotated[
     Notifier, Fname( 'notifier' )
@@ -73,38 +73,25 @@ PossessorArgument: __.typx.TypeAlias = __.typx.Annotated[
 PreserveArgument: __.typx.TypeAlias = __.typx.Annotated[
     bool, Doc( ''' Preserve extant docstring? ''' )
 ]
-RendererArgument: __.typx.TypeAlias = __.typx.Annotated[
-    'Renderer', Fname( 'renderer' )
-]
 ResolverGlobalsArgument: __.typx.TypeAlias = __.typx.Annotated[
-    __.typx.Optional[ Variables ],
-    Doc(
-        ''' Dictionary of globals for annotation resolution.
-
-            Used for resolving string annotations.
-        ''' ),
+    __.typx.Optional[ Variables ], Fname( 'resolver globals' )
 ]
 ResolverLocalsArgument: __.typx.TypeAlias = __.typx.Annotated[
-    __.typx.Optional[ Variables ],
-    Doc(
-        ''' Dictionary of locals for annotation resolution.
-
-            Used for resolving string annotations.
-        ''' ),
+    __.typx.Optional[ Variables ], Fname( 'resolver locals' )
 ]
 TableArgument: __.typx.TypeAlias = __.typx.Annotated[
     FragmentsTable,
     Doc( ''' Table from which to copy docstring fragments. ''' ),
 ]
 VisibilityDeciderArgument: __.typx.TypeAlias = __.typx.Annotated[
-    VisibilityDecider,
-    Doc( ''' Determines if an attribute should be documented. ''' ),
+    VisibilityDecider, Fname( 'visibility decider' )
 ]
 
 
 RendererReturnValue: __.typx.TypeAlias = __.typx.Annotated[
     str, Doc( ''' Rendered docstring fragment. ''' )
 ]
+
 class Renderer( __.typx.Protocol ):
     ''' Produces docstring fragment from object and information about it. '''
 
@@ -116,3 +103,7 @@ class Renderer( __.typx.Protocol ):
     ) -> RendererReturnValue:
         ''' (Signature for fragment renderer.) '''
         raise NotImplementedError
+
+RendererArgument: __.typx.TypeAlias = __.typx.Annotated[
+    Renderer, Fname( 'renderer' )
+]

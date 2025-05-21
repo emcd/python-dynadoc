@@ -229,11 +229,13 @@ class Visibilities( __.enum.Enum ):
 
 
 class VisibilityDecider( __.typx.Protocol ):
-    ''' Callback to determine attribute visibility. '''
+    ''' Decides if attribute should have visible documentation. '''
 
     @staticmethod
     def __call__(
         name: str,
         annotation: __.typx.Any,
         description: __.typx.Optional[ str ],
-    ) -> bool: raise NotImplementedError
+    ) -> bool:
+        ''' (Signature for visibility decider.) '''
+        raise NotImplementedError

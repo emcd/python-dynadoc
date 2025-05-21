@@ -28,20 +28,47 @@ _FragmentsTable: __.typx.TypeAlias = __.cabc.Mapping[ str, str ]
 fragments: _FragmentsTable = __.types.MappingProxyType( {
 
     'context':
-    ''' Data transfer object for introspection and rendering behaviors.
+    ''' Data transfer object for various behaviors.
 
         Controls how annotations are resolved and how fragments are
-        processed.
+        processed and rendered.
     ''',
 
     'fragment rectifier':
     ''' Cleans and normalizes documentation fragment. ''',
 
+    'fragments name':
+    ''' Name of class attribute which stores documentation fragments. ''',
+
     'introspection': ''' If to introspect and how. ''',
+
+    'introspection limit name':
+    ''' Name of class attribute which stores introspection limit. ''',
+
+    'invoker globals':
+    ''' Dictionary of globals from the frame of a caller.
+
+        Used by renderers for determing whether to fully-qualify a name.
+    ''',
 
     'notifier': ''' Notifies of warnings and errors. ''',
 
     'renderer':
     ''' Produces docstring fragment from object and information about it. ''',
+
+    'resolver globals':
+    ''' Dictionary of globals for annotation resolution.
+
+        Used for resolving string annotations.
+    ''',
+
+    'resolver locals':
+    ''' Dictionary of locals for annotation resolution.
+
+        Used for resolving string annotations.
+    ''',
+
+    'visibility decider':
+    ''' Decides if attribute should have visible documentation. ''',
 
 } )

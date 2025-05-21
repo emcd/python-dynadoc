@@ -26,8 +26,8 @@ from . import interfaces as _interfaces
 from . import nomina as _nomina
 
 
-_fragments_name_default = '_dynadoc_fragments_'
-_introspection_limit_name_default = '_dynadoc_introspection_limit_'
+fragments_name_default = '_dynadoc_fragments_'
+introspection_limit_name_default = '_dynadoc_introspection_limit_'
 
 
 GlobalsLevelArgument: __.typx.TypeAlias = __.typx.Annotated[
@@ -54,12 +54,28 @@ class Context:
         _interfaces.FragmentRectifier,
         _interfaces.Fname( 'fragment rectifier' ),
     ]
-    visibility_decider: _interfaces.VisibilityDecider
-    fragments_name: str = _fragments_name_default
-    introspection_limit_name: str = _introspection_limit_name_default
-    invoker_globals: __.typx.Optional[ _nomina.Variables ] = None
-    resolver_globals: __.typx.Optional[ _nomina.Variables ] = None
-    resolver_locals: __.typx.Optional[ _nomina.Variables ] = None
+    visibility_decider: __.typx.Annotated[
+        _interfaces.VisibilityDecider,
+        _interfaces.Fname( 'visibility decider' ),
+    ]
+    fragments_name: __.typx.Annotated[
+        str, _interfaces.Fname( 'fragments name' )
+    ] = fragments_name_default
+    introspection_limit_name: __.typx.Annotated[
+        str, _interfaces.Fname( 'introspection limit name' )
+    ] = introspection_limit_name_default
+    invoker_globals: __.typx.Annotated[
+        __.typx.Optional[ _nomina.Variables ],
+        _interfaces.Fname( 'invoker globals' ),
+    ] = None
+    resolver_globals: __.typx.Annotated[
+        __.typx.Optional[ _nomina.Variables ],
+        _interfaces.Fname( 'resolver globals' ),
+    ] = None
+    resolver_locals: __.typx.Annotated[
+        __.typx.Optional[ _nomina.Variables ],
+        _interfaces.Fname( 'resolver locals' ),
+    ] = None
 
     def with_invoker_globals(
         self, level: GlobalsLevelArgument = 2

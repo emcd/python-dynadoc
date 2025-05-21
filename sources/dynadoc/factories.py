@@ -54,6 +54,10 @@ def produce_context( # noqa: PLR0913
         rectify_fragment ),
     visibility_decider: _xtnsapi.VisibilityDeciderArgument = (
         _xtnsapi.is_attribute_visible ),
+    fragments_name: _xtnsapi.FragmentsNameArgument = (
+        _xtnsapi.fragments_name_default ),
+    introspection_limit_name: _xtnsapi.IntrospectionLimitNameArgument = (
+        _xtnsapi.introspection_limit_name_default ),
 ) -> _xtnsapi.Context:
     ''' Produces context data transfer object.
 
