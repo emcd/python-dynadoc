@@ -244,9 +244,9 @@ def _decorate_core( # noqa: PLR0913
     table: _xtnsapi.FragmentsTable,
 ) -> None:
     fragments_: list[ str ] = [ ]
-    if preserve:
-        fragment = __.inspect.getdoc( objct )
-        if fragment: fragments_.append( fragment )
+    if preserve and ( fragment := getattr( objct, '__doc__', None ) ):
+        fragments_.append( context.fragment_rectifier(
+            fragment, source = _xtnsapi.FragmentSources.Docstring ) )
     fragments_.extend(
         _process_fragments_argument( context, fragments, table ) )
     if introspection.enable:
@@ -256,8 +256,9 @@ def _decorate_core( # noqa: PLR0913
                 objct,
                 context = context, introspection = introspection,
                 cache = cache, table = table ) )
-        fragments_.append(
-            renderer( objct, informations, context = context ) )
+        fragments_.append( context.fragment_rectifier(
+            renderer( objct, informations, context = context ),
+            source = _xtnsapi.FragmentSources.Renderer ) )
     docstring = '\n\n'.join(
         fragment for fragment in filter( None, fragments_ ) ).rstrip( )
     objct.__doc__ = docstring if docstring else None
