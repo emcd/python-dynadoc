@@ -49,6 +49,11 @@ def produce_fragment(
 
 _qualident_regex = __.re.compile( r'''^([\w\.]+).*$''' )
 def _extract_qualident( name: str, context: __.Context ) -> str:
+    ''' Extracts a qualified identifier from a string representation.
+
+        Used to extract the qualified name of an object from its string
+        representation when direct name access is not available.
+    '''
     extract = _qualident_regex.match( name )
     if extract is not None: return extract[ 1 ]
     return '<unknown>'
@@ -57,6 +62,11 @@ def _extract_qualident( name: str, context: __.Context ) -> str:
 def _format_annotation(
     annotation: __.typx.Any, context: __.Context, style: Style
 ) -> str:
+    ''' Formats a type annotation as a string for documentation.
+
+        Handles various annotation types including unions, generics,
+        and literals. Formats according to the selected style.
+    '''
     if isinstance( annotation, list ):
         seqstr = ', '.join(
             _format_annotation( element, context, style )
@@ -87,6 +97,10 @@ def _produce_fragment_partial(
     context: __.Context,
     style: Style,
 ) -> str:
+    ''' Produces a docstring fragment for a single piece of information.
+
+        Dispatches to appropriate producer based on the type of information.
+    '''
     if isinstance( information, __.ArgumentInformation ):
         return (
             _produce_argument_text( possessor, information, context, style ) )
@@ -110,6 +124,11 @@ def _produce_argument_text(
     context: __.Context,
     style: Style,
 ) -> str:
+    ''' Produces reStructuredText for argument information.
+
+        Formats function arguments in Sphinx-compatible reST format,
+        including parameter descriptions and types.
+    '''
     annotation = information.annotation
     description = information.description or ''
     lines: list[ str ] = [ ]
@@ -126,6 +145,11 @@ def _produce_attribute_text(
     context: __.Context,
     style: Style,
 ) -> str:
+    ''' Produces reStructuredText for attribute information.
+
+        Formats class and instance attributes in Sphinx-compatible reST format.
+        Delegates to special handler for module attributes.
+    '''
     annotation = information.annotation
     description = information.description or ''
     name = information.name
@@ -149,6 +173,11 @@ def _produce_module_attribute_text(
     context: __.Context,
     style: Style,
 ) -> str:
+    ''' Produces reStructuredText for module attribute information.
+
+        Formats module attributes in Sphinx-compatible reST format,
+        with special handling for TypeAlias attributes.
+    '''
     annotation = information.annotation
     description = information.description or ''
     name = information.name
@@ -189,6 +218,11 @@ def _produce_exception_text(
     context: __.Context,
     style: Style,
 ) -> str:
+    ''' Produces reStructuredText for exception information.
+
+        Formats exception classes and descriptions in Sphinx-compatible
+        reST format. Handles union types of exceptions appropriately.
+    '''
     lines: list[ str ] = [ ]
     annotation = information.annotation
     description = information.description or ''
@@ -207,6 +241,11 @@ def _produce_return_text(
     context: __.Context,
     style: Style,
 ) -> str:
+    ''' Produces reStructuredText for function return information.
+
+        Formats return type and description in Sphinx-compatible reST format.
+        Returns empty string for None returns.
+    '''
     if information.annotation in ( None, __.types.NoneType ): return ''
     description = information.description or ''
     typetext = _format_annotation( information.annotation, context, style )
@@ -220,6 +259,11 @@ def _produce_return_text(
 def _qualify_object_name( # noqa: PLR0911
     objct: object, context: __.Context
 ) -> str:
+    ''' Qualifies an object name for documentation.
+
+        Determines the appropriate fully-qualified name for an object,
+        considering builtin types, module namespaces, and qualname attributes.
+    '''
     if objct is Ellipsis: return '...'
     if objct is __.types.NoneType: return 'None'
     if objct is __.types.ModuleType: return 'types.ModuleType'
@@ -244,6 +288,11 @@ def _stylize_delimiter(
     content: str,
     prefix: str = '',
 ) -> str:
+    ''' Stylizes delimiters according to the selected style.
+
+        Formats delimiters around content based on the style setting,
+        with options for more legible spacing or compact PEP 8 formatting.
+    '''
     ld = delimiters[ 0 ]
     rd = delimiters[ 1 ]
     match style:

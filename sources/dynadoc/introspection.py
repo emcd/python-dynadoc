@@ -88,7 +88,7 @@ def introspect(
 
 
 def introspect_special_classes( # noqa: PLR0913
-    objct: type,
+    possessor: type, /,
     context: _context.Context,
     introspection: _context.IntrospectionControl,
     annotations: _nomina.Annotations,
@@ -100,11 +100,11 @@ def introspect_special_classes( # noqa: PLR0913
         E.g., enum members are collected as class variables.
     '''
     informations: list[ _interfaces.InformationBase ] = [ ]
-    if isinstance( objct, __.enum.EnumMeta ):
-        for name, member in objct.__members__.items( ): # noqa: PERF102
+    if isinstance( possessor, __.enum.EnumMeta ):
+        for name, member in possessor.__members__.items( ): # noqa: PERF102
             informations.append( _interfaces.AttributeInformation(
                 name = name,
-                annotation = objct,
+                annotation = possessor,
                 description = None,
                 association = _interfaces.AttributeAssociations.Class,
                 default = _default_suppress ) )
@@ -157,8 +157,13 @@ def reduce_annotation(
 
 
 def _access_annotations(
-    possessor: _nomina.Documentable, context: _context.Context
+    possessor: _nomina.Documentable, /, context: _context.Context
 ) -> __.cabc.Mapping[ str, __.typx.Any ]:
+    ''' Accesses annotations from a documentable object.
+
+        Retrieves annotations with appropriate resolver settings from the
+        context. Handles errors gracefully.
+    '''
     nomargs: _nomina.Variables = dict( eval_str = True )
     nomargs[ 'globals' ] = context.resolver_globals
     nomargs[ 'locals' ] = context.resolver_locals
@@ -174,6 +179,11 @@ def _access_annotations(
 def _classes_sequence_to_union(
     annotation: type | __.cabc.Sequence[ type ]
 ) -> __.typx.Any:
+    ''' Converts a sequence of exception classes to a Union type.
+
+        Used for Raises annotations to convert a sequence of exception
+        classes into a Union type for documentation.
+    '''
     if not isinstance( annotation, __.cabc.Sequence ):
         return annotation
     return __.funct.reduce( __.operator.or_, annotation )
@@ -184,6 +194,11 @@ def _compile_description(
     adjuncts: _interfaces.AdjunctsData,
     table: _nomina.FragmentsTable,
 ) -> str:
+    ''' Compiles a description from adjuncts data.
+
+        Processes Doc objects and Findex references in adjuncts data
+        to create a combined description string with proper formatting.
+    '''
     fragments: list[ str ] = [ ]
     for extra in adjuncts.extras:
         if isinstance( extra, _interfaces.Doc ):
@@ -204,6 +219,11 @@ def _determine_default_valuator(
     context: _context.Context,
     adjuncts: _interfaces.AdjunctsData,
 ) -> _interfaces.Default:
+    ''' Determines how default values should be handled.
+
+        Extracts the Default object from adjuncts data or falls back
+        to the default Default settings.
+    '''
     return next(
         (   extra for extra in adjuncts.extras
             if isinstance( extra, _interfaces.Default ) ),
@@ -217,6 +237,12 @@ def _filter_reconstitute_annotation(
     adjuncts: _interfaces.AdjunctsData,
     cache: _interfaces.AnnotationsCache,
 ) -> __.typx.Any:
+    ''' Filters and reconstitutes a generic type annotation.
+
+        After reducing the arguments of a generic type, this function
+        reconstitutes the type with the reduced arguments, potentially
+        applying transformations based on context.
+    '''
     adjuncts.traits.add( origin.__name__ )
     arguments_r: list[ __.typx.Any ] = [ ]
     match len( arguments ):
@@ -251,12 +277,19 @@ def _filter_reconstitute_annotation(
 
 
 def _introspect_class(
-    possessor: type,
+    possessor: type, /,
     context: _context.Context,
     introspection: _context.IntrospectionControl,
     cache: _interfaces.AnnotationsCache,
     table: _nomina.FragmentsTable,
 ) -> __.cabc.Sequence[ _interfaces.InformationBase ]:
+    ''' Introspects a class to extract documentable information.
+
+        Gathers information about class annotations, potentially considering
+        inherited annotations based on introspection control settings. Tries
+        special class introspectors first, then falls back to standard
+        introspection.
+    '''
     annotations_: dict[ str, __.typx.Any ] = { }
     if introspection.class_control.inheritance:
         # Descendant annotations override ancestor annotations.
@@ -290,6 +323,12 @@ def _introspect_class_annotations(
     cache: _interfaces.AnnotationsCache,
     table: _nomina.FragmentsTable,
 ) -> __.cabc.Sequence[ _interfaces.InformationBase ]:
+    ''' Introspects annotations of a class.
+
+        Processes class annotations to extract information about class
+        attributes, including their types, descriptions from Doc objects,
+        and whether they are class or instance variables.
+    '''
     informations: list[ _interfaces.InformationBase ] = [ ]
     for name, annotation in annotations.items( ):
         adjuncts = _interfaces.AdjunctsData( )
@@ -318,6 +357,11 @@ def _introspect_class_attributes(
     context: _context.Context,
     annotations: __.cabc.Mapping[ str, __.typx.Any ],
 ) -> __.cabc.Sequence[ _interfaces.InformationBase ]:
+    ''' Introspects attributes of a class not covered by annotations.
+
+        Examines class attributes that do not have corresponding annotations
+        and creates attribute information for those that should be visible.
+    '''
     informations: list[ _interfaces.InformationBase ] = [ ]
     adjuncts = _interfaces.AdjunctsData( ) # dummy value
     for name, attribute in __.inspect.getmembers( possessor ):
@@ -336,11 +380,16 @@ def _introspect_class_attributes(
 
 
 def _introspect_function(
-    possessor: __.cabc.Callable[ ..., __.typx.Any ],
+    possessor: __.cabc.Callable[ ..., __.typx.Any ], /,
     context: _context.Context,
     cache: _interfaces.AnnotationsCache,
     table: _nomina.FragmentsTable,
 ) -> __.cabc.Sequence[ _interfaces.InformationBase ]:
+    ''' Introspects a function to extract documentable information.
+
+        Gathers information about function arguments and return value
+        from annotations and signature analysis.
+    '''
     annotations = _access_annotations( possessor, context )
     if not annotations: return ( )
     informations: list[ _interfaces.InformationBase ] = [ ]
@@ -366,6 +415,11 @@ def _introspect_function_return(
     cache: _interfaces.AnnotationsCache,
     table: _nomina.FragmentsTable,
 ) -> __.cabc.Sequence[ _interfaces.InformationBase ]:
+    ''' Introspects function return annotation.
+
+        Processes function return annotation to extract return type information
+        and possible exception information from Raises annotations.
+    '''
     informations: list[ _interfaces.InformationBase ] = [ ]
     adjuncts = _interfaces.AdjunctsData( )
     annotation_ = reduce_annotation( annotation, context, adjuncts, cache )
@@ -389,6 +443,12 @@ def _introspect_function_valences(
     cache: _interfaces.AnnotationsCache,
     table: _nomina.FragmentsTable,
 ) -> __.cabc.Sequence[ _interfaces.ArgumentInformation ]:
+    ''' Introspects function parameters to extract argument information.
+
+        Processes function signature and annotations to create information
+        about function arguments, including their types, descriptions, and
+        default value handling.
+    '''
     informations: list[ _interfaces.ArgumentInformation ] = [ ]
     for name, param in signature.parameters.items( ):
         annotation = annotations.get( name, param.annotation )
@@ -412,12 +472,17 @@ def _introspect_function_valences(
 
 
 def _introspect_module(
-    possessor: __.types.ModuleType,
+    possessor: __.types.ModuleType, /,
     context: _context.Context,
     introspection: _context.IntrospectionControl,
     cache: _interfaces.AnnotationsCache,
     table: _nomina.FragmentsTable,
 ) -> __.cabc.Sequence[ _interfaces.InformationBase ]:
+    ''' Introspects a module to extract documentable information.
+
+        Gathers information about module annotations and potentially about
+        module attributes based on introspection control settings.
+    '''
     annotations = _access_annotations( possessor, context )
     if not annotations: return ( )
     informations: list[ _interfaces.InformationBase ] = [ ]
@@ -436,6 +501,11 @@ def _introspect_module_annotations(
     cache: _interfaces.AnnotationsCache,
     table: _nomina.FragmentsTable,
 ) -> __.cabc.Sequence[ _interfaces.InformationBase ]:
+    ''' Introspects annotations of a module.
+
+        Processes module annotations to extract information about module
+        attributes, including their types and descriptions from Doc objects.
+    '''
     informations: list[ _interfaces.InformationBase ] = [ ]
     for name, annotation in annotations.items( ):
         adjuncts = _interfaces.AdjunctsData( )
@@ -460,6 +530,11 @@ def _introspect_module_attributes(
     context: _context.Context,
     annotations: __.cabc.Mapping[ str, __.typx.Any ],
 ) -> __.cabc.Sequence[ _interfaces.InformationBase ]:
+    ''' Introspects attributes of a module not covered by annotations.
+
+        Examines module attributes that do not have corresponding annotations
+        and creates attribute information for those that should be visible.
+    '''
     informations: list[ _interfaces.InformationBase ] = [ ]
     adjuncts = _interfaces.AdjunctsData( ) # dummy value
     attribute: object
@@ -485,6 +560,12 @@ def _is_attribute_visible(
     adjuncts: _interfaces.AdjunctsData,
     description: __.typx.Optional[ str ],
 ) -> bool:
+    ''' Determines if an attribute should be visible in documentation.
+
+        Checks for explicit visibility settings in adjuncts data and falls
+        back to the context's visibility decider if the visibility is set
+        to Default.
+    '''
     visibility = next(
         (   extra for extra in adjuncts.extras
             if isinstance( extra, _interfaces.Visibilities ) ),
@@ -503,6 +584,12 @@ def _reduce_annotation_arguments(
     adjuncts: _interfaces.AdjunctsData,
     cache: _interfaces.AnnotationsCache,
 ) -> __.cabc.Sequence[ __.typx.Any ]:
+    ''' Reduces the arguments of a generic type annotation.
+
+        Processes the arguments of a generic type like List[T] or Dict[K, V]
+        and returns the reduced forms of those arguments. Special handling
+        for Callable types.
+    '''
     if __.inspect.isclass( origin ) and issubclass( origin, __.cabc.Callable ):
         return _reduce_annotation_for_callable(
             arguments, context, adjuncts.copy( ), cache )
@@ -517,6 +604,12 @@ def _reduce_annotation_core(
     adjuncts: _interfaces.AdjunctsData,
     cache: _interfaces.AnnotationsCache,
 ) -> __.typx.Any:
+    ''' Core implementation of annotation reduction.
+
+        Handles the reduction of complex type annotations into simpler forms,
+        extracting metadata from Annotated types and processing generic types.
+        Returns the reduced annotation.
+    '''
     origin = __.typx.get_origin( annotation )
     # bare types, Ellipsis, typing.Any, typing.LiteralString, typing.Never,
     # typing.TypeVar have no origin; taken as-is
@@ -538,6 +631,12 @@ def _reduce_annotation_for_callable(
     adjuncts: _interfaces.AdjunctsData,
     cache: _interfaces.AnnotationsCache,
 ) -> tuple[ list[ __.typx.Any ] | __.types.EllipsisType, __.typx.Any ]:
+    ''' Reduces annotations for Callable types.
+
+        Special handling for Callable type annotations, which have a tuple
+        of (arguments, return_type). Processes the arguments list and return
+        type separately and returns the reduced forms.
+    '''
     farguments, freturn = arguments
     if farguments is Ellipsis:
         farguments_r = Ellipsis

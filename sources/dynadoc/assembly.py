@@ -105,6 +105,11 @@ def _check_module_recursion(
     introspection: _xtnsapi.IntrospectionControl,
     mname: str
 ) -> __.typx.TypeIs[ __.types.ModuleType ]:
+    ''' Checks if a module should be recursively documented.
+
+        Returns True if the object is a module that should be recursively
+        documented based on the introspection control and module name prefix.
+    '''
     if (    introspection.targets & _xtnsapi.IntrospectionTargets.Module
         and __.inspect.ismodule( objct )
     ): return objct.__name__.startswith( f"{mname}." )
@@ -114,6 +119,12 @@ def _check_module_recursion(
 def _collect_fragments(
     objct: _xtnsapi.Documentable, /, context: _xtnsapi.Context, fqname: str
 ) -> _xtnsapi.Fragments:
+    ''' Collects docstring fragments from an object.
+
+        Retrieves the sequence of fragments stored on the object using the
+        fragments_name from the context. Validates that the fragments are
+        of the expected types.
+    '''
     fragments: _xtnsapi.Fragments = (
         getattr( objct, context.fragments_name, ( ) ) )
     if not isinstance( fragments, __.cabc.Sequence ):
@@ -133,6 +144,13 @@ def _consider_class_attribute( # noqa: C901,PLR0913
     introspection: _xtnsapi.IntrospectionControl,
     pmname: str, pqname: str, aname: str,
 ) -> tuple[ __.typx.Optional[ _xtnsapi.Documentable ], bool ]:
+    ''' Considers whether a class attribute should be documented.
+
+        Examines a class attribute to determine if it should be included
+        in the documentation process based on introspection targets and
+        class ownership. Returns the documentable attribute and a flag
+        indicating whether the surface attribute needs updating.
+    '''
     if _check_module_recursion( attribute, introspection, pmname ):
         return attribute, False
     attribute_ = None
@@ -177,6 +195,13 @@ def _consider_module_attribute(
     introspection: _xtnsapi.IntrospectionControl,
     pmname: str, aname: str,
 ) -> tuple[ __.typx.Optional[ _xtnsapi.Documentable ], bool ]:
+    ''' Considers whether a module attribute should be documented.
+
+        Examines a module attribute to determine if it should be included
+        in the documentation process based on introspection targets and
+        module ownership. Returns the documentable attribute and a flag
+        indicating whether the surface attribute needs updating.
+    '''
     if _check_module_recursion( attribute, introspection, pmname ):
         return attribute, False
     attribute_ = None
@@ -205,6 +230,12 @@ def _decorate( # noqa: PLR0913
     fragments: _xtnsapi.Fragments,
     table: _xtnsapi.FragmentsTable,
 ) -> None:
+    ''' Decorates an object with assembled docstring.
+
+        Handles core docstring decoration and potentially recursive decoration
+        of the object's attributes based on introspection control settings.
+        Prevents multiple decoration of the same object.
+    '''
     if objct in _visitees: return # Prevent multiple decoration.
     _visitees.add( objct )
     if introspection.targets:
@@ -243,6 +274,12 @@ def _decorate_core( # noqa: PLR0913
     fragments: _xtnsapi.Fragments,
     table: _xtnsapi.FragmentsTable,
 ) -> None:
+    ''' Core implementation of docstring decoration.
+
+        Assembles a docstring from fragments, existing docstring (if
+        preserved), and introspection results. Assigns the assembled docstring
+        to the object.
+    '''
     fragments_: list[ str ] = [ ]
     if preserve and ( fragment := getattr( objct, '__doc__', None ) ):
         fragments_.append( context.fragment_rectifier(
@@ -272,6 +309,11 @@ def _decorate_class_attributes( # noqa: PLR0913
     renderer: _xtnsapi.Renderer,
     table: _xtnsapi.FragmentsTable,
 ) -> None:
+    ''' Decorates attributes of a class with assembled docstrings.
+
+        Iterates through relevant class attributes, collects fragments,
+        and applies appropriate docstring decoration to each attribute.
+    '''
     pmname = objct.__module__
     pqname = objct.__qualname__
     for aname, attribute, surface_attribute in (
@@ -302,6 +344,11 @@ def _decorate_module_attributes( # noqa: PLR0913
     renderer: _xtnsapi.Renderer,
     table: _xtnsapi.FragmentsTable,
 ) -> None:
+    ''' Decorates attributes of a module with assembled docstrings.
+
+        Iterates through relevant module attributes, collects fragments,
+        and applies appropriate docstring decoration to each attribute.
+    '''
     pmname = module.__name__
     for aname, attribute, surface_attribute in (
         _survey_module_attributes( module, context, introspection )
@@ -329,6 +376,12 @@ def _limit_introspection(
     introspection: _xtnsapi.IntrospectionControl,
     fqname: str,
 ) -> _xtnsapi.IntrospectionControl:
+    ''' Limits introspection based on object-specific constraints.
+
+        Returns a new IntrospectionControl that respects the limits
+        specified by the object being documented. This allows objects
+        to control how deeply they are introspected.
+    '''
     limit: _xtnsapi.IntrospectionLimit = (
         getattr(
             objct,
@@ -346,6 +399,12 @@ def _process_fragments_argument(
     fragments: _xtnsapi.Fragments,
     table: _xtnsapi.FragmentsTable,
 ) -> __.cabc.Sequence[ str ]:
+    ''' Processes fragments argument into a sequence of string fragments.
+
+        Converts Doc objects to their documentation strings and resolves
+        string references to the fragments table. Returns a sequence of
+        rectified fragment strings.
+    '''
     fragments_: list[ str ] = [ ]
     for fragment in fragments:
         if isinstance( fragment, _xtnsapi.Doc ):
@@ -369,6 +428,13 @@ def _survey_class_attributes(
     context: _xtnsapi.Context,
     introspection: _xtnsapi.IntrospectionControl,
 ) -> __.cabc.Iterator[ tuple[ str, _xtnsapi.Documentable, object ] ]:
+    ''' Surveys attributes of a class for documentation.
+
+        Yields a sequence of (name, attribute, surface_attribute) tuples
+        representing documentable attributes of the class. The surface
+        attribute may differ from attribute in cases like properties where the
+        attribute's getter method holds the documentation.
+    '''
     pmname = possessor.__module__
     pqname = possessor.__qualname__
     for aname, attribute in __.inspect.getmembers( possessor ):
@@ -387,6 +453,13 @@ def _survey_module_attributes(
     context: _xtnsapi.Context,
     introspection: _xtnsapi.IntrospectionControl,
 ) -> __.cabc.Iterator[ tuple[ str, _xtnsapi.Documentable, object ] ]:
+    ''' Surveys attributes of a module for documentation.
+
+        Yields a sequence of (name, attribute, surface_attribute) tuples
+        representing documentable attributes of the module. The surface
+        attribute may differ from attribute in cases where the actual
+        documented object is not directly accessible.
+    '''
     pmname = possessor.__name__
     for aname, attribute in __.inspect.getmembers( possessor ):
         attribute_, update_surface = (
