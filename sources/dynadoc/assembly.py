@@ -52,7 +52,7 @@ renderer_default: __.typx.Annotated[
     _xtnsapi.Doc( ''' Default renderer for docstring fragments. ''' ),
     _xtnsapi.Fname( 'renderer' ),
     _xtnsapi.Default( mode = _xtnsapi.ValuationModes.Suppress ),
-] = __.typx.cast( _xtnsapi.Renderer, _renderers.sphinxad.produce_fragment )
+] = _renderers.sphinxad.produce_fragment
 
 
 def assign_module_docstring( # noqa: PLR0913

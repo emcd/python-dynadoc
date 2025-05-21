@@ -36,6 +36,8 @@ fragments: _FragmentsTable = __.types.MappingProxyType( {
 
     'introspection': ''' If to introspect and how. ''',
 
+    'notifier': ''' Notifies of warnings and errors. ''',
+
     'renderer':
     ''' Produces docstring fragment from object and information about it. ''',
 

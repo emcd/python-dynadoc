@@ -30,7 +30,7 @@ _fragments_name_default = '_dynadoc_fragments_'
 _introspection_limit_name_default = '_dynadoc_introspection_limit_'
 
 
-WithInvokerGlobalsLevelArgument: __.typx.TypeAlias = __.typx.Annotated[
+GlobalsLevelArgument: __.typx.TypeAlias = __.typx.Annotated[
     int,
     _interfaces.Doc(
         ''' Stack frame level from which to obtain globals.
@@ -42,9 +42,14 @@ WithInvokerGlobalsLevelArgument: __.typx.TypeAlias = __.typx.Annotated[
 
 @__.dcls.dataclass( frozen = True, kw_only = True, slots = True )
 class Context:
-    ''' Context for annotation evaluation, etc.... '''
+    ''' '''
 
-    notifier: _interfaces.Notifier
+    _dynadoc_fragments_: __.typx.ClassVar[
+        _interfaces.Fragments ] = ( 'context', )
+
+    notifier: __.typx.Annotated[
+        _interfaces.Notifier, _interfaces.Fname( 'notifier' )
+    ]
     fragment_rectifier: _interfaces.FragmentRectifier
     visibility_decider: _interfaces.VisibilityDecider
     fragments_name: str = _fragments_name_default
@@ -54,7 +59,7 @@ class Context:
     resolver_locals: __.typx.Optional[ _nomina.Variables ] = None
 
     def with_invoker_globals(
-        self, level: WithInvokerGlobalsLevelArgument = 2
+        self, level: GlobalsLevelArgument = 2
     ) -> __.typx.Self:
         ''' Returns new context with invoker globals from stack frame. '''
         iglobals = __.inspect.stack( )[ level ].frame.f_globals

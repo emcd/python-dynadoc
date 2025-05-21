@@ -196,12 +196,14 @@ Informations: __.typx.TypeAlias = __.cabc.Sequence[ InformationBase ]
 
 
 class Notifier( __.typx.Protocol ):
-    ''' Notification callback for warning or error condition. '''
+    ''' Notifies of warnings and errors. '''
 
     @staticmethod
     def __call__(
         level: _nomina.NotificationLevels, message: str
-    ) -> None: raise NotImplementedError
+    ) -> None:
+        ''' (Signature for notifier callback.) '''
+        raise NotImplementedError
 
 
 class Visibilities( __.enum.Enum ):

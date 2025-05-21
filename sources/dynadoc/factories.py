@@ -22,15 +22,24 @@
 # TODO? Registry for deferred decoration.
 
 
-# from . import __
+from . import __
 from . import xtnsapi as _xtnsapi
+
+
+_package_location = __.Path( __file__ ).parent
+def notify( level: _xtnsapi.NotificationLevels, message: str ) -> None:
+    ''' Issues warning message. '''
+    __.warnings.warn( # pyright: ignore[reportCallIssue]
+        message,
+        category = RuntimeWarning,
+        skip_file_prefixes = ( str( _package_location ), ) )
 
 
 def produce_context( # noqa: PLR0913
     invoker_globals: _xtnsapi.InvokerGlobalsArgument = None,
     resolver_globals: _xtnsapi.ResolverGlobalsArgument = None,
     resolver_locals: _xtnsapi.ResolverLocalsArgument = None,
-    notifier: _xtnsapi.NotifierArgument = _xtnsapi.notify,
+    notifier: _xtnsapi.NotifierArgument = notify,
     fragment_rectifier: _xtnsapi.FragmentRectifierArgument = (
         lambda fragment: fragment ),
     visibility_decider: _xtnsapi.VisibilityDeciderArgument = (

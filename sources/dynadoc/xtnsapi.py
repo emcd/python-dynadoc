@@ -29,7 +29,6 @@ from .context import *
 from .interfaces import *
 from .introspection import *
 from .nomina import *
-from .notification import *
 
 
 ContextArgument: __.typx.TypeAlias = __.typx.Annotated[
@@ -66,7 +65,7 @@ InvokerGlobalsArgument: __.typx.TypeAlias = __.typx.Annotated[
         ''' ),
 ]
 NotifierArgument: __.typx.TypeAlias = __.typx.Annotated[
-    Notifier, Doc( ''' Notifies of warnings and errors. ''' ),
+    Notifier, Fname( 'notifier' )
 ]
 PossessorArgument: __.typx.TypeAlias = __.typx.Annotated[
     Documentable, Doc( ''' Object being documented. ''' ),
@@ -107,9 +106,7 @@ RendererReturnValue: __.typx.TypeAlias = __.typx.Annotated[
     str, Doc( ''' Rendered docstring fragment. ''' )
 ]
 class Renderer( __.typx.Protocol ):
-    ''' (Protocol for fragment renderer.) '''
-
-    _dynadoc_fragments_ = ( 'renderer', )
+    ''' Produces docstring fragment from object and information about it. '''
 
     @staticmethod
     def __call__(

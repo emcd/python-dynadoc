@@ -28,7 +28,6 @@ from . import factories
 from . import interfaces
 from . import introspection
 from . import nomina
-from . import notification
 from . import renderers
 from . import xtnsapi
 # --- BEGIN: Injected by Copier ---
@@ -41,8 +40,13 @@ __version__: __.typx.Annotated[ str, Visibilities.Reveal ]
 __version__ = '1.0a0'
 
 
-_context = produce_context(
-    notifier = notification.notify_internal )
+def _notify( level: NotificationLevels, message: str ) -> None:
+    ''' Issues warning message. (Internal use within this package itself.) '''
+    __.warnings.warn( # pyright: ignore[reportCallIssue]
+        message, category = RuntimeWarning, stacklevel = 2 )
+
+
+_context = produce_context( notifier = _notify )
 _introspection_cc = ClassIntrospectionControl(
     inheritance = True,
     introspectors = ( introspection.introspect_special_classes, ) )
