@@ -40,9 +40,9 @@ def rectify_fragment(
 ) -> str:
     ''' Cleans and normalizes fragment according to source. '''
     match source:
-        case _xtnsapi.FragmentSources.Annotation: return fragment
-        case _xtnsapi.FragmentSources.Renderer: return fragment
-        case _: return __.inspect.cleandoc( fragment )
+        case _xtnsapi.FragmentSources.Annotation: return fragment.strip( )
+        case _xtnsapi.FragmentSources.Renderer: return fragment.strip( )
+        case _: return __.inspect.cleandoc( fragment ).rstrip( )
 
 
 def produce_context( # noqa: PLR0913

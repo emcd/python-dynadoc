@@ -226,7 +226,8 @@ def _produce_exception_text(
     lines: list[ str ] = [ ]
     annotation = information.annotation
     description = information.description or ''
-    if isinstance( annotation, ( __.types.UnionType, __.typx.Union ) ):
+    origin = __.typx.get_origin( annotation )
+    if origin in ( __.types.UnionType, __.typx.Union ):
         annotations = __.typx.get_args( annotation )
     else: annotations = ( annotation, )
     for annotation_ in annotations:
