@@ -40,7 +40,13 @@ fragments: _FragmentsTable = __.types.MappingProxyType( {
     'fragments name':
     ''' Name of class attribute which stores documentation fragments. ''',
 
-    'introspection': ''' If to introspect and how. ''',
+    'introspection':
+    ''' Controls on introspection behavior.
+
+        Is introspection enabled?
+        Which kinds of objects to recursively document?
+        Etc...
+    ''',
 
     'introspection limit name':
     ''' Name of class attribute which stores introspection limit. ''',

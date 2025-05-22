@@ -32,43 +32,19 @@ _default_suppress = _interfaces.Default(
     mode = _interfaces.ValuationModes.Suppress )
 
 
-IntrospectCacheArgument: __.typx.TypeAlias = __.typx.Annotated[
-    _interfaces.AnnotationsCache,
-    _interfaces.Doc(
-        ''' Cache for annotation reduction to avoid redundant processing.
-        ''' ),
-]
-IntrospectContextArgument: __.typx.TypeAlias = __.typx.Annotated[
-    _context.Context,
-    _interfaces.Doc(
-        ''' Context for annotation evaluation and notification. ''' ),
-]
 IntrospectIntrospectionArgument: __.typx.TypeAlias = __.typx.Annotated[
     _context.IntrospectionControl,
     _interfaces.Doc(
         ''' Control settings for introspection behavior. ''' ),
 ]
-IntrospectPossessorArgument: __.typx.TypeAlias = __.typx.Annotated[
-    _nomina.Documentable,
-    _interfaces.Doc(
-        ''' Object to introspect for documentable information.
-
-            Can be a module, class, or function.
-        ''' ),
-]
-IntrospectTableArgument: __.typx.TypeAlias = __.typx.Annotated[
-    _nomina.FragmentsTable,
-    _interfaces.Doc(
-        ''' Table of named docstring fragments to resolve references. ''' ),
-]
 
 
 def introspect(
-    possessor: IntrospectPossessorArgument, /,
-    context: IntrospectContextArgument,
-    introspection: IntrospectIntrospectionArgument,
-    cache: IntrospectCacheArgument,
-    table: IntrospectTableArgument,
+    possessor: _interfaces.PossessorArgument, /,
+    context: _context.ContextArgument,
+    introspection: _context.IntrospectionArgument,
+    cache: _interfaces.AnnotationsCacheArgument,
+    table: _interfaces.FragmentsTableArgument,
 ) -> __.cabc.Sequence[ _interfaces.InformationBase ]:
     ''' Introspects object to extract documentable information.
 
@@ -88,12 +64,12 @@ def introspect(
 
 
 def introspect_special_classes( # noqa: PLR0913
-    possessor: type, /,
-    context: _context.Context,
-    introspection: _context.IntrospectionControl,
-    annotations: _nomina.Annotations,
-    cache: _interfaces.AnnotationsCache,
-    table: _nomina.FragmentsTable,
+    possessor: _interfaces.PossessorClassArgument, /,
+    context: _context.ContextArgument,
+    introspection: _context.IntrospectionArgument,
+    annotations: _interfaces.AnnotationsArgument,
+    cache: _interfaces.AnnotationsCacheArgument,
+    table: _interfaces.FragmentsTableArgument,
 ) -> __.typx.Optional[ _interfaces.Informations ]:
     ''' Introspects special classes in Python standard library.
 
@@ -101,13 +77,14 @@ def introspect_special_classes( # noqa: PLR0913
     '''
     informations: list[ _interfaces.InformationBase ] = [ ]
     if isinstance( possessor, __.enum.EnumMeta ):
-        for name, member in possessor.__members__.items( ): # noqa: PERF102
-            informations.append( _interfaces.AttributeInformation(
+        informations.extend(
+            _interfaces.AttributeInformation(
                 name = name,
                 annotation = possessor,
                 description = None,
                 association = _interfaces.AttributeAssociations.Class,
-                default = _default_suppress ) )
+                default = _default_suppress )
+            for name in possessor.__members__ )
         return informations
     return None
 

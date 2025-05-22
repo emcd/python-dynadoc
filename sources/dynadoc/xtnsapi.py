@@ -50,8 +50,6 @@ InformationsArgument: __.typx.TypeAlias = __.typx.Annotated[
     Informations,
     Doc( ''' Information extracted from object introspection. ''' ),
 ]
-IntrospectionArgument: __.typx.TypeAlias = __.typx.Annotated[
-    IntrospectionControl, Fname( 'introspection' ) ]
 IntrospectionLimitNameArgument: __.typx.TypeAlias = __.typx.Annotated[
     str, Fname( 'introspection limit name' ) ]
 InvokerGlobalsArgument: __.typx.TypeAlias = __.typx.Annotated[

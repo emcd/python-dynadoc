@@ -101,7 +101,7 @@ linkcheck_ignore = [
     # Package does not exist during initial development.
     r'https://pypi\.org/project/dynadoc/',
     # Github aggressively rate-limits access to certain blobs.
-    r'https://github\.com/emcd/python-project-common/blob/.*'
+    r'https://github\.com/.*/.*/blob/.*'
 ]
 
 # -- Options for HTML output -------------------------------------------------

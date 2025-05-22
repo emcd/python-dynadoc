@@ -46,7 +46,8 @@ Fragments: __.typx.TypeAlias = __.cabc.Sequence[ Fragment ]
 class Fname:
     ''' Name of documentation fragment in table. '''
 
-    name: str
+    name: __.typx.Annotated[
+        str, Doc( ''' Index to look up content in fragments table. ''' ) ]
 
 
 @__.dcls.dataclass( frozen = True, slots = True )
@@ -56,10 +57,20 @@ class Raises:
         Should appear in the return annotations for a function.
     '''
 
-    classes: type[ BaseException ] | __.cabc.Sequence[ type[ BaseException ] ]
-    description: __.typx.Optional[ str ] = None
+    classes: __.typx.Annotated[
+        type[ BaseException ] | __.cabc.Sequence[ type[ BaseException ] ],
+        Doc( ''' Exception class or classes which can be raised. ''' ),
+    ]
+    description: __.typx.Annotated[
+        __.typx.Optional[ str ],
+        Doc( ''' When and why the exception is raised. ''' ),
+    ] = None
 
 
+AnnotationsArgument: __.typx.TypeAlias = __.typx.Annotated[
+    _nomina.Annotations,
+    Doc( ''' Annotations mapping for documentable object. ''' ),
+]
 FragmentsTableArgument: __.typx.TypeAlias = __.typx.Annotated[
     _nomina.FragmentsTable,
     Doc( ''' Table from which to copy docstring fragments. ''' ),
@@ -72,8 +83,22 @@ GlobalsLevelArgument: __.typx.TypeAlias = __.typx.Annotated[
             Default is 2, which is the caller of the caller.
         ''' ),
 ]
+NotifierLevelArgument: __.typx.TypeAlias = __.typx.Annotated[
+    _nomina.NotificationLevels,
+    Doc( ''' Severity level of the notification. ''' ),
+]
+NotifierMessageArgument: __.typx.TypeAlias = __.typx.Annotated[
+    str,
+    Doc( ''' Message content to notify about. ''' ),
+]
 PossessorArgument: __.typx.TypeAlias = __.typx.Annotated[
-    _nomina.Documentable, Doc( ''' Object being documented. ''' ) ]
+    _nomina.Documentable,
+    Doc(
+        ''' Object being documented.
+
+            May be a module, class, or function.
+        ''' ),
+]
 PossessorClassArgument: __.typx.TypeAlias = __.typx.Annotated[
     type, Doc( ''' Class being documented. ''' ) ]
 PossessorFunctionArgument: __.typx.TypeAlias = __.typx.Annotated[
@@ -82,6 +107,14 @@ PossessorFunctionArgument: __.typx.TypeAlias = __.typx.Annotated[
 ]
 PossessorModuleArgument: __.typx.TypeAlias = __.typx.Annotated[
     __.types.ModuleType, Doc( ''' Module being documented. ''' ) ]
+VisibilityAnnotationArgument: __.typx.TypeAlias = __.typx.Annotated[
+    __.typx.Any, Doc( ''' Type annotation of the attribute. ''' ) ]
+VisibilityDescriptionArgument: __.typx.TypeAlias = __.typx.Annotated[
+    __.typx.Optional[ str ],
+    Doc( ''' Optional description text for the attribute. ''' ),
+]
+VisibilityNameArgument: __.typx.TypeAlias = __.typx.Annotated[
+    str, Doc( ''' Name of the attribute being evaluated. ''' ) ]
 
 
 class Sentinels( __.enum.Enum ):
@@ -103,12 +136,17 @@ incomplete: __.typx.Annotated[
 class AdjunctsData:
     ''' Data about type-adjacent entities. '''
 
-    extras: __.cabc.MutableSequence[ __.typx.Any ] = (
-        __.dcls.field( default_factory = list[ __.typx.Any ] ) )
-    traits: __.cabc.MutableSet[ str ] = (
-        __.dcls.field( default_factory = set[ str ] ) )
+    extras: __.typx.Annotated[
+        __.cabc.MutableSequence[ __.typx.Any ],
+        Doc( ''' Additional annotations. ''' ),
+    ] = __.dcls.field( default_factory = list[ __.typx.Any ] )
+    traits: __.typx.Annotated[
+        __.cabc.MutableSet[ str ],
+        Doc( ''' Trait names collected during annotation processing. ''' ),
+    ] = __.dcls.field( default_factory = set[ str ] )
 
     def copy( self ) -> __.typx.Self:
+        ''' Creates a shallow copy of the adjuncts data. '''
         return type( self )(
             extras = list( self.extras ),
             traits = set( self.traits ) )
@@ -121,20 +159,37 @@ class AnnotationsCache:
         Has special values for absent and incomplete entries.
     '''
 
-    entries: dict[ __.typx.Any, __.typx.Any ] = (
-        __.dcls.field( default_factory = dict[ __.typx.Any, __.typx.Any ] ) )
+    entries: __.typx.Annotated[
+        dict[ __.typx.Any, __.typx.Any ],
+        Doc( ''' Mapping from original annotations to reduced forms. ''' ),
+    ] = __.dcls.field( default_factory = dict[ __.typx.Any, __.typx.Any ] )
 
-    def access( self, original: __.typx.Any ) -> __.typx.Any:
-        ''' Accesses entry value, if it exists.
+    def access(
+        self, original: __.typx.Annotated[
+            __.typx.Any,
+            Doc( ''' Original annotation to look up in cache. ''' ),
+        ]
+    ) -> __.typx.Annotated[
+        __.typx.Any,
+        Doc(
+            ''' Reduced annotation from cache.
 
-            Returns absence sentinel if entry does not exist.
-        '''
+                Absence sentinel if not found.
+            ''' ),
+    ]:
+        ''' Accesses entry value, if it exists. '''
         return self.entries.get( original, absent )
 
     def enter(
         self,
-        original: __.typx.Any,
-        reduction: __.typx.Any = incomplete,
+        original: __.typx.Annotated[
+            __.typx.Any,
+            Doc( ''' Original annotation to use as cache key. ''' ),
+        ],
+        reduction: __.typx.Annotated[
+            __.typx.Any,
+            Doc( ''' Reduced form of annotation to store as value. ''' ),
+        ] = incomplete,
     ) -> __.typx.Any:
         ''' Adds reduced annotation to cache, returning it.
 
@@ -147,6 +202,7 @@ class AnnotationsCache:
 
 
 class AttributeAssociations( __.enum.Enum ):
+    ''' Association level of an attribute with its containing entity. '''
 
     Module      = __.enum.auto( )
     Class       = __.enum.auto( )
@@ -170,8 +226,18 @@ class ValuationModes( __.enum.Enum ):
 class Default:
     ''' How to process default value. '''
 
-    mode: ValuationModes = ValuationModes.Accept
-    surrogate: __.typx.Any = absent
+    mode: __.typx.Annotated[
+        ValuationModes,
+        Doc( ''' Method for handling default value processing. ''' ),
+    ] = ValuationModes.Accept
+    surrogate: __.typx.Annotated[
+        __.typx.Any,
+        Doc(
+            ''' Alternative value to use when surrogate mode.
+
+                Usually a description string.
+            ''' ),
+    ] = absent
 
 
 class FragmentSources( __.enum.Enum ):
@@ -188,7 +254,18 @@ class FragmentRectifier( __.typx.Protocol ):
     ''' Cleans and normalizes documentation fragment. '''
 
     @staticmethod
-    def __call__( fragment: str, source: FragmentSources ) -> str:
+    def __call__(
+        fragment: __.typx.Annotated[
+            str,
+            Doc( ''' Raw fragment text to be cleaned and normalized. ''' ),
+        ],
+        source: __.typx.Annotated[
+            FragmentSources,
+            Doc(
+                ''' Source type of fragment for context-aware processing.
+                ''' ),
+        ],
+    ) -> str:
         ''' (Signature for fragment rectifier.) '''
         raise NotImplementedError
 
@@ -197,32 +274,60 @@ class FragmentRectifier( __.typx.Protocol ):
 class InformationBase:
     ''' Base for information on various kinds of entities. '''
 
-    annotation: __.typx.Any
-    description: __.typx.Optional[ str ]
+    annotation: __.typx.Annotated[
+        __.typx.Any,
+        Doc( ''' Type annotation associated with this entity. ''' ),
+    ]
+    description: __.typx.Annotated[
+        __.typx.Optional[ str ],
+        Doc( ''' Human-readable description of the entity. ''' ),
+    ]
 
 
 @__.dcls.dataclass( frozen = True, kw_only = True, slots = True )
 class ArgumentInformation( InformationBase ):
+    ''' Information about a function argument. '''
 
-    name: str
-    paramspec: __.inspect.Parameter
-    default: Default
+    name: __.typx.Annotated[
+        str,
+        Doc( ''' Name of the function parameter. ''' ),
+    ]
+    paramspec: __.typx.Annotated[
+        __.inspect.Parameter,
+        Doc( ''' Inspection parameter object with various details. ''' ),
+    ]
+    default: __.typx.Annotated[
+        Default,
+        Doc( ''' Configuration for how to handle default value. ''' ),
+    ]
 
 
 @__.dcls.dataclass( frozen = True, kw_only = True, slots = True )
 class AttributeInformation( InformationBase ):
+    ''' Information about a class or module attribute. '''
 
-    name: str
-    association: AttributeAssociations
-    default: Default
+    name: __.typx.Annotated[
+        str,
+        Doc( ''' Name of the attribute. ''' ),
+    ]
+    association: __.typx.Annotated[
+        AttributeAssociations,
+        Doc( ''' Attribute associated with module, class, or instance? ''' ),
+    ]
+    default: __.typx.Annotated[
+        Default, Doc( ''' How to handle default value. ''' ) ]
 
 
 @__.dcls.dataclass( frozen = True, kw_only = True, slots = True )
-class ExceptionInformation( InformationBase ): pass
+class ExceptionInformation( InformationBase ):
+    ''' Information about an exception that can be raised. '''
+    pass
 
 
 @__.dcls.dataclass( frozen = True, kw_only = True, slots = True )
-class ReturnInformation( InformationBase ): pass
+class ReturnInformation( InformationBase ):
+    ''' Information about a function's return value. '''
+    pass
 
 
 Informations: __.typx.TypeAlias = __.cabc.Sequence[ InformationBase ]
@@ -233,7 +338,8 @@ class Notifier( __.typx.Protocol ):
 
     @staticmethod
     def __call__(
-        level: _nomina.NotificationLevels, message: str
+        level: NotifierLevelArgument,
+        message: NotifierMessageArgument,
     ) -> None:
         ''' (Signature for notifier callback.) '''
         raise NotImplementedError
@@ -257,9 +363,19 @@ class VisibilityDecider( __.typx.Protocol ):
 
     @staticmethod
     def __call__(
-        name: str,
-        annotation: __.typx.Any,
-        description: __.typx.Optional[ str ],
+        name: VisibilityNameArgument,
+        annotation: VisibilityAnnotationArgument,
+        description: VisibilityDescriptionArgument,
     ) -> bool:
         ''' (Signature for visibility decider.) '''
         raise NotImplementedError
+
+
+AnnotationsCacheArgument: __.typx.TypeAlias = __.typx.Annotated[
+    AnnotationsCache,
+    Doc(
+        ''' Cache for storing reduced annotation forms.
+
+            Also used for cycle detection.
+        ''' ),
+]
