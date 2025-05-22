@@ -17,7 +17,7 @@
    +--------------------------------------------------------------------------+
 
 *******************************************************************************
-                                    dynadoc                                    
+                                    dynadoc
 *******************************************************************************
 
 .. image:: https://img.shields.io/pypi/v/dynadoc
@@ -45,8 +45,37 @@
    :target: https://pypi.org/project/dynadoc/
 
 
-.. todo:: Provide content.
+📝 A Python library package which provides **automatic docstring generation**
+with configurable renderers and support for PEP 727 ``Doc`` objects.
 
+Key Features ⭐
+===============================================================================
+
+* 🔄 **Docstring Generation**: Automatic generation of docstrings for
+  modules, classes, functions, and methods via introspection.
+* 🎨 **Configurable Renderers**: Support for multiple output formats (e.g.,
+  reStructuredText, Markdown) and custom templates.
+* 🏷️ **Annotation Metadata**: Extraction and inclusion of metadata from
+  annotations into generated docstrings.
+* 🔌 **Extensible Architecture**: Easily extendable via factories and
+  user-defined plugins.
+
+Installation 📦
+===============================================================================
+
+Via `uv <https://github.com/astral-sh/uv/blob/main/README.md>`_ ``pip`` command::
+
+    uv pip install dynadoc
+
+Or, via ``pip``::
+
+    pip install dynadoc
+
+Examples 💡
+===============================================================================
+
+.. Please see the `examples directory
+   <https://github.com/emcd/python-dynadoc/tree/master/documentation/examples>`_.
 
 `More Flair <https://www.imdb.com/title/tt0151804/characters/nm0431918>`_
 ===============================================================================

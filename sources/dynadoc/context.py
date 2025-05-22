@@ -30,16 +30,6 @@ fragments_name_default = '_dynadoc_fragments_'
 introspection_limit_name_default = '_dynadoc_introspection_limit_'
 
 
-GlobalsLevelArgument: __.typx.TypeAlias = __.typx.Annotated[
-    int,
-    _interfaces.Doc(
-        ''' Stack frame level from which to obtain globals.
-
-            Default is 2, which is the caller of the caller.
-        ''' ),
-]
-
-
 @__.dcls.dataclass( frozen = True, kw_only = True, slots = True )
 class Context:
     ''' '''
@@ -78,7 +68,7 @@ class Context:
     ] = None
 
     def with_invoker_globals(
-        self, level: GlobalsLevelArgument = 2
+        self, level: _interfaces.GlobalsLevelArgument = 2
     ) -> __.typx.Self:
         ''' Returns new context with invoker globals from stack frame. '''
         iglobals = __.inspect.stack( )[ level ].frame.f_globals
@@ -93,22 +83,25 @@ class Context:
             resolver_locals = self.resolver_locals )
 
 
+ContextArgument: __.typx.TypeAlias = __.typx.Annotated[
+    Context, _interfaces.Fname( 'context' ) ]
+
+
 class ClassIntrospector( __.typx.Protocol ):
     ''' Custom introspector for class annotations and attributes. '''
 
     @staticmethod
     def __call__( # noqa: PLR0913
-        objct: type, /,
-        context: Context,
+        possessor: _interfaces.PossessorClassArgument, /,
+        context: ContextArgument,
         introspection: 'IntrospectionControl',
         annotations: _nomina.Annotations,
         cache: _interfaces.AnnotationsCache,
-        table: _nomina.FragmentsTable,
+        table: _interfaces.FragmentsTableArgument,
     ) -> __.typx.Optional[ _interfaces.Informations ]:
         raise NotImplementedError
 
-ClassIntrospectors: __.typx.TypeAlias = (
-    __.cabc.Sequence[ ClassIntrospector ] )
+ClassIntrospectors: __.typx.TypeAlias = __.cabc.Sequence[ ClassIntrospector ]
 
 
 @__.dcls.dataclass( frozen = True, kw_only = True, slots = True )

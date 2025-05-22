@@ -31,12 +31,8 @@ from .introspection import *
 from .nomina import *
 
 
-ContextArgument: __.typx.TypeAlias = __.typx.Annotated[
-    Context, Fname( 'context' )
-]
 FragmentRectifierArgument: __.typx.TypeAlias = __.typx.Annotated[
-    FragmentRectifier, Fname( 'fragment rectifier' )
-]
+    FragmentRectifier, Fname( 'fragment rectifier' ) ]
 FragmentsArgumentMultivalent: __.typx.TypeAlias = __.typx.Annotated[
     Fragment,
     Doc(
@@ -49,48 +45,31 @@ FragmentsArgumentMultivalent: __.typx.TypeAlias = __.typx.Annotated[
         ''' ),
 ]
 FragmentsNameArgument: __.typx.TypeAlias = __.typx.Annotated[
-    str, Fname( 'fragments name' )
-]
+    str, Fname( 'fragments name' ) ]
 InformationsArgument: __.typx.TypeAlias = __.typx.Annotated[
     Informations,
     Doc( ''' Information extracted from object introspection. ''' ),
 ]
 IntrospectionArgument: __.typx.TypeAlias = __.typx.Annotated[
-    IntrospectionControl, Fname( 'introspection' )
-]
+    IntrospectionControl, Fname( 'introspection' ) ]
 IntrospectionLimitNameArgument: __.typx.TypeAlias = __.typx.Annotated[
-    str, Fname( 'introspection limit name' )
-]
+    str, Fname( 'introspection limit name' ) ]
 InvokerGlobalsArgument: __.typx.TypeAlias = __.typx.Annotated[
-    __.typx.Optional[ Variables ], Fname( 'invoker globals' )
-]
+    __.typx.Optional[ Variables ], Fname( 'invoker globals' ) ]
 NotifierArgument: __.typx.TypeAlias = __.typx.Annotated[
-    Notifier, Fname( 'notifier' )
-]
-PossessorArgument: __.typx.TypeAlias = __.typx.Annotated[
-    Documentable, Doc( ''' Object being documented. ''' ),
-]
+    Notifier, Fname( 'notifier' ) ]
 PreserveArgument: __.typx.TypeAlias = __.typx.Annotated[
-    bool, Doc( ''' Preserve extant docstring? ''' )
-]
+    bool, Doc( ''' Preserve extant docstring? ''' ) ]
 ResolverGlobalsArgument: __.typx.TypeAlias = __.typx.Annotated[
-    __.typx.Optional[ Variables ], Fname( 'resolver globals' )
-]
+    __.typx.Optional[ Variables ], Fname( 'resolver globals' ) ]
 ResolverLocalsArgument: __.typx.TypeAlias = __.typx.Annotated[
-    __.typx.Optional[ Variables ], Fname( 'resolver locals' )
-]
-TableArgument: __.typx.TypeAlias = __.typx.Annotated[
-    FragmentsTable,
-    Doc( ''' Table from which to copy docstring fragments. ''' ),
-]
+    __.typx.Optional[ Variables ], Fname( 'resolver locals' ) ]
 VisibilityDeciderArgument: __.typx.TypeAlias = __.typx.Annotated[
-    VisibilityDecider, Fname( 'visibility decider' )
-]
+    VisibilityDecider, Fname( 'visibility decider' ) ]
 
 
 RendererReturnValue: __.typx.TypeAlias = __.typx.Annotated[
-    str, Doc( ''' Rendered docstring fragment. ''' )
-]
+    str, Doc( ''' Rendered docstring fragment. ''' ) ]
 
 class Renderer( __.typx.Protocol ):
     ''' Produces docstring fragment from object and information about it. '''
@@ -105,5 +84,4 @@ class Renderer( __.typx.Protocol ):
         raise NotImplementedError
 
 RendererArgument: __.typx.TypeAlias = __.typx.Annotated[
-    Renderer, Fname( 'renderer' )
-]
+    Renderer, Fname( 'renderer' ) ]

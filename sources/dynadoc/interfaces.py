@@ -60,6 +60,30 @@ class Raises:
     description: __.typx.Optional[ str ] = None
 
 
+FragmentsTableArgument: __.typx.TypeAlias = __.typx.Annotated[
+    _nomina.FragmentsTable,
+    Doc( ''' Table from which to copy docstring fragments. ''' ),
+]
+GlobalsLevelArgument: __.typx.TypeAlias = __.typx.Annotated[
+    int,
+    Doc(
+        ''' Stack frame level from which to obtain globals.
+
+            Default is 2, which is the caller of the caller.
+        ''' ),
+]
+PossessorArgument: __.typx.TypeAlias = __.typx.Annotated[
+    _nomina.Documentable, Doc( ''' Object being documented. ''' ) ]
+PossessorClassArgument: __.typx.TypeAlias = __.typx.Annotated[
+    type, Doc( ''' Class being documented. ''' ) ]
+PossessorFunctionArgument: __.typx.TypeAlias = __.typx.Annotated[
+    __.cabc.Callable[ ..., __.typx.Any ],
+    Doc( ''' Function being documented. ''' ),
+]
+PossessorModuleArgument: __.typx.TypeAlias = __.typx.Annotated[
+    __.types.ModuleType, Doc( ''' Module being documented. ''' ) ]
+
+
 class Sentinels( __.enum.Enum ):
     ''' Sentinel values used in various parts of the package. '''
 

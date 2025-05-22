@@ -62,7 +62,7 @@ def assign_module_docstring( # noqa: PLR0913
     introspection: _xtnsapi.IntrospectionArgument = introspection_default,
     preserve: _xtnsapi.PreserveArgument = True,
     renderer: _xtnsapi.RendererArgument = renderer_default,
-    table: _xtnsapi.TableArgument = __.dictproxy_empty,
+    table: _xtnsapi.FragmentsTableArgument = __.dictproxy_empty,
 ) -> None:
     ''' Assembles docstring from fragments and assigns it to module. '''
     if isinstance( module, str ):
@@ -83,7 +83,7 @@ def with_docstring(
     introspection: _xtnsapi.IntrospectionArgument = introspection_default,
     preserve: _xtnsapi.PreserveArgument = True,
     renderer: _xtnsapi.RendererArgument = renderer_default,
-    table: _xtnsapi.TableArgument = __.dictproxy_empty,
+    table: _xtnsapi.FragmentsTableArgument = __.dictproxy_empty,
 ) -> _xtnsapi.Decorator[ _xtnsapi.D ]:
     ''' Assembles docstring from fragments and decorates object with it. '''
     def decorate( objct: _xtnsapi.D ) -> _xtnsapi.D:
