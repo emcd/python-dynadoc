@@ -26,3 +26,4 @@ Examples
 
    basic-usage
    classes
+   modules

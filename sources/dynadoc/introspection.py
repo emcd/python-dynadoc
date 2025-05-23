@@ -90,19 +90,23 @@ def introspect_special_classes( # noqa: PLR0913
 
 
 def is_attribute_visible(
-    name: str, annotation: __.typx.Any, description: __.typx.Optional[ str ]
+    possessor: _interfaces.PossessorArgument,
+    name: str,
+    annotation: __.typx.Any,
+    description: __.typx.Optional[ str ],
 ) -> bool:
-    ''' Determines if an attribute should be visible in documentation.
+    ''' Determines if attribute should be visible in documentation.
 
-        Default visibility predicate that considers attributes with
-        descriptions or public names (not starting with underscore) as visible.
+        Default visibility predicate that considers attribute with
+        description or public name (not starting with underscore) as visible.
+
+        If attribute possessor is module, then ``__all__`` is considered,
+        if it exists.
     '''
-    return (
-        bool( description )
-        # or (    name.startswith( '__' )
-        #     and name.endswith( '__' )
-        #     and len( name ) > 4 )
-        or not name.startswith( '_' ) )
+    if __.inspect.ismodule( possessor ):
+        publics = getattr( possessor, '__all__', None )
+        if publics is not None: return name in publics
+    return bool( description ) or not name.startswith( '_' )
 
 
 def reduce_annotation(
@@ -314,7 +318,7 @@ def _introspect_class_annotations(
             annotation, context, adjuncts, cache )
         description = _compile_description( context, adjuncts, table )
         if not _is_attribute_visible(
-            name, annotation_, context, adjuncts, description
+            possessor, name, annotation_, context, adjuncts, description
         ): continue
         association = (
             _interfaces.AttributeAssociations.Class
@@ -345,7 +349,7 @@ def _introspect_class_attributes(
     for name, attribute in __.inspect.getmembers( possessor ):
         if name in annotations: continue # already processed
         if not _is_attribute_visible(
-            name, _interfaces.absent, context, adjuncts, None
+            possessor, name, _interfaces.absent, context, adjuncts, None
         ): continue
         if callable( attribute ): continue # separately documented
         informations.append( _interfaces.AttributeInformation(
@@ -491,7 +495,7 @@ def _introspect_module_annotations(
             annotation, context, adjuncts, cache )
         description = _compile_description( context, adjuncts, table )
         if not _is_attribute_visible(
-            name, annotation_, context, adjuncts, description
+            possessor, name, annotation_, context, adjuncts, description
         ): continue
         default = _determine_default_valuator( context, adjuncts )
         informations.append( _interfaces.AttributeInformation(
@@ -519,7 +523,7 @@ def _introspect_module_attributes(
     for name, attribute in __.inspect.getmembers( possessor ):
         if name in annotations: continue # already processed
         if not _is_attribute_visible(
-            name, _interfaces.absent, context, adjuncts, None
+            possessor, name, _interfaces.absent, context, adjuncts, None
         ): continue
         if callable( attribute ): continue # separately documented
         informations.append( _interfaces.AttributeInformation(
@@ -531,7 +535,8 @@ def _introspect_module_attributes(
     return informations
 
 
-def _is_attribute_visible(
+def _is_attribute_visible( # noqa: PLR0913
+    possessor: _nomina.Documentable,
     name: str,
     annotation: __.typx.Any,
     context: _context.Context,
@@ -552,7 +557,8 @@ def _is_attribute_visible(
         case _interfaces.Visibilities.Conceal: return False
         case _interfaces.Visibilities.Reveal: return True
         case _:
-            return context.visibility_decider( name, annotation, description )
+            return context.visibility_decider(
+                possessor, name, annotation, description )
 
 
 def _reduce_annotation_arguments(

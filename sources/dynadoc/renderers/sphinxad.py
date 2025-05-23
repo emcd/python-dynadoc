@@ -165,7 +165,7 @@ def _produce_attribute_text(
     lines: list[ str ] = [ ]
     lines.append(
         f":{vlabel} {name}: {description}"
-        if description else f"{vlabel} {name}:" )
+        if description else f":{vlabel} {name}:" )
     if annotation is not __.absent:
         typetext = _format_annotation( annotation, context, style )
         lines.append( f":vartype {name}: {typetext}" )

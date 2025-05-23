@@ -363,6 +363,7 @@ class VisibilityDecider( __.typx.Protocol ):
 
     @staticmethod
     def __call__(
+        possessor: PossessorArgument,
         name: VisibilityNameArgument,
         annotation: VisibilityAnnotationArgument,
         description: VisibilityDescriptionArgument,
