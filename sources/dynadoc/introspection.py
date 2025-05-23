@@ -125,8 +125,9 @@ def reduce_annotation(
             "returning Any." )
         context.notifier( 'admonition', emessage )
         return cache.enter( annotation, __.typx.Any )
-    # Short-circuit on cache hit.
-    if annotation_r is not _interfaces.absent: return annotation_r
+    # TODO: Short-circuit on cache hit.
+    #       Need to ensure copy of adjuncts data is retrieved too.
+    # if annotation_r is not _interfaces.absent: return annotation_r
     cache.enter( annotation ) # mark as incomplete
     return cache.enter(
         annotation,

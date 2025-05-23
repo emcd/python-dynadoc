@@ -130,9 +130,12 @@ def _produce_argument_text(
         including parameter descriptions and types.
     '''
     annotation = information.annotation
-    description = information.description or ''
+    description = information.description
+    name = information.name
     lines: list[ str ] = [ ]
-    lines.append( f":argument {information.name}: {description}" )
+    lines.append(
+        f":argument {name}: {description}"
+        if description else f":argument {name}:" )
     if annotation is not __.absent:
         typetext = _format_annotation( annotation, context, style )
         lines.append( f":type {information.name}: {typetext}" )
@@ -151,16 +154,18 @@ def _produce_attribute_text(
         Delegates to special handler for module attributes.
     '''
     annotation = information.annotation
-    description = information.description or ''
-    name = information.name
     match information.association:
         case __.AttributeAssociations.Module:
             return _produce_module_attribute_text(
                 possessor, information, context, style )
         case __.AttributeAssociations.Class: vlabel = 'cvar'
         case __.AttributeAssociations.Instance: vlabel = 'ivar'
+    description = information.description
+    name = information.name
     lines: list[ str ] = [ ]
-    lines.append( f":{vlabel} {name}: {description}" )
+    lines.append(
+        f":{vlabel} {name}: {description}"
+        if description else f"{vlabel} {name}:" )
     if annotation is not __.absent:
         typetext = _format_annotation( annotation, context, style )
         lines.append( f":vartype {name}: {typetext}" )
@@ -225,14 +230,16 @@ def _produce_exception_text(
     '''
     lines: list[ str ] = [ ]
     annotation = information.annotation
-    description = information.description or ''
+    description = information.description
     origin = __.typx.get_origin( annotation )
     if origin in ( __.types.UnionType, __.typx.Union ):
         annotations = __.typx.get_args( annotation )
     else: annotations = ( annotation, )
     for annotation_ in annotations:
         typetext = _format_annotation( annotation_, context, style )
-        lines.append( f":raises {typetext}: {description}" )
+        lines.append(
+            f":raises {typetext}: {description}"
+            if description else f":raises {typetext}:" )
     return '\n'.join( lines )
 
 
@@ -248,7 +255,7 @@ def _produce_return_text(
         Returns empty string for None returns.
     '''
     if information.annotation in ( None, __.types.NoneType ): return ''
-    description = information.description or ''
+    description = information.description
     typetext = _format_annotation( information.annotation, context, style )
     lines: list[ str ] = [ ]
     if description:

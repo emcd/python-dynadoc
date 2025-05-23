@@ -55,15 +55,9 @@ include ``Doc`` objects:
     ...     ''' Calculate the Euclidean distance between two points in 2D space. '''
     ...     return ( ( x2 - x1 ) ** 2 + ( y2 - y1 ) ** 2 ) ** 0.5
     ...
-    >>> calculate_distance.__doc__
-    'Calculate the Euclidean distance between two points in 2D space.\n\n:argument x1: X coordinate of first point\n:type x1: float\n:argument y1: Y coordinate of first point\n:type y1: float\n:argument x2: X coordinate of second point\n:type x2: float\n:argument y2: Y coordinate of second point\n:type y2: float\n:returns: Euclidean distance between the points\n:rtype: float'
-
-which is equivalent to:
-
-.. code-block:: text
-
+    >>> print( calculate_distance.__doc__ )
     Calculate the Euclidean distance between two points in 2D space.
-
+    <BLANKLINE>
     :argument x1: X coordinate of first point
     :type x1: float
     :argument y1: Y coordinate of first point
@@ -101,13 +95,7 @@ Functions that raise exceptions can document them using ``Raises`` annotations:
     ...         raise ZeroDivisionError( "Cannot divide by zero" )
     ...     return numerator / denominator
     ...
-    >>> safe_divide.__doc__
-    ':argument numerator: The dividend\n:type numerator: float\n:argument denominator: The divisor\n:type denominator: float\n:returns: The quotient\n:rtype: float\n:raises ZeroDivisionError: When denominator is zero\n:raises TypeError: When inputs are not numeric'
-
-which is equivalent to:
-
-.. code-block:: text
-
+    >>> print( safe_divide.__doc__ )
     :argument numerator: The dividend
     :type numerator: float
     :argument denominator: The divisor
@@ -141,18 +129,12 @@ the generated documentation:
     ...         result = [ item.lower( ) for item in result ]
     ...     return result
     ...
-    >>> process_data.__doc__
-    'Process a list of strings with optional normalization.\n\nThis function demonstrates how dynadoc preserves existing\ndocstring content while adding parameter documentation.\n\n:argument data: Input data to process\n:type data: list[ str ]\n:argument normalize: Whether to normalize output\n:type normalize: bool\n:returns: Processed data\n:rtype: list[ str ]'
-
-which is equivalent to:
-
-.. code-block:: text
-
+    >>> print( process_data.__doc__ )
     Process a list of strings with optional normalization.
-
+    <BLANKLINE>
     This function demonstrates how dynadoc preserves existing
     docstring content while adding parameter documentation.
-
+    <BLANKLINE>
     :argument data: Input data to process
     :type data: list[ str ]
     :argument normalize: Whether to normalize output
@@ -172,13 +154,7 @@ To replace existing docstrings instead of preserving them, use ``preserve = Fals
     ...     ''' This docstring will be replaced. '''
     ...     return a * b
     ...
-    >>> multiply.__doc__
-    ':argument a: First number\n:type a: float\n:argument b: Second number\n:type b: float\n:returns: Product of the numbers\n:rtype: float'
-
-which is equivalent to:
-
-.. code-block:: text
-
+    >>> print( multiply.__doc__ )
     :argument a: First number
     :type a: float
     :argument b: Second number
@@ -206,13 +182,7 @@ The library handles optional parameters and default values appropriately:
     ...         user[ "age" ] = age
     ...     return user
     ...
-    >>> create_user.__doc__
-    ":argument name: User's full name\n:type name: str\n:argument email: User's email address\n:type email: str\n:argument age: User's age in years\n:type age: int | None\n:argument active: Whether user account is active\n:type active: bool\n:returns: User record dictionary\n:rtype: dict[ str, any ]"
-
-which is equivalent to:
-
-.. code-block:: text
-
+    >>> print( create_user.__doc__ )
     :argument name: User's full name
     :type name: str
     :argument email: User's email address
@@ -243,13 +213,7 @@ spacing. For more compact output following PEP 8 style guidelines:
     ... ) -> Annotated[ int, dynadoc.Doc( "Sum of all values" ) ]:
     ...     return sum( values )
     ...
-    >>> compact_example.__doc__
-    ':argument values: List of integers\n:type values: list[int]\n:returns: Sum of all values\n:rtype: int'
-
-which is equivalent to:
-
-.. code-block:: text
-
+    >>> print( compact_example.__doc__ )
     :argument values: List of integers
     :type values: list[int]
     :returns: Sum of all values
