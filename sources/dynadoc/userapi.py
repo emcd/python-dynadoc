@@ -31,6 +31,7 @@ from .interfaces import (
     Doc,
     Fname,
     FragmentRectifier,
+    FragmentSources,
     Notifier,
     Raises,
     ValuationModes,

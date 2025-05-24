@@ -26,13 +26,12 @@ from . import __
 from . import xtnsapi as _xtnsapi
 
 
-_package_location = __.Path( __file__ ).parent
+# _package_location = __.Path( __file__ ).parent
 def notify( level: _xtnsapi.NotificationLevels, message: str ) -> None:
+    # TODO: Python 3.12: Use 'skip_file_prefixes' option.
     ''' Issues warning message. '''
-    __.warnings.warn( # pyright: ignore[reportCallIssue]
-        message,
-        category = RuntimeWarning,
-        skip_file_prefixes = ( str( _package_location ), ) )
+    __.warnings.warn( message, category = RuntimeWarning )
+        # skip_file_prefixes = ( str( _package_location ), ) )
 
 
 def rectify_fragment(

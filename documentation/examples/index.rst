@@ -27,3 +27,6 @@ Examples
    basic-usage
    classes
    modules
+   fragments
+   configuration
+   advanced
