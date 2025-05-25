@@ -80,8 +80,8 @@ Or, via ``pip``::
 Examples 💡
 ===============================================================================
 
-.. Please see the `examples directory
-   <https://github.com/emcd/python-dynadoc/tree/master/documentation/examples>`_.
+Please see the `examples directory
+<https://github.com/emcd/python-dynadoc/tree/master/documentation/examples>`_.
 
 **Function Documentation**:
 
