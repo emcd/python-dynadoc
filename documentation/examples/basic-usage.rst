@@ -46,28 +46,28 @@ include ``Doc`` objects:
 .. doctest:: Basic.Usage
 
     >>> @dynadoc.with_docstring( )
-    ... def calculate_distance(
-    ...     x1: Annotated[ float, dynadoc.Doc( "X coordinate of first point" ) ],
-    ...     y1: Annotated[ float, dynadoc.Doc( "Y coordinate of first point" ) ],
-    ...     x2: Annotated[ float, dynadoc.Doc( "X coordinate of second point" ) ],
-    ...     y2: Annotated[ float, dynadoc.Doc( "Y coordinate of second point" ) ],
-    ... ) -> Annotated[ float, dynadoc.Doc( "Euclidean distance between the points" ) ]:
-    ...     ''' Calculate the Euclidean distance between two points in 2D space. '''
-    ...     return ( ( x2 - x1 ) ** 2 + ( y2 - y1 ) ** 2 ) ** 0.5
+    ... def validate_api_response(
+    ...     response_data: Annotated[ dict, dynadoc.Doc( "Raw API response data" ) ],
+    ...     schema_name: Annotated[ str, dynadoc.Doc( "Name of validation schema to use" ) ],
+    ...     strict_mode: Annotated[ bool, dynadoc.Doc( "Whether to enforce strict validation" ) ],
+    ...     timeout: Annotated[ float, dynadoc.Doc( "Validation timeout in seconds" ) ],
+    ... ) -> Annotated[ bool, dynadoc.Doc( "True if response is valid" ) ]:
+    ...     ''' Validate API response data against specified schema. '''
+    ...     return True
     ...
-    >>> print( calculate_distance.__doc__ )
-    Calculate the Euclidean distance between two points in 2D space.
+    >>> print( validate_api_response.__doc__ )
+    Validate API response data against specified schema.
     <BLANKLINE>
-    :argument x1: X coordinate of first point
-    :type x1: float
-    :argument y1: Y coordinate of first point
-    :type y1: float
-    :argument x2: X coordinate of second point
-    :type x2: float
-    :argument y2: Y coordinate of second point
-    :type y2: float
-    :returns: Euclidean distance between the points
-    :rtype: float
+    :argument response_data: Raw API response data
+    :type response_data: dict
+    :argument schema_name: Name of validation schema to use
+    :type schema_name: str
+    :argument strict_mode: Whether to enforce strict validation
+    :type strict_mode: bool
+    :argument timeout: Validation timeout in seconds
+    :type timeout: float
+    :returns: True if response is valid
+    :rtype: bool
 
 
 Exception Documentation
@@ -78,72 +78,71 @@ Functions that raise exceptions can document them using ``Raises`` annotations:
 .. doctest:: Basic.Usage
 
     >>> @dynadoc.with_docstring( )
-    ... def safe_divide(
-    ...     numerator: Annotated[ float, dynadoc.Doc( "The dividend" ) ],
-    ...     denominator: Annotated[ float, dynadoc.Doc( "The divisor" ) ],
+    ... def parse_config_file(
+    ...     filepath: Annotated[ str, dynadoc.Doc( "Path to configuration file" ) ],
+    ...     encoding: Annotated[ str, dynadoc.Doc( "File encoding to use" ) ] = "utf-8",
     ... ) -> Annotated[
-    ...     float,
-    ...     dynadoc.Doc( "The quotient" ),
-    ...     dynadoc.Raises( ZeroDivisionError, "When denominator is zero" ),
-    ...     dynadoc.Raises( TypeError, "When inputs are not numeric" ),
+    ...     dict,
+    ...     dynadoc.Doc( "Parsed configuration data" ),
+    ...     dynadoc.Raises( FileNotFoundError, "When config file does not exist" ),
+    ...     dynadoc.Raises( ValueError, "When file contains invalid JSON/YAML" ),
     ... ]:
-    ...     if not isinstance( numerator, ( int, float ) ):
-    ...         raise TypeError( "Numerator must be numeric" )
-    ...     if not isinstance( denominator, ( int, float ) ):
-    ...         raise TypeError( "Denominator must be numeric" )
-    ...     if denominator == 0:
-    ...         raise ZeroDivisionError( "Cannot divide by zero" )
-    ...     return numerator / denominator
+    ...     if not filepath.endswith( ( '.json', '.yaml', '.yml' ) ):
+    ...         raise ValueError( "Unsupported file format" )
+    ...     return { }
     ...
-    >>> print( safe_divide.__doc__ )
-    :argument numerator: The dividend
-    :type numerator: float
-    :argument denominator: The divisor
-    :type denominator: float
-    :returns: The quotient
-    :rtype: float
-    :raises ZeroDivisionError: When denominator is zero
-    :raises TypeError: When inputs are not numeric
+    >>> print( parse_config_file.__doc__ )
+    :argument filepath: Path to configuration file
+    :type filepath: str
+    :argument encoding: File encoding to use
+    :type encoding: str
+    :returns: Parsed configuration data
+    :rtype: dict
+    :raises FileNotFoundError: When config file does not exist
+    :raises ValueError: When file contains invalid JSON/YAML
 
 
 Multiple Exception Types
 ===============================================================================
 
 When a function can raise multiple exception types for the same condition, you
-can specify them as a sequence in a single ``Raises`` annotation:
+can specify them as a sequence in a single ``Raises`` annotation. This allows
+multiple exceptions to share the same description:
 
 .. doctest:: Basic.Usage
 
     >>> @dynadoc.with_docstring( )
-    ... def parse_config_file(
-    ...     filename: Annotated[ str, dynadoc.Doc( "Path to configuration file" ) ]
+    ... def download_file(
+    ...     url: Annotated[ str, dynadoc.Doc( "URL of file to download" ) ],
+    ...     output_path: Annotated[ str, dynadoc.Doc( "Local path to save file" ) ]
     ... ) -> Annotated[
-    ...     dict,
-    ...     dynadoc.Doc( "Parsed configuration data" ),
+    ...     int,
+    ...     dynadoc.Doc( "Number of bytes downloaded" ),
     ...     dynadoc.Raises(
-    ...         ( FileNotFoundError, PermissionError ),
-    ...         "When file cannot be accessed"
+    ...         [ ConnectionError, TimeoutError ],
+    ...         "When network connection fails"
     ...     ),
     ...     dynadoc.Raises(
-    ...         ( ValueError, KeyError ),
-    ...         "When file contains invalid configuration data"
+    ...         [ PermissionError, OSError ],
+    ...         "When file cannot be saved to output path"
     ...     ),
     ... ]:
-    ...     ''' Parse configuration from a JSON or YAML file. '''
-    ...     # Implementation would go here
-    ...     return { }
+    ...     ''' Download file from URL to local filesystem. '''
+    ...     return 0
     ...
-    >>> print( parse_config_file.__doc__ )
-    Parse configuration from a JSON or YAML file.
+    >>> print( download_file.__doc__ )
+    Download file from URL to local filesystem.
     <BLANKLINE>
-    :argument filename: Path to configuration file
-    :type filename: str
-    :returns: Parsed configuration data
-    :rtype: dict
-    :raises FileNotFoundError: When file cannot be accessed
-    :raises PermissionError: When file cannot be accessed
-    :raises ValueError: When file contains invalid configuration data
-    :raises KeyError: When file contains invalid configuration data
+    :argument url: URL of file to download
+    :type url: str
+    :argument output_path: Local path to save file
+    :type output_path: str
+    :returns: Number of bytes downloaded
+    :rtype: int
+    :raises ConnectionError: When network connection fails
+    :raises TimeoutError: When network connection fails
+    :raises PermissionError: When file cannot be saved to output path
+    :raises OSError: When file cannot be saved to output path
 
 Notice how each exception type in the sequence gets its own ``:raises:`` line
 with the same description, allowing comprehensive documentation of all possible
@@ -159,52 +158,58 @@ the generated documentation:
 .. doctest:: Basic.Usage
 
     >>> @dynadoc.with_docstring( )
-    ... def process_data(
-    ...     data: Annotated[ list[ str ], dynadoc.Doc( "Input data to process" ) ],
-    ...     normalize: Annotated[ bool, dynadoc.Doc( "Whether to normalize output" ) ] = True,
-    ... ) -> Annotated[ list[ str ], dynadoc.Doc( "Processed data" ) ]:
-    ...     ''' Process a list of strings with optional normalization.
+    ... def transform_data(
+    ...     raw_data: Annotated[ list[ dict ], dynadoc.Doc( "Input data records" ) ],
+    ...     normalize: Annotated[ bool, dynadoc.Doc( "Whether to normalize values" ) ] = True,
+    ... ) -> Annotated[ list[ dict ], dynadoc.Doc( "Transformed data records" ) ]:
+    ...     ''' Transform raw data records with optional normalization.
     ...
     ...         This function demonstrates how dynadoc preserves existing
     ...         docstring content while adding parameter documentation.
+    ...
+    ...         The transformation includes data cleaning, type conversion,
+    ...         and optional value normalization.
     ...     '''
-    ...     result = [ item.strip( ) for item in data ]
+    ...     result = [ { k: str( v ).strip( ) for k, v in record.items( ) } for record in raw_data ]
     ...     if normalize:
-    ...         result = [ item.lower( ) for item in result ]
+    ...         result = [ { k: v.lower( ) if isinstance( v, str ) else v for k, v in record.items( ) } for record in result ]
     ...     return result
     ...
-    >>> print( process_data.__doc__ )
-    Process a list of strings with optional normalization.
+    >>> print( transform_data.__doc__ )
+    Transform raw data records with optional normalization.
     <BLANKLINE>
     This function demonstrates how dynadoc preserves existing
     docstring content while adding parameter documentation.
     <BLANKLINE>
-    :argument data: Input data to process
-    :type data: list[ str ]
-    :argument normalize: Whether to normalize output
+    The transformation includes data cleaning, type conversion,
+    and optional value normalization.
+    <BLANKLINE>
+    :argument raw_data: Input data records
+    :type raw_data: list[ dict ]
+    :argument normalize: Whether to normalize values
     :type normalize: bool
-    :returns: Processed data
-    :rtype: list[ str ]
+    :returns: Transformed data records
+    :rtype: list[ dict ]
 
 To replace existing docstrings instead of preserving them, use ``preserve = False``:
 
 .. doctest:: Basic.Usage
 
     >>> @dynadoc.with_docstring( preserve = False )
-    ... def multiply(
-    ...     a: Annotated[ float, dynadoc.Doc( "First number" ) ],
-    ...     b: Annotated[ float, dynadoc.Doc( "Second number" ) ],
-    ... ) -> Annotated[ float, dynadoc.Doc( "Product of the numbers" ) ]:
+    ... def calculate_checksum(
+    ...     data: Annotated[ bytes, dynadoc.Doc( "Data to checksum" ) ],
+    ...     algorithm: Annotated[ str, dynadoc.Doc( "Hash algorithm to use" ) ] = "sha256",
+    ... ) -> Annotated[ str, dynadoc.Doc( "Hexadecimal checksum string" ) ]:
     ...     ''' This docstring will be replaced. '''
-    ...     return a * b
+    ...     return "abc123"
     ...
-    >>> print( multiply.__doc__ )
-    :argument a: First number
-    :type a: float
-    :argument b: Second number
-    :type b: float
-    :returns: Product of the numbers
-    :rtype: float
+    >>> print( calculate_checksum.__doc__ )
+    :argument data: Data to checksum
+    :type data: bytes
+    :argument algorithm: Hash algorithm to use
+    :type algorithm: str
+    :returns: Hexadecimal checksum string
+    :rtype: str
 
 
 Optional Parameters and Defaults
@@ -215,28 +220,28 @@ The library handles optional parameters and default values appropriately:
 .. doctest:: Basic.Usage
 
     >>> @dynadoc.with_docstring( )
-    ... def create_user(
-    ...     name: Annotated[ str, dynadoc.Doc( "User's full name" ) ],
-    ...     email: Annotated[ str, dynadoc.Doc( "User's email address" ) ],
-    ...     age: Annotated[ int | None, dynadoc.Doc( "User's age in years" ) ] = None,
-    ...     active: Annotated[ bool, dynadoc.Doc( "Whether user account is active" ) ] = True,
-    ... ) -> Annotated[ dict[ str, any ], dynadoc.Doc( "User record dictionary" ) ]:
-    ...     user = { "name": name, "email": email, "active": active }
-    ...     if age is not None:
-    ...         user[ "age" ] = age
-    ...     return user
+    ... def create_api_client(
+    ...     base_url: Annotated[ str, dynadoc.Doc( "Base URL for API requests" ) ],
+    ...     api_key: Annotated[ str, dynadoc.Doc( "Authentication API key" ) ],
+    ...     timeout: Annotated[ int | None, dynadoc.Doc( "Request timeout in seconds" ) ] = None,
+    ...     verify_ssl: Annotated[ bool, dynadoc.Doc( "Whether to verify SSL certificates" ) ] = True,
+    ... ) -> Annotated[ dict, dynadoc.Doc( "Configured API client instance" ) ]:
+    ...     client_config = { "base_url": base_url, "api_key": api_key, "verify_ssl": verify_ssl }
+    ...     if timeout is not None:
+    ...         client_config[ "timeout" ] = timeout
+    ...     return client_config
     ...
-    >>> print( create_user.__doc__ )
-    :argument name: User's full name
-    :type name: str
-    :argument email: User's email address
-    :type email: str
-    :argument age: User's age in years
-    :type age: int | None
-    :argument active: Whether user account is active
-    :type active: bool
-    :returns: User record dictionary
-    :rtype: dict[ str, any ]
+    >>> print( create_api_client.__doc__ )
+    :argument base_url: Base URL for API requests
+    :type base_url: str
+    :argument api_key: Authentication API key
+    :type api_key: str
+    :argument timeout: Request timeout in seconds
+    :type timeout: int | None
+    :argument verify_ssl: Whether to verify SSL certificates
+    :type verify_ssl: bool
+    :returns: Configured API client instance
+    :rtype: dict
 
 
 Rendering Styles
@@ -252,13 +257,17 @@ spacing. For more compact output following PEP 8 style guidelines:
     ...     return sphinxad.produce_fragment( obj, info, context, style = sphinxad.Style.Pep8 )
     >>>
     >>> @dynadoc.with_docstring( renderer = compact_renderer )
-    ... def compact_example(
-    ...     values: Annotated[ list[ int ], dynadoc.Doc( "List of integers" ) ],
-    ... ) -> Annotated[ int, dynadoc.Doc( "Sum of all values" ) ]:
-    ...     return sum( values )
+    ... def process_metadata(
+    ...     data_map: Annotated[ dict[ str, list[ int ] ], dynadoc.Doc( "Mapping of identifiers to value lists" ) ],
+    ... ) -> Annotated[ dict[ str, int ], dynadoc.Doc( "Processed summary data" ) ]:
+    ...     return { k: sum( v ) for k, v in data_map.items( ) }
     ...
-    >>> print( compact_example.__doc__ )
-    :argument values: List of integers
-    :type values: list[int]
-    :returns: Sum of all values
-    :rtype: int
+    >>> print( process_metadata.__doc__ )
+    :argument data_map: Mapping of identifiers to value lists
+    :type data_map: dict[str, list[int]]
+    :returns: Processed summary data
+    :rtype: dict[str, int]
+
+Compare this compact PEP 8 style (``dict[str, list[int]]``) with the default
+legible style (``dict[ str, list[ int ] ]``) used in all previous examples.
+The difference is most apparent with complex generic types.

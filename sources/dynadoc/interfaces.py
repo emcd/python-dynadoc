@@ -178,7 +178,8 @@ class AnnotationsCache:
             ''' ),
     ]:
         ''' Accesses entry value, if it exists. '''
-        return self.entries.get( original, absent )
+        try: return self.entries.get( original, absent )
+        except TypeError: return self.entries.get( id( original ), absent )
 
     def enter(
         self,
@@ -197,7 +198,8 @@ class AnnotationsCache:
             If reduction is not specified, then an incompletion sentinel is
             added as the value for the entry.
         '''
-        self.entries[ original ] = reduction
+        try: self.entries[ original ] = reduction
+        except TypeError: self.entries[ id( original ) ] = reduction
         return reduction
 
 

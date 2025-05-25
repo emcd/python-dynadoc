@@ -30,6 +30,20 @@ entire modules, including their annotated attributes and exported functions.
 This is particularly useful for package ``__init__.py`` files and modules with
 significant module-level annotations.
 
+.. important::
+
+   **Sphinx Documentation Limitation**
+
+   Due to current limitations in Sphinx, the ``.. py:data::`` directive does
+   not support injecting custom descriptions from annotations. While ``dynadoc``
+   extracts and processes descriptions from ``Doc`` annotations on module
+   attributes, these descriptions are preserved in the source code but do not
+   appear in the rendered Sphinx output.
+
+   This limitation does **not** affect type aliases, which use ``.. py:type::``
+   and properly display descriptions, nor does it affect function and class
+   documentation.
+
 .. doctest:: Modules
 
     >>> import dynadoc
@@ -45,16 +59,16 @@ the actual module object:
 
 .. code-block:: python
 
-    # config.py
-    ''' Application configuration module. '''
+    # api_config.py
+    ''' API configuration and connection settings. '''
 
     import dynadoc
     from typing import Annotated
 
     # Module-level configuration with documented annotations
-    version: Annotated[ str, dynadoc.Doc( "Version string of the application" ) ] = "1.0.0"
-    debug_mode: Annotated[ bool, dynadoc.Doc( "Whether debug mode is enabled" ) ] = False
-    max_connections: Annotated[ int, dynadoc.Doc( "Maximum allowed connections" ) ] = 100
+    api_version: Annotated[ str, dynadoc.Doc( "Current API version identifier" ) ] = "v2.1"
+    debug_enabled: Annotated[ bool, dynadoc.Doc( "Whether debug logging is active" ) ] = False
+    max_connections: Annotated[ int, dynadoc.Doc( "Maximum concurrent API connections" ) ] = 100
 
     # Generate documentation using module name (most common)
     dynadoc.assign_module_docstring( __name__ )
@@ -71,13 +85,13 @@ After processing, the module's docstring would become:
 
 .. code-block:: text
 
-    Application configuration module.
+    API configuration and connection settings.
 
-    .. py:data:: version
+    .. py:data:: api_version
         :type: str
-        :value: '1.0.0'
+        :value: 'v2.1'
 
-    .. py:data:: debug_mode
+    .. py:data:: debug_enabled
         :type: bool
         :value: False
 
@@ -85,32 +99,25 @@ After processing, the module's docstring would become:
         :type: int
         :value: 100
 
-.. note::
-
-    Due to current limitations in Sphinx, the ``.. py:data::`` directive does
-    not support injecting custom descriptions from annotations. The descriptions
-    are preserved in the source code for documentation purposes, but they do
-    not appear in the rendered output. This limitation does not affect type
-    aliases, which use ``.. py:type::`` and properly display descriptions.
-
 
 TypeAlias Documentation
 ===============================================================================
 
-Modules frequently define type aliases that benefit from rich documentation:
+Modules frequently define type aliases that benefit from rich documentation.
+Unlike regular data attributes, type aliases properly display their descriptions:
 
 .. code-block:: python
 
-    # types.py
-    ''' Common type definitions for the application. '''
+    # api_types.py
+    ''' Type definitions for API client functionality. '''
 
     import dynadoc
     from typing import Annotated, TypeAlias
 
     # Type aliases with comprehensive documentation
-    UserId: Annotated[ TypeAlias, dynadoc.Doc( "Unique identifier for a user account" ) ] = int
-    ConnectionPool: Annotated[ TypeAlias, dynadoc.Doc( "Pool of database connections" ) ] = list[ object ]
-    ConfigDict: Annotated[ TypeAlias, dynadoc.Doc( "Configuration dictionary mapping strings to values" ) ] = dict[ str, str | int | bool ]
+    APIKey: Annotated[ TypeAlias, dynadoc.Doc( "Authentication key for API access" ) ] = str
+    RequestHeaders: Annotated[ TypeAlias, dynadoc.Doc( "Dictionary of HTTP request headers" ) ] = dict[ str, str ]
+    ResponseData: Annotated[ TypeAlias, dynadoc.Doc( "Parsed JSON response data from API endpoints" ) ] = dict[ str, str | int | bool ]
 
     dynadoc.assign_module_docstring( __name__ )
 
@@ -118,22 +125,22 @@ This generates clean documentation for the type aliases:
 
 .. code-block:: text
 
-    Common type definitions for the application.
+    Type definitions for API client functionality.
 
-    .. py:type:: UserId
-        :canonical: int
+    .. py:type:: APIKey
+        :canonical: str
 
-        Unique identifier for a user account
+        Authentication key for API access
 
-    .. py:type:: ConnectionPool
-        :canonical: list[ object ]
+    .. py:type:: RequestHeaders
+        :canonical: dict[ str, str ]
 
-        Pool of database connections
+        Dictionary of HTTP request headers
 
-    .. py:type:: ConfigDict
+    .. py:type:: ResponseData
         :canonical: dict[ str, str | int | bool ]
 
-        Configuration dictionary mapping strings to values
+        Parsed JSON response data from API endpoints
 
 
 Scanning Unannotated Attributes
@@ -144,7 +151,7 @@ enable scanning of these attributes to include them in documentation:
 
 .. code-block:: python
 
-    # settings.py
+    # app_settings.py
     ''' Application settings and configuration values. '''
 
     import dynadoc
@@ -152,13 +159,13 @@ enable scanning of these attributes to include them in documentation:
 
     # Annotated configuration
     API_VERSION: Annotated[ str, dynadoc.Doc( "Current API version" ) ] = "v2"
-    DEBUG: Annotated[ bool, dynadoc.Doc( "Debug mode flag" ) ] = False
+    DEBUG_MODE: Annotated[ bool, dynadoc.Doc( "Development debug flag" ) ] = False
 
     # Legacy constants without annotations
     DEFAULT_TIMEOUT = 30
     MAX_RETRIES = 3
-    ALLOWED_HOSTS = [ "localhost", "127.0.0.1" ]
-    _INTERNAL_SECRET = "hidden"  # Private, won't be documented
+    ALLOWED_FORMATS = [ "json", "xml", "yaml" ]
+    _INTERNAL_TOKEN = "hidden"  # Private, won't be documented
 
     # Configure module introspection to scan unannotated attributes
     module_introspection = dynadoc.IntrospectionControl(
@@ -183,7 +190,7 @@ attributes:
         :type: str
         :value: 'v2'
 
-    .. py:data:: DEBUG
+    .. py:data:: DEBUG_MODE
         :type: bool
         :value: False
 
@@ -193,8 +200,8 @@ attributes:
     .. py:data:: MAX_RETRIES
         :value: 3
 
-    .. py:data:: ALLOWED_HOSTS
-        :value: ['localhost', '127.0.0.1']
+    .. py:data:: ALLOWED_FORMATS
+        :value: ['json', 'xml', 'yaml']
 
 The ``scan_attributes`` feature helps document legacy modules that mix
 annotated and unannotated attributes, ensuring comprehensive documentation
@@ -209,18 +216,18 @@ automatically document all exported classes and functions:
 
 .. code-block:: python
 
-    # mypackage/__init__.py
-    ''' A comprehensive data processing package. '''
+    # data_processing/__init__.py
+    ''' Comprehensive data processing and validation package. '''
 
     import dynadoc
     from typing import Annotated
 
-    from .core import DataProcessor, ValidationError
-    from .utils import format_output, parse_input
+    from .validators import DataValidator, ValidationError
+    from .transformers import TextNormalizer, CSVParser
 
     # Package-level constants
-    DEFAULT_TIMEOUT: Annotated[ int, dynadoc.Doc( "Default timeout in seconds" ) ] = 30
-    MAX_RETRIES: Annotated[ int, dynadoc.Doc( "Maximum retry attempts" ) ] = 3
+    DEFAULT_ENCODING: Annotated[ str, dynadoc.Doc( "Default text encoding for file operations" ) ] = "utf-8"
+    MAX_FILE_SIZE: Annotated[ int, dynadoc.Doc( "Maximum file size in bytes for processing" ) ] = 10 * 1024 * 1024
 
     # Configure recursive documentation for functions and classes
     introspection = dynadoc.IntrospectionControl(
@@ -273,30 +280,30 @@ modules, providing intuitive control over which attributes are documented:
 
 .. code-block:: python
 
-    # api.py
-    ''' Public API module with controlled exports. '''
+    # http_client.py
+    ''' HTTP client module with controlled exports. '''
 
     import dynadoc
     from typing import Annotated
 
-    __all__ = [ 'PUBLIC_CONSTANT', 'main_function' ]
+    __all__ = [ 'API_BASE_URL', 'create_client' ]
 
     # This will be documented (in __all__)
-    PUBLIC_CONSTANT: Annotated[ int, dynadoc.Doc( "Public configuration value" ) ] = 42
+    API_BASE_URL: Annotated[ str, dynadoc.Doc( "Default base URL for API requests" ) ] = "https://api.example.com"
 
     # This will not be documented (not in __all__)
-    _private_setting: Annotated[ str, dynadoc.Doc( "Internal setting" ) ] = "internal"
+    _debug_token: Annotated[ str, dynadoc.Doc( "Internal debugging token" ) ] = "debug123"
 
-    def main_function(
-        value: Annotated[ int, dynadoc.Doc( "Input value" ) ]
-    ) -> Annotated[ int, dynadoc.Doc( "Processed result" ) ]:
-        ''' Main processing function. '''
-        return value * 2
+    def create_client(
+        api_key: Annotated[ str, dynadoc.Doc( "Authentication key" ) ]
+    ) -> Annotated[ object, dynadoc.Doc( "Configured HTTP client instance" ) ]:
+        ''' Create HTTP client with authentication. '''
+        return object( )
 
     # This will not be documented (not in __all__)
-    def _internal_helper( value: int ) -> int:
+    def _internal_helper( value: str ) -> str:
         ''' Internal helper function. '''
-        return value + 1
+        return value.upper( )
 
     dynadoc.assign_module_docstring( __name__ )
 
@@ -306,35 +313,87 @@ the library falls back to standard visibility rules (non-underscore prefixed
 names and annotated attributes).
 
 
+Configuration File Processing Example
+===============================================================================
+
+Here's a comprehensive example showing how module documentation works with
+a configuration processing module:
+
+.. code-block:: python
+
+    # config_processor.py
+    ''' Configuration file processing with multiple format support. '''
+
+    import dynadoc
+    from typing import Annotated, TypeAlias
+
+    # Type aliases for configuration processing
+    ConfigData: Annotated[ TypeAlias, dynadoc.Doc( "Dictionary containing parsed configuration data" ) ] = dict[ str, str | int | bool ]
+    ConfigPath: Annotated[ TypeAlias, dynadoc.Doc( "File system path to configuration file" ) ] = str
+    ValidationRules: Annotated[ TypeAlias, dynadoc.Doc( "Set of validation rules for configuration values" ) ] = dict[ str, callable ]
+
+    # Module constants
+    SUPPORTED_FORMATS: Annotated[ list[ str ], dynadoc.Doc( "List of supported configuration file formats" ) ] = [ "json", "yaml", "toml" ]
+    DEFAULT_ENCODING: Annotated[ str, dynadoc.Doc( "Default text encoding for configuration files" ) ] = "utf-8"
+    MAX_FILE_SIZE: Annotated[ int, dynadoc.Doc( "Maximum configuration file size in bytes" ) ] = 1024 * 1024
+
+    def load_config(
+        path: Annotated[ ConfigPath, dynadoc.Doc( "Path to configuration file to load" ) ],
+        validate: Annotated[ bool, dynadoc.Doc( "Whether to validate configuration after loading" ) ] = True
+    ) -> Annotated[ ConfigData, dynadoc.Doc( "Loaded and optionally validated configuration data" ) ]:
+        ''' Load configuration from file with optional validation. '''
+        return { }
+
+    def validate_config(
+        config: Annotated[ ConfigData, dynadoc.Doc( "Configuration data to validate" ) ],
+        rules: Annotated[ ValidationRules, dynadoc.Doc( "Validation rules to apply" ) ]
+    ) -> Annotated[ bool, dynadoc.Doc( "True if configuration passes all validation rules" ) ]:
+        ''' Validate configuration data against specified rules. '''
+        return True
+
+    # Enable comprehensive documentation
+    comprehensive_introspection = dynadoc.IntrospectionControl(
+        targets = dynadoc.IntrospectionTargets.Function,
+        module_control = dynadoc.ModuleIntrospectionControl( scan_attributes = True )
+    )
+
+    dynadoc.assign_module_docstring( __name__, introspection = comprehensive_introspection )
+
+This example demonstrates the full power of module documentation with type
+aliases, annotated constants, function documentation, and comprehensive
+introspection settings.
+
+
 Module Documentation Best Practices
 ===============================================================================
 
 When documenting modules with ``dynadoc``:
 
-**Use clear module docstrings** that describe the module's purpose::
+**Document module-level constants** with meaningful descriptions that explain
+their purpose and usage::
 
-    ''' High-level module for data validation and transformation.
+    API_TIMEOUT: Annotated[ int, dynadoc.Doc(
+        "Default timeout in seconds for API requests"
+    ) ] = 30
 
-        This module provides the primary interface for validating
-        incoming data and transforming it for downstream processing.
-    '''
+**Use TypeAlias for complex types** to improve code readability and provide
+comprehensive documentation that appears properly in Sphinx output::
 
-**Document module-level constants** with meaningful descriptions::
-
-    MAX_FILE_SIZE: Annotated[ int, dynadoc.Doc(
-        "Maximum file size in bytes for upload processing"
-    ) ] = 10 * 1024 * 1024
-
-**Use TypeAlias for complex types** to improve code readability::
-
-    ValidationResult: Annotated[ TypeAlias, dynadoc.Doc(
-        "Result of data validation containing status and error details"
-    ) ] = tuple[ bool, list[ str ] ]
+    APIResponse: Annotated[ TypeAlias, dynadoc.Doc(
+        "Standard API response format containing status and data"
+    ) ] = dict[ str, str | int | list | dict ]
 
 **Enable recursive introspection** for packages to automatically document
-exported functionality::
+exported functionality without manual decoration::
 
     introspection = dynadoc.IntrospectionControl(
         targets = dynadoc.IntrospectionTargets.Function | dynadoc.IntrospectionTargets.Class
     )
     dynadoc.assign_module_docstring( __name__, introspection = introspection )
+
+**Consider performance implications** when enabling comprehensive introspection
+on large modules, and prefer targeted introspection when full coverage isn't
+needed.
+
+**Use fragment tables** to maintain consistent terminology across related
+modules and reduce documentation maintenance overhead.

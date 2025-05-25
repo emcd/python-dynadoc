@@ -45,32 +45,32 @@ text. This allows you to define common descriptions once and reuse them:
 .. doctest:: Fragments
 
     >>> # Define a fragment table with common descriptions
-    >>> common_fragments = {
-    ...     'user id': 'Unique identifier for a user account',
-    ...     'timeout': 'Timeout duration in seconds',
+    >>> api_fragments = {
+    ...     'api key': 'Authentication key for API access',
+    ...     'timeout': 'Request timeout in seconds',
     ...     'retry count': 'Number of retry attempts before giving up',
     ...     'success status': 'Whether the operation completed successfully',
     ... }
     >>>
-    >>> @dynadoc.with_docstring( table = common_fragments )
-    ... def create_user(
-    ...     user_id: Annotated[ int, dynadoc.Fname( 'user id' ) ],
+    >>> @dynadoc.with_docstring( table = api_fragments )
+    ... def authenticate_user(
+    ...     api_key: Annotated[ str, dynadoc.Fname( 'api key' ) ],
     ...     timeout: Annotated[ float, dynadoc.Fname( 'timeout' ) ] = 30.0,
     ... ) -> Annotated[ bool, dynadoc.Fname( 'success status' ) ]:
-    ...     ''' Create a new user account. '''
+    ...     ''' Authenticate user with API credentials. '''
     ...     return True
     ...
-    >>> print( create_user.__doc__ )
-    Create a new user account.
+    >>> print( authenticate_user.__doc__ )
+    Authenticate user with API credentials.
     <BLANKLINE>
-    :argument user_id: Unique identifier for a user account
-    :type user_id: int
-    :argument timeout: Timeout duration in seconds
+    :argument api_key: Authentication key for API access
+    :type api_key: str
+    :argument timeout: Request timeout in seconds
     :type timeout: float
     :returns: Whether the operation completed successfully
     :rtype: bool
 
-Notice how ``Fname( 'user id' )`` references the ``'user id'`` key in the
+Notice how ``Fname( 'api key' )`` references the ``'api key'`` key in the
 fragment table, automatically substituting the full description.
 
 
@@ -82,23 +82,23 @@ flexibility for both specific and reusable descriptions:
 
 .. doctest:: Fragments
 
-    >>> @dynadoc.with_docstring( table = common_fragments )
-    ... def retry_operation(
-    ...     operation_name: Annotated[ str, dynadoc.Doc( "Name of the operation to retry" ) ],
+    >>> @dynadoc.with_docstring( table = api_fragments )
+    ... def retry_request(
+    ...     endpoint_url: Annotated[ str, dynadoc.Doc( "Specific API endpoint URL to retry" ) ],
     ...     max_retries: Annotated[ int, dynadoc.Fname( 'retry count' ) ],
     ...     timeout: Annotated[ float, dynadoc.Fname( 'timeout' ) ] = 60.0,
     ... ) -> Annotated[ bool, dynadoc.Fname( 'success status' ) ]:
-    ...     ''' Retry a failed operation with configurable parameters. '''
+    ...     ''' Retry a failed API request with configurable parameters. '''
     ...     return True
     ...
-    >>> print( retry_operation.__doc__ )
-    Retry a failed operation with configurable parameters.
+    >>> print( retry_request.__doc__ )
+    Retry a failed API request with configurable parameters.
     <BLANKLINE>
-    :argument operation_name: Name of the operation to retry
-    :type operation_name: str
+    :argument endpoint_url: Specific API endpoint URL to retry
+    :type endpoint_url: str
     :argument max_retries: Number of retry attempts before giving up
     :type max_retries: int
-    :argument timeout: Timeout duration in seconds
+    :argument timeout: Request timeout in seconds
     :type timeout: float
     :returns: Whether the operation completed successfully
     :rtype: bool
@@ -112,40 +112,41 @@ multiple functions share common parameter patterns:
 
 .. code-block:: python
 
-    # database.py
-    ''' Database connection and query utilities. '''
+    # http_client.py
+    ''' HTTP client utilities for API communication. '''
 
     import dynadoc
     from typing import Annotated
 
-    # Define fragments for common database concepts
-    DB_FRAGMENTS = {
-        'connection string': 'Database connection string in URI format',
-        'query timeout': 'Maximum time to wait for query completion in seconds',
-        'transaction id': 'Unique identifier for the database transaction',
-        'row count': 'Number of rows affected by the operation',
-        'connection pool': 'Pool of reusable database connections',
+    # Define fragments for common HTTP concepts
+    HTTP_FRAGMENTS = {
+        'base url': 'Base URL for all API requests',
+        'request timeout': 'Maximum time to wait for request completion in seconds',
+        'session id': 'Unique identifier for the HTTP session',
+        'response data': 'Parsed response data from the server',
+        'headers dict': 'Dictionary of HTTP headers to include in request',
     }
 
-    def connect(
-        connection_string: Annotated[ str, dynadoc.Fname( 'connection string' ) ],
-        timeout: Annotated[ float, dynadoc.Fname( 'query timeout' ) ] = 30.0,
-    ) -> Annotated[ object, dynadoc.Fname( 'connection pool' ) ]:
-        ''' Establish connection to the database. '''
+    def create_session(
+        base_url: Annotated[ str, dynadoc.Fname( 'base url' ) ],
+        timeout: Annotated[ float, dynadoc.Fname( 'request timeout' ) ] = 30.0,
+    ) -> Annotated[ str, dynadoc.Fname( 'session id' ) ]:
+        ''' Create new HTTP session for API communication. '''
         pass
 
-    def execute_query(
-        query: Annotated[ str, dynadoc.Doc( "SQL query to execute" ) ],
-        connection: Annotated[ object, dynadoc.Fname( 'connection pool' ) ],
-        timeout: Annotated[ float, dynadoc.Fname( 'query timeout' ) ] = 60.0,
-    ) -> Annotated[ int, dynadoc.Fname( 'row count' ) ]:
-        ''' Execute a SQL query and return affected row count. '''
+    def make_request(
+        session_id: Annotated[ str, dynadoc.Fname( 'session id' ) ],
+        endpoint: Annotated[ str, dynadoc.Doc( "API endpoint path" ) ],
+        headers: Annotated[ dict, dynadoc.Fname( 'headers dict' ) ] = None,
+        timeout: Annotated[ float, dynadoc.Fname( 'request timeout' ) ] = 60.0,
+    ) -> Annotated[ dict, dynadoc.Fname( 'response data' ) ]:
+        ''' Make HTTP request using existing session. '''
         pass
 
     # Apply documentation to all functions in the module
-    dynadoc.assign_module_docstring( __name__, table = DB_FRAGMENTS )
+    dynadoc.assign_module_docstring( __name__, table = HTTP_FRAGMENTS )
 
-This approach ensures consistent terminology across all database-related
+This approach ensures consistent terminology across all HTTP-related
 functions while making it easy to update descriptions in one place.
 
 
@@ -157,60 +158,57 @@ documenting related methods with shared concepts:
 
 .. doctest:: Fragments
 
-    >>> # Fragment table for HTTP-related concepts
-    >>> http_fragments = {
-    ...     'http method': 'HTTP method (GET, POST, PUT, DELETE, etc.)',
-    ...     'url path': 'URL path component for the API endpoint',
-    ...     'request headers': 'Dictionary of HTTP headers to include',
-    ...     'response data': 'Parsed response data from the server',
-    ...     'status code': 'HTTP status code returned by the server',
+    >>> # Fragment table for data processing concepts
+    >>> data_fragments = {
+    ...     'input data': 'Raw input data to be processed',
+    ...     'output format': 'Desired format for processed output',
+    ...     'validation rules': 'Set of rules to validate data against',
+    ...     'processed result': 'Data after processing and validation',
+    ...     'error count': 'Number of validation errors encountered',
     ... }
     >>>
-    >>> @dynadoc.with_docstring( table = http_fragments )
-    ... class APIClient:
-    ...     ''' HTTP client for interacting with REST APIs. '''
+    >>> @dynadoc.with_docstring( table = data_fragments )
+    ... class DataValidator:
+    ...     ''' Data validation and processing utilities. '''
     ...
-    ...     def get(
+    ...     def validate(
     ...         self,
-    ...         path: Annotated[ str, dynadoc.Fname( 'url path' ) ],
-    ...         headers: Annotated[ dict, dynadoc.Fname( 'request headers' ) ] = None,
-    ...     ) -> Annotated[ dict, dynadoc.Fname( 'response data' ) ]:
-    ...         ''' Perform GET request to the specified path. '''
-    ...         return { }
+    ...         data: Annotated[ list, dynadoc.Fname( 'input data' ) ],
+    ...         rules: Annotated[ dict, dynadoc.Fname( 'validation rules' ) ],
+    ...     ) -> Annotated[ int, dynadoc.Fname( 'error count' ) ]:
+    ...         ''' Validate input data against specified rules. '''
+    ...         return 0
     ...
-    ...     def post(
+    ...     def process(
     ...         self,
-    ...         path: Annotated[ str, dynadoc.Fname( 'url path' ) ],
-    ...         data: Annotated[ dict, dynadoc.Doc( "Request payload data" ) ],
-    ...         headers: Annotated[ dict, dynadoc.Fname( 'request headers' ) ] = None,
-    ...     ) -> Annotated[ dict, dynadoc.Fname( 'response data' ) ]:
-    ...         ''' Perform POST request with data payload. '''
+    ...         data: Annotated[ list, dynadoc.Fname( 'input data' ) ],
+    ...         format_spec: Annotated[ str, dynadoc.Fname( 'output format' ) ],
+    ...     ) -> Annotated[ dict, dynadoc.Fname( 'processed result' ) ]:
+    ...         ''' Process validated data into specified format. '''
     ...         return { }
 
 .. code-block:: text
 
-    >>> print( APIClient.get.__doc__ )
-    Perform GET request to the specified path.
+    >>> print( DataValidator.validate.__doc__ )
+    Validate input data against specified rules.
 
-    :argument path: URL path component for the API endpoint
-    :type path: str
-    :argument headers: Dictionary of HTTP headers to include
-    :type headers: dict
-    :returns: Parsed response data from the server
-    :rtype: dict
+    :argument data: Raw input data to be processed
+    :type data: list
+    :argument rules: Set of rules to validate data against
+    :type rules: dict
+    :returns: Number of validation errors encountered
+    :rtype: int
 
 .. code-block:: text
 
-    >>> print( APIClient.post.__doc__ )
-    Perform POST request with data payload.
+    >>> print( DataValidator.process.__doc__ )
+    Process validated data into specified format.
 
-    :argument path: URL path component for the API endpoint
-    :type path: str
-    :argument data: Request payload data
-    :type data: dict
-    :argument headers: Dictionary of HTTP headers to include
-    :type headers: dict
-    :returns: Parsed response data from the server
+    :argument data: Raw input data to be processed
+    :type data: list
+    :argument format_spec: Desired format for processed output
+    :type format_spec: str
+    :returns: Data after processing and validation
     :rtype: dict
 
 
@@ -218,37 +216,42 @@ Storing Fragments on Classes
 ===============================================================================
 
 For complex classes with many methods sharing common concepts, you can store
-fragments directly on the class using the ``_dynadoc_fragments_`` attribute:
+fragments directly on the class using the ``_dynadoc_fragments_`` attribute.
+This provides a way to include reusable documentation content in the class
+itself:
 
 .. doctest:: Fragments
 
     >>> # Fragment table for method parameters
-    >>> db_fragments = {
-    ...     'database_host': 'Hostname or IP address of database server',
-    ...     'timeout_seconds': 'Connection timeout in seconds',
+    >>> config_fragments = {
+    ...     'config_path': 'Path to configuration file',
+    ...     'validation_strict': 'Whether to enforce strict validation rules',
     ...     'success_status': 'True if operation completed successfully',
-    ...     'connection_pool': 'Maintains pool of reusable database connections',
+    ...     'config_manager': 'Manages application configuration and settings',
     ... }
     >>>
-    >>> @dynadoc.with_docstring( table = db_fragments )
-    ... class DatabaseManager:
-    ...     ''' Manages database connections and operations. '''
+    >>> @dynadoc.with_docstring( table = config_fragments )
+    ... class ConfigurationManager:
+    ...     ''' Application configuration management system. '''
     ...
     ...     # Store fragments directly on the class
     ...     _dynadoc_fragments_ = (
-    ...         dynadoc.Doc( "Database manager for handling connections" ),
-    ...         "connection_pool",  # Reference to external table
+    ...         dynadoc.Doc( "Provides centralized configuration management" ),
+    ...         "config_manager",  # Reference to external table
+    ...         dynadoc.Doc( "Supports multiple configuration file formats" ),
     ...     )
     ...
     ...     def __init__( self ):
-    ...         self._pool = None
+    ...         self._config = { }
     >>>
-    >>> print( DatabaseManager.__doc__ )
-    Manages database connections and operations.
+    >>> print( ConfigurationManager.__doc__ )
+    Application configuration management system.
     <BLANKLINE>
-    Database manager for handling connections
+    Provides centralized configuration management
     <BLANKLINE>
-    Maintains pool of reusable database connections
+    Manages application configuration and settings
+    <BLANKLINE>
+    Supports multiple configuration file formats
 
 The ``_dynadoc_fragments_`` attribute can contain:
 
@@ -258,6 +261,47 @@ The ``_dynadoc_fragments_`` attribute can contain:
 When a class is decorated, fragments from ``_dynadoc_fragments_`` are
 automatically included in the class docstring, providing a way to share
 common documentation across related classes.
+
+
+Storing Fragments on Modules
+===============================================================================
+
+Similar to classes, modules can store fragments using the ``_dynadoc_fragments_``
+attribute for module-level documentation that combines reusable content:
+
+.. code-block:: python
+
+    # data_processing.py
+    ''' Data processing and transformation utilities. '''
+
+    import dynadoc
+    from typing import Annotated
+
+    # Module-level fragments
+    _dynadoc_fragments_ = (
+        dynadoc.Doc( "High-performance data processing for large datasets" ),
+        "processing_engine",  # Looked up from module fragment table
+        dynadoc.Doc( "Supports multiple input and output formats" ),
+    )
+
+    # Module fragment table
+    MODULE_FRAGMENTS = {
+        'processing_engine': 'Built on optimized processing algorithms',
+        'input_data': 'Raw data to be processed',
+        'output_data': 'Processed and transformed data',
+    }
+
+    def transform_data(
+        data: Annotated[ list, dynadoc.Fname( 'input_data' ) ]
+    ) -> Annotated[ dict, dynadoc.Fname( 'output_data' ) ]:
+        ''' Transform raw data into structured format. '''
+        return { }
+
+    # Apply documentation with fragments
+    dynadoc.assign_module_docstring( __name__, table = MODULE_FRAGMENTS )
+
+This pattern is particularly useful for packages where you want consistent
+messaging about capabilities and features across module documentation.
 
 
 Error Handling
@@ -346,9 +390,9 @@ When using fragments effectively:
 **Create semantic fragment names** that clearly indicate their purpose::
 
     fragments = {
-        'user id': 'Unique identifier for a user account',
-        'db timeout': 'Database operation timeout in seconds',
         'api key': 'Authentication key for API access',
+        'request timeout': 'Request timeout in seconds',
+        'base url': 'Base URL for API endpoints',
     }
 
 **Group related fragments** by domain or module to keep them organized::
@@ -356,11 +400,11 @@ When using fragments effectively:
     # HTTP-related fragments
     http_fragments = { ... }
 
-    # Database-related fragments
-    db_fragments = { ... }
+    # Data processing fragments
+    data_fragments = { ... }
 
-    # Authentication-related fragments
-    auth_fragments = { ... }
+    # Configuration management fragments
+    config_fragments = { ... }
 
 **Prefer fragments for repeated concepts** while using ``Doc`` for specific,
 one-off descriptions::
@@ -371,8 +415,47 @@ one-off descriptions::
     # Good use of Doc for specific cases
     config_file: Annotated[ str, dynadoc.Doc( "Path to this specific config file" ) ]
 
-**Keep fragment text concise** but descriptive enough to be useful in
-documentation contexts.
-
 **Use consistent terminology** across all fragments to maintain professional
-documentation standards.
+documentation standards::
+
+    # Consistent: always use "timeout" not "time limit" or "wait time"
+    'request timeout': 'Maximum time to wait for request completion',
+    'connection timeout': 'Maximum time to wait for connection establishment',
+
+**Write clear fragment content** that provides useful information in
+documentation contexts::
+
+    # Good: provides meaningful context
+    'api key': 'Authentication key for API access'
+
+    # Too brief: not enough context
+    'api key': 'API key'
+
+    # Multi-line fragments are perfectly acceptable
+    'context': '''
+        Data transfer object for various behaviors.
+
+        Controls how annotations are resolved and how fragments are
+        processed and rendered.
+    '''
+
+**Leverage fragment storage on classes and modules** to create rich, reusable
+documentation that can be shared across related functionality while maintaining
+consistency and reducing duplication.
+
+.. note::
+
+   **Attribute Limitations**
+
+   Some Python objects cannot have custom attributes added to them. For example,
+   ``enum`` classes and certain built-in types do not support adding
+   ``_dynadoc_fragments_`` attributes. This means they cannot use the convenient
+   attribute-based fragment injection mechanism (neither ``Doc`` objects nor
+   ``Fname`` references).
+
+   For such objects, you have two options:
+
+   - Decorate them separately with ``@with_docstring`` and pass fragments as
+     arguments to the decorator
+   - Use special introspectors (like ``dynadoc`` does for enum classes) that
+     handle the documentation generation differently

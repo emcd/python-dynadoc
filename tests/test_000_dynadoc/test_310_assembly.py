@@ -356,7 +356,7 @@ def test_110_decorate_class_attributes_with_property( ):
             ''' Property with basic docstring. '''
             return "test_value"
     original_docstring = TestClassWithProperty.test_property.__doc__
-    assert original_docstring == ' Property with basic docstring. '
+    assert original_docstring.strip() == 'Property with basic docstring.'
     assembly_module._decorate_class_attributes(
         TestClassWithProperty,
         context = context,

@@ -128,41 +128,41 @@ documented and how deeply the introspection proceeds:
     >>>
     >>> # Create a class with methods and properties
     >>> @dynadoc.with_docstring( introspection = comprehensive_introspection )
-    ... class DataProcessor:
-    ...     ''' Processes various types of data. '''
+    ... class APIClient:
+    ...     ''' HTTP client for API communication. '''
     ...
-    ...     def process(
+    ...     def get_data(
     ...         self,
-    ...         data: Annotated[ list, dynadoc.Doc( "Input data to process" ) ]
-    ...     ) -> Annotated[ dict, dynadoc.Doc( "Processed results" ) ]:
-    ...         ''' Process input data and return results. '''
+    ...         endpoint: Annotated[ str, dynadoc.Doc( "API endpoint to query" ) ]
+    ...     ) -> Annotated[ dict, dynadoc.Doc( "Response data from API" ) ]:
+    ...         ''' Retrieve data from API endpoint. '''
     ...         return { }
     ...
     ...     @property
-    ...     def status( self ) -> Annotated[ str, dynadoc.Doc( "Current processor status" ) ]:
-    ...         ''' Get the current status. '''
-    ...         return "ready"
+    ...     def base_url( self ) -> Annotated[ str, dynadoc.Doc( "Base URL for API requests" ) ]:
+    ...         ''' Get the base URL. '''
+    ...         return "https://api.example.com"
 
 The comprehensive introspection automatically documents both the method and
 property:
 
 .. code-block:: text
 
-    >>> print( DataProcessor.process.__doc__ )
-    Process input data and return results.
+    >>> print( APIClient.get_data.__doc__ )
+    Retrieve data from API endpoint.
 
     :argument self:
-    :argument data: Input data to process
-    :type data: list
-    :returns: Processed results
+    :argument endpoint: API endpoint to query
+    :type endpoint: str
+    :returns: Response data from API
     :rtype: dict
 
 .. code-block:: text
 
-    >>> print( DataProcessor.status.__doc__ )
-    Get the current status.
+    >>> print( APIClient.base_url.__doc__ )
+    Get the base URL.
 
-    :returns: Current processor status
+    :returns: Base URL for API requests
     :rtype: str
 
 
@@ -230,17 +230,17 @@ a custom visibility decider:
     ... )
     >>>
     >>> @dynadoc.with_docstring( context = strict_context )
-    ... class StrictExample:
+    ... class APIConfiguration:
     ...     ''' Example of strict visibility with class attributes. '''
     ...
-    ...     documented: Annotated[ str, dynadoc.Doc( "This attribute has a description" ) ]
-    ...     undocumented: int  # No Doc annotation
+    ...     api_key: Annotated[ str, dynadoc.Doc( "This attribute has a description" ) ]
+    ...     timeout: int  # No Doc annotation
     >>>
-    >>> print( StrictExample.__doc__ )
+    >>> print( APIConfiguration.__doc__ )
     Example of strict visibility with class attributes.
     <BLANKLINE>
-    :ivar documented: This attribute has a description
-    :vartype documented: str
+    :ivar api_key: This attribute has a description
+    :vartype api_key: str
 
 Only the parameter with a description appears in the documentation, even though
 both parameters have type annotations.
@@ -309,7 +309,7 @@ This production configuration ensures strict error handling, consistent
 formatting, and comprehensive documentation coverage.
 
 
-Real-World Configuration Examples
+Practical Configuration Examples
 ===============================================================================
 
 Here are some practical configuration patterns for different scenarios:
@@ -319,7 +319,7 @@ Here are some practical configuration patterns for different scenarios:
 .. code-block:: python
 
     api_context = dynadoc.produce_context(
-        notifier = lambda level, msg: None if level == 'admonition' else print(msg)
+        notifier = lambda level, msg: None if level == 'admonition' else print( msg )
     )
 
     api_introspection = dynadoc.IntrospectionControl(
@@ -335,7 +335,7 @@ Here are some practical configuration patterns for different scenarios:
 .. code-block:: python
 
     dev_context = dynadoc.produce_context(
-        notifier = lambda level, msg: print(f"[DEV] {msg}")
+        notifier = lambda level, msg: print( f"[DEV] {msg}" )
     )
 
     dev_introspection = dynadoc.IntrospectionControl(
@@ -346,17 +346,132 @@ Here are some practical configuration patterns for different scenarios:
 
 .. code-block:: python
 
-    def library_rectifier(fragment: str, source) -> str:
+    def library_rectifier( fragment: str, source ) -> str:
         # Add consistent punctuation and formatting
-        cleaned = fragment.strip()
+        cleaned = fragment.strip( )
         match source:
             case dynadoc.FragmentSources.Annotation:
-                cleaned = cleaned[0].lower() + cleaned[1:] if len(cleaned) > 1 else cleaned.lower()
+                cleaned = cleaned[ 0 ].lower( ) + cleaned[ 1: ] if len( cleaned ) > 1 else cleaned.lower( )
         return cleaned
 
     library_context = dynadoc.produce_context(
         fragment_rectifier = library_rectifier
     )
+
+
+Troubleshooting
+===============================================================================
+
+When working with ``dynadoc``, you may encounter some common technical issues:
+
+
+Module Ownership Requirements
+-------------------------------------------------------------------------------
+
+``dynadoc`` only processes objects that belong to the same module as their
+containing class or module. This prevents recursion into unrelated code:
+
+.. code-block:: python
+
+    # This will work - function belongs to same module as class
+    class DataProcessor:
+        def process_data( self, data: list ) -> dict:
+            return { }
+
+    # This will NOT work - imported function from different module
+    from external_lib import external_function
+    class DataProcessor:
+        process = external_function  # Won't be documented
+
+**Solution**: Ensure that methods and functions you want documented are defined
+in the same module as the class that contains them. For imported functionality,
+document the import separately or create wrapper methods.
+
+
+Fragment Reference Confusion
+-------------------------------------------------------------------------------
+
+Strings and bytes are sequences in Python, which can cause unexpected behavior
+with fragment validation:
+
+.. code-block:: python
+
+    # This might not work as expected
+    class Example:
+        _dynadoc_fragments_ = "single string"  # Treated as sequence of characters
+
+    # Use a tuple instead
+    class Example:
+        _dynadoc_fragments_ = ( "fragment_reference", )
+
+**Solution**: Always use tuples or lists for ``_dynadoc_fragments_``, even for
+single items. This ensures proper sequence handling.
+
+
+Visibility Rules with __all__
+-------------------------------------------------------------------------------
+
+When ``__all__`` is present in a module, it overrides all other visibility
+rules:
+
+.. code-block:: python
+
+    # Even documented private attributes won't appear
+    __all__ = [ 'public_function' ]
+
+    _private_attr: Annotated[ str, dynadoc.Doc( "Well documented" ) ] = "hidden"
+
+    def public_function( ) -> None:
+        pass
+
+    def undocumented_function( ) -> None:  # Won't appear despite being public
+        pass
+
+**Solution**: Either include all desired attributes in ``__all__``, or remove
+``__all__`` to use standard visibility rules (public names + documented
+private attributes).
+
+
+Property Documentation Issues
+-------------------------------------------------------------------------------
+
+Properties require explicit descriptor introspection to be documented:
+
+.. code-block:: python
+
+    # This won't document the property
+    @dynadoc.with_docstring( )
+    class Example:
+        @property
+        def value( self ) -> str: return "test"
+
+    # Enable descriptor introspection
+    @dynadoc.with_docstring(
+        introspection = dynadoc.IntrospectionControl(
+            targets = dynadoc.IntrospectionTargets.Descriptor
+        )
+    )
+    class Example:
+        @property
+        def value( self ) -> str: return "test"
+
+**Solution**: Include ``IntrospectionTargets.Descriptor`` in your introspection
+targets when you want properties documented.
+
+
+Annotation Resolution Failures
+-------------------------------------------------------------------------------
+
+Forward references and complex type annotations may fail to resolve:
+
+.. code-block:: python
+
+    # This might fail if ForwardRef isn't available
+    def process( data: 'ForwardRef' ) -> None:
+        pass
+
+**Solution**: Provide appropriate ``resolver_globals`` and ``resolver_locals``
+in your context, or ensure all referenced types are imported and available.
 
 
 Configuration Best Practices

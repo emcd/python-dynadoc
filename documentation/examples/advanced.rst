@@ -26,8 +26,9 @@ Introduction
 ===============================================================================
 
 This section covers advanced usage patterns for ``dynadoc``, including custom
-renderers, sophisticated annotation patterns, performance optimization, and
-extension strategies for specialized documentation needs.
+renderers, sophisticated annotation patterns, error handling strategies,
+performance optimization, and extension strategies for specialized documentation
+needs.
 
 .. doctest:: Advanced
 
@@ -63,19 +64,123 @@ styles:
     ...     return '\n'.join( lines )
     >>>
     >>> @dynadoc.with_docstring( renderer = markdown_renderer )
-    ... def example_function(
-    ...     value: Annotated[ int, dynadoc.Doc( "Input value to process" ) ],
-    ...     multiplier: Annotated[ float, dynadoc.Doc( "Multiplication factor" ) ] = 2.0,
-    ... ) -> Annotated[ float, dynadoc.Doc( "Calculated result" ) ]:
-    ...     ''' Example function with custom Markdown rendering. '''
-    ...     return value * multiplier
+    ... def process_api_request(
+    ...     endpoint: Annotated[ str, dynadoc.Doc( "API endpoint URL to process" ) ],
+    ...     timeout: Annotated[ float, dynadoc.Doc( "Request timeout in seconds" ) ] = 30.0,
+    ... ) -> Annotated[ dict, dynadoc.Doc( "Processed API response data" ) ]:
+    ...     ''' Process API request with custom Markdown rendering. '''
+    ...     return { }
     >>>
-    >>> print( example_function.__doc__ )
-    Example function with custom Markdown rendering.
+    >>> print( process_api_request.__doc__ )
+    Process API request with custom Markdown rendering.
     <BLANKLINE>
-    - **value** (`int`): Input value to process
-    - **multiplier** (`float`): Multiplication factor
-    - **Returns** (`float`): Calculated result
+    - **endpoint** (`str`): API endpoint URL to process
+    - **timeout** (`float`): Request timeout in seconds
+    - **Returns** (`dict`): Processed API response data
+
+
+Error Handling Strategies
+===============================================================================
+
+Different error handling strategies suit different development workflows and
+deployment environments:
+
+
+Basic Error Handling
+-------------------------------------------------------------------------------
+
+The default behavior issues warnings for most problems but continues processing:
+
+.. doctest:: Advanced
+
+    >>> def basic_notifier( level: str, message: str ) -> None:
+    ...     ''' Basic notifier that prints warnings and errors. '''
+    ...     print( f"[DYNADOC {level.upper()}] {message}" )
+    >>>
+    >>> basic_context = dynadoc.produce_context( notifier = basic_notifier )
+    >>>
+    >>> # Use with missing fragment reference to see error handling
+    >>> fragments = { 'valid_key': 'This fragment exists' }
+    >>>
+    >>> @dynadoc.with_docstring( context = basic_context, table = fragments )
+    ... def example_function(
+    ...     param1: Annotated[ str, dynadoc.Fname( 'valid_key' ) ],
+    ...     param2: Annotated[ int, dynadoc.Fname( 'missing_key' ) ],
+    ... ) -> None:
+    ...     ''' Example function with missing fragment reference. '''
+    ...     pass
+    [DYNADOC ERROR] Fragment 'missing_key' not in provided table.
+
+The function processes successfully despite the missing fragment, issuing a
+clear error message about the problem.
+
+
+Strict Error Handling
+-------------------------------------------------------------------------------
+
+For development environments where you want immediate feedback on documentation
+issues:
+
+.. doctest:: Advanced
+
+    >>> def strict_notifier( level: str, message: str ) -> None:
+    ...     ''' Strict error handling that fails fast on any issues. '''
+    ...     if level == 'error':
+    ...         raise ValueError( f"Documentation error: {message}" )
+    ...     elif level == 'admonition':
+    ...         print( f"WARNING: {message}" )
+    >>>
+    >>> strict_context = dynadoc.produce_context( notifier = strict_notifier )
+
+This approach catches documentation problems early in development, ensuring
+clean documentation before deployment.
+
+
+Development-Friendly Error Handling
+-------------------------------------------------------------------------------
+
+For development workflows that need detailed debugging information:
+
+.. doctest:: Advanced
+
+    >>> def development_notifier( level: str, message: str ) -> None:
+    ...     ''' Development-friendly error handling with detailed output. '''
+    ...     import sys
+    ...     import traceback
+    ...     timestamp = "2024-01-01 12:00:00"  # In real code, use datetime.now()
+    ...     print( f"[{timestamp}] DYNADOC {level.upper()}: {message}", file = sys.stderr )
+    ...     if level == 'error':
+    ...         # In real development, you might want stack traces
+    ...         print( f"  Context: Processing documentation generation", file = sys.stderr )
+    >>>
+    >>> dev_context = dynadoc.produce_context( notifier = development_notifier )
+
+This provides rich context for debugging documentation generation issues during
+development.
+
+
+Production Error Handling
+-------------------------------------------------------------------------------
+
+For production environments where you want to log issues but never interrupt
+application startup:
+
+.. doctest:: Advanced
+
+    >>> def production_notifier( level: str, message: str ) -> None:
+    ...     ''' Production error handling that logs but doesn't interrupt. '''
+    ...     # In real code, you'd use proper logging
+    ...     if level == 'error':
+    ...         # Log to error tracking system (e.g., Sentry, CloudWatch)
+    ...         pass  # logger.error(f"Dynadoc error: {message}")
+    ...     elif level == 'admonition':
+    ...         # Log as warning
+    ...         pass  # logger.warning(f"Dynadoc warning: {message}")
+    >>>
+    >>> prod_context = dynadoc.produce_context( notifier = production_notifier )
+
+This ensures that documentation issues never prevent application deployment,
+while still capturing problems for later investigation.
 
 
 Custom Introspection Limiters
@@ -110,20 +215,20 @@ modify introspection behavior based on the specific object being documented:
     ... )
     >>>
     >>> @dynadoc.with_docstring( introspection = introspection_with_limiter )
-    ... class OuterClass:
-    ...     ''' Outer class with nested classes. '''
+    ... class DataProcessingPipeline:
+    ...     ''' Data processing pipeline with nested configuration classes. '''
     ...
-    ...     value: Annotated[ int, dynadoc.Doc( "Outer class value" ) ]
+    ...     max_workers: Annotated[ int, dynadoc.Doc( "Maximum number of worker threads" ) ]
     ...
-    ...     class InnerClass:
-    ...         ''' Inner class that should have limited introspection. '''
-    ...         inner_value: Annotated[ str, dynadoc.Doc( "Inner class value" ) ]
+    ...     class ProcessingConfig:
+    ...         ''' Processing configuration that should have limited introspection. '''
+    ...         batch_size: Annotated[ int, dynadoc.Doc( "Number of items per batch" ) ]
     >>>
-    >>> print( OuterClass.__doc__ )
-    Outer class with nested classes.
+    >>> print( DataProcessingPipeline.__doc__ )
+    Data processing pipeline with nested configuration classes.
     <BLANKLINE>
-    :ivar value: Outer class value
-    :vartype value: int
+    :ivar max_workers: Maximum number of worker threads
+    :vartype max_workers: int
 
 The depth limiter prevents recursive introspection of nested classes, avoiding
 potential infinite loops and controlling documentation scope for complex class
@@ -154,33 +259,33 @@ you're signaling it's important enough for users to know about.*
 .. doctest:: Advanced
 
     >>> @dynadoc.with_docstring( )
-    ... class VisibilityExample:
+    ... class ConfigurationService:
     ...     ''' Demonstrates default visibility behavior. '''
     ...
     ...     # Public, documented - visible
-    ...     public_documented: Annotated[ str, dynadoc.Doc( "Public API method" ) ]
+    ...     api_endpoint: Annotated[ str, dynadoc.Doc( "Primary API endpoint URL" ) ]
     ...
     ...     # Public, undocumented - still visible (public API)
-    ...     public_undocumented: int
+    ...     retry_count: int
     ...
     ...     # Private, documented - visible (intentionally exposed)
-    ...     _private_documented: Annotated[ bool, dynadoc.Doc( "Important internal flag" ) ]
+    ...     _debug_enabled: Annotated[ bool, dynadoc.Doc( "Internal debug flag for troubleshooting" ) ]
     ...
     ...     # Private, undocumented - hidden (truly internal)
-    ...     _private_undocumented: float
+    ...     _internal_cache: dict
     ...
-    >>> print( VisibilityExample.__doc__ )
+    >>> print( ConfigurationService.__doc__ )
     Demonstrates default visibility behavior.
     <BLANKLINE>
-    :ivar public_documented: Public API method
-    :vartype public_documented: str
-    :ivar public_undocumented:
-    :vartype public_undocumented: int
-    :ivar _private_documented: Important internal flag
-    :vartype _private_documented: bool
+    :ivar api_endpoint: Primary API endpoint URL
+    :vartype api_endpoint: str
+    :ivar retry_count:
+    :vartype retry_count: int
+    :ivar _debug_enabled: Internal debug flag for troubleshooting
+    :vartype _debug_enabled: bool
 
-Notice that ``_private_undocumented`` doesn't appear because it lacks
-documentation, indicating it's truly internal.
+Notice that ``_internal_cache`` doesn't appear because it lacks documentation,
+indicating it's truly internal.
 
 
 Explicit Visibility Control
@@ -192,57 +297,36 @@ default behavior:
 .. doctest:: Advanced
 
     >>> @dynadoc.with_docstring( )
-    ... class ExplicitVisibility:
+    ... class CacheManager:
     ...     ''' Demonstrates explicit visibility control. '''
     ...
     ...     # Force visibility for private attribute
-    ...     _debug_info: Annotated[
+    ...     _cache_stats: Annotated[
     ...         dict,
-    ...         dynadoc.Doc( "Debug information for troubleshooting" ),
+    ...         dynadoc.Doc( "Internal cache statistics for monitoring" ),
     ...         dynadoc.Visibilities.Reveal
     ...     ]
     ...
-    ...     # Hide public attribute from documentation
-    ...     api_secret: Annotated[
+    ...     # Hide implementation detail from documentation
+    ...     buffer_implementation: Annotated[
     ...         str,
-    ...         dynadoc.Doc( "Secret key - hidden for security" ),
+    ...         dynadoc.Doc( "Internal buffer implementation details" ),
     ...         dynadoc.Visibilities.Conceal
     ...     ]
     ...
     ...     # Normal public attribute
-    ...     app_name: Annotated[ str, dynadoc.Doc( "Application name" ) ]
+    ...     cache_size: Annotated[ int, dynadoc.Doc( "Maximum number of cached items" ) ]
     ...
-    >>> print( ExplicitVisibility.__doc__ )
+    >>> print( CacheManager.__doc__ )
     Demonstrates explicit visibility control.
     <BLANKLINE>
-    :ivar _debug_info: Debug information for troubleshooting
-    :vartype _debug_info: dict
-    :ivar app_name: Application name
-    :vartype app_name: str
+    :ivar _cache_stats: Internal cache statistics for monitoring
+    :vartype _cache_stats: dict
+    :ivar cache_size: Maximum number of cached items
+    :vartype cache_size: int
 
 The ``Visibilities`` annotations take precedence over both default rules and
 custom visibility deciders.
-
-
-Module __all__ Support
--------------------------------------------------------------------------------
-
-For modules, ``dynadoc`` automatically respects ``__all__`` declarations when
-present, overriding the default visibility rules:
-
-.. code-block:: python
-
-    # When __all__ is present, only listed attributes are documented
-    __all__ = [ 'public_function', 'IMPORTANT_CONSTANT' ]
-
-    # This will be documented (in __all__)
-    public_function: Annotated[ callable, dynadoc.Doc( "Public API function" ) ]
-
-    # This will NOT be documented (not in __all__)
-    helper_function: Annotated[ callable, dynadoc.Doc( "Internal helper" ) ]
-
-When ``__all__`` is absent, the library uses the standard visibility rules
-described above.
 
 
 Custom Visibility Deciders
@@ -276,35 +360,21 @@ annotations):
     ... )
     >>>
     >>> @dynadoc.with_docstring( context = api_context )
-    ... class APIClass:
-    ...     ''' API class with custom visibility rules. '''
+    ... class PublicAPIClient:
+    ...     ''' API client with strict visibility rules. '''
     ...
-    ...     documented_attr: Annotated[ str, dynadoc.Doc( "API attribute" ) ]
-    ...     undocumented_attr: str  # No documentation
-    ...     _private_attr: Annotated[ str, dynadoc.Doc( "Private but documented" ) ]
-    ...
-    >>> print( APIClass.__doc__ )
-    API class with custom visibility rules.
+    ...     documented_endpoint: Annotated[ str, dynadoc.Doc( "Public API endpoint" ) ]
+    ...     undocumented_setting: str  # No documentation
+    ...     _private_config: Annotated[ str, dynadoc.Doc( "Private but documented" ) ]
+    >>>
+    >>> print( PublicAPIClient.__doc__ )
+    API client with strict visibility rules.
     <BLANKLINE>
-    :ivar documented_attr: API attribute
-    :vartype documented_attr: str
+    :ivar documented_endpoint: Public API endpoint
+    :vartype documented_endpoint: str
 
-The custom decider hides both ``undocumented_attr`` (no description) and
-``_private_attr`` (private name), creating stricter API documentation.
-
-
-Visibility Precedence Order
--------------------------------------------------------------------------------
-
-The visibility system follows this precedence order (highest to lowest):
-
-1. **Explicit annotations** (``Visibilities.Conceal/Reveal``)
-2. **Custom visibility deciders** (when provided in context)
-3. **Module __all__** (for module attributes only)
-4. **Default rules** (public always visible, private only if documented)
-
-Understanding this hierarchy helps you combine different visibility mechanisms
-effectively for sophisticated documentation policies.
+The custom decider hides both ``undocumented_setting`` (no description) and
+``_private_config`` (private name), creating stricter API documentation.
 
 
 Controlling Attribute Value Display
@@ -318,11 +388,11 @@ control over value display:
 .. doctest:: Advanced
 
     >>> @dynadoc.with_docstring( )
-    ... class ConfigurationManager:
-    ...     ''' Manages application configuration with controlled value display. '''
+    ... class ServiceConfiguration:
+    ...     ''' Service configuration with controlled value display. '''
     ...
     ...     # Normal value display
-    ...     version: Annotated[ str, dynadoc.Doc( "Current version" ) ] = "v2.1"
+    ...     service_version: Annotated[ str, dynadoc.Doc( "Current service version" ) ] = "v2.1"
     ...
     ...     # Suppress value display for function objects
     ...     error_handler: Annotated[
@@ -341,11 +411,11 @@ control over value display:
     ...         )
     ...     ] = { "host": "localhost", "database": "prod_db" }
     ...
-    >>> print( ConfigurationManager.__doc__ )
-    Manages application configuration with controlled value display.
+    >>> print( ServiceConfiguration.__doc__ )
+    Service configuration with controlled value display.
     <BLANKLINE>
-    :ivar version: Current version
-    :vartype version: str
+    :ivar service_version: Current service version
+    :vartype service_version: str
     :ivar error_handler: Default error handling function
     :vartype error_handler: callable
     :ivar database_config: Database connection configuration
@@ -360,63 +430,6 @@ The ``ValuationModes`` provide three options:
 This is particularly useful when you want to document the purpose of attributes
 without exposing implementation details like function memory addresses or when
 you want to provide more meaningful descriptions than the raw data structure.
-
-.. doctest:: Advanced
-
-    >>> def api_visibility_decider( possessor, name: str, annotation, description ):
-    ...     ''' Visibility decider for public API documentation. '''
-    ...     import inspect
-    ...
-    ...     # Always hide private names
-    ...     if name.startswith( '_' ):
-    ...         return False
-    ...
-    ...     # For modules, respect __all__ if present
-    ...     if inspect.ismodule( possessor ):
-    ...         all_list = getattr( possessor, '__all__', None )
-    ...         if all_list is not None:
-    ...             return name in all_list
-    ...
-    ...     # Default: show only documented public attributes
-    ...     return bool( description )
-    >>>
-    >>> # Context with strict API visibility
-    >>> api_context = dynadoc.produce_context(
-    ...     visibility_decider = api_visibility_decider
-    ... )
-    >>>
-Error Handling Strategies
-===============================================================================
-
-Different error handling strategies suit different development workflows:
-
-.. doctest:: Advanced
-
-    >>> def strict_notifier( level: str, message: str ) -> None:
-    ...     ''' Strict error handling that fails fast on any issues. '''
-    ...     if level == 'error':
-    ...         raise ValueError( f"Documentation error: {message}" )
-    ...     elif level == 'admonition':
-    ...         print( f"WARNING: {message}" )
-    >>>
-    >>> def development_notifier( level: str, message: str ) -> None:
-    ...     ''' Development-friendly error handling with detailed output. '''
-    ...     import sys
-    ...     print( f"[DYNADOC {level.upper()}] {message}", file = sys.stderr )
-    >>>
-    >>> def production_notifier( level: str, message: str ) -> None:
-    ...     ''' Production error handling that logs but doesn't interrupt. '''
-    ...     # In real code, you'd use proper logging
-    ...     if level == 'error':
-    ...         pass  # Log to error tracking system
-    ...     # Silently ignore warnings in production
-    >>>
-    >>> # Example usage in different environments
-    >>> dev_context = dynadoc.produce_context( notifier = development_notifier )
-    >>> prod_context = dynadoc.produce_context( notifier = production_notifier )
-
-Choose the appropriate error handling strategy based on your environment and
-tolerance for documentation issues.
 
 
 Performance Optimization
@@ -454,95 +467,65 @@ generation performance:
 - **Profile documentation generation** for bottlenecks
 
 
-Documentation Generation Pipelines
-===============================================================================
-
-Complex projects may require multi-stage documentation pipelines:
-
-.. code-block:: python
-
-    def generate_api_docs( module_name: str ) -> str:
-        ''' Generate API documentation with multiple passes. '''
-
-        # Stage 1: Collect all fragments
-        fragments = collect_project_fragments( module_name )
-
-        # Stage 2: Configure for API documentation
-        api_context = dynadoc.produce_context(
-            notifier = strict_error_handler,
-            fragment_rectifier = api_fragment_processor,
-            visibility_decider = public_api_filter
-        )
-
-        # Stage 3: Apply comprehensive introspection
-        api_introspection = dynadoc.IntrospectionControl(
-            targets = dynadoc.IntrospectionTargetsSansModule,
-            class_control = dynadoc.ClassIntrospectionControl(
-                inheritance = True,
-                scan_attributes = True
-            )
-        )
-
-        # Stage 4: Generate documentation
-        dynadoc.assign_module_docstring(
-            module_name,
-            context = api_context,
-            introspection = api_introspection,
-            table = fragments
-        )
-
-        return "Documentation generated successfully"
-
-This multi-stage approach allows for sophisticated documentation workflows
-tailored to specific project requirements.
-
-
 Extension Patterns
 ===============================================================================
 
-Building extensions on top of ``dynadoc`` enables specialized functionality:
+Building extensions on top of ``dynadoc`` enables specialized functionality.
+Here are some practical patterns for extending the library:
+
+
+Domain-Specific Renderers
+-------------------------------------------------------------------------------
+
+Create renderers tailored to specific domains or output formats:
 
 .. code-block:: python
 
-    class DocumentationBuilder:
-        ''' Builder pattern for complex documentation configurations. '''
+    def rest_api_renderer( possessor, informations, context ):
+        ''' Specialized renderer for REST API documentation. '''
 
-        def __init__( self ):
-            self.fragments = { }
-            self.context_config = { }
-            self.introspection_config = { }
+        lines = [ ]
+        for info in informations:
+            if isinstance( info, ArgumentInformation ):
+                # Format API parameters with HTTP context
+                if info.name in ( 'method', 'endpoint', 'headers' ):
+                    lines.append( f":http-param {info.name}: {info.description}" )
+                else:
+                    lines.append( f":param {info.name}: {info.description}" )
+            elif isinstance( info, ReturnInformation ):
+                # Format API responses
+                lines.append( f":returns: {info.description}" )
+                lines.append( f":response-type: {format_type( info.annotation )}" )
 
-        def add_fragments( self, fragment_dict: dict ) -> 'DocumentationBuilder':
-            self.fragments.update( fragment_dict )
-            return self
+        return '\n'.join( lines )
 
-        def with_custom_renderer( self, renderer ) -> 'DocumentationBuilder':
-            self.context_config[ 'renderer' ] = renderer
-            return self
 
-        def enable_inheritance( self ) -> 'DocumentationBuilder':
-            if 'class_control' not in self.introspection_config:
-                self.introspection_config[ 'class_control' ] = { }
-            self.introspection_config[ 'class_control' ][ 'inheritance' ] = True
-            return self
+Configuration Management Extensions
+-------------------------------------------------------------------------------
 
-        def build( self ):
-            ''' Build and return configured documentation components. '''
-            context = dynadoc.produce_context( **self.context_config )
-            introspection = dynadoc.IntrospectionControl( **self.introspection_config )
-            return context, introspection, self.fragments
+Build configuration systems on top of ``dynadoc`` for consistent documentation
+across teams:
 
-    # Usage example:
-    # context, introspection, fragments = (
-    #     DocumentationBuilder()
-    #     .add_fragments( common_fragments )
-    #     .with_custom_renderer( markdown_renderer )
-    #     .enable_inheritance()
-    #     .build()
-    # )
+.. code-block:: python
 
-This builder pattern provides a fluent interface for complex documentation
-setups while maintaining type safety and clear configuration intent.
+    class DocumentationStandards:
+        ''' Company-wide documentation standards. '''
+
+        @staticmethod
+        def create_api_context( ):
+            return dynadoc.produce_context(
+                notifier = standards_notifier,
+                fragment_rectifier = corporate_rectifier,
+                visibility_decider = public_api_visibility
+            )
+
+        @staticmethod
+        def create_internal_context( ):
+            return dynadoc.produce_context(
+                notifier = development_notifier,
+                fragment_rectifier = relaxed_rectifier,
+                visibility_decider = internal_visibility
+            )
 
 
 Best Practices for Advanced Usage
@@ -567,3 +550,9 @@ extensions can adapt to library updates.
 
 **Start simple and evolve** - Begin with basic configurations and add complexity
 only when needed to solve specific problems.
+
+**Use error handling strategically** - Choose error handling approaches that
+match your development workflow and deployment requirements.
+
+**Leverage visibility control** - Use the multiple layers of visibility control
+to create clean, focused API documentation that serves your users' needs.
