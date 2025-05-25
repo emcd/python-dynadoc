@@ -45,25 +45,31 @@
    :target: https://pypi.org/project/dynadoc/
 
 
-📝 A Python library package which provides **automatic docstring generation**
-with configurable renderers and support for PEP 727 ``Doc`` objects.
+📝 A Python library package which bridges the gap between **rich annotations**
+and **automatic documentation generation** with configurable renderers and
+support for reusable fragments.
 
 Key Features ⭐
 ===============================================================================
 
-* 🔄 **Docstring Generation**: Automatic generation of docstrings for
-  modules, classes, functions, and methods via introspection.
-* 🎨 **Configurable Renderers**: Support for multiple output formats (e.g.,
-  reStructuredText, Markdown) and custom templates.
+* 🔄 **Docstring Generation**: Generation of docstrings for modules, classes,
+  functions, and methods via introspection with fine-grained control.
+* 🧩 **Fragment System**: Reusable documentation snippets for consistent
+  terminology across projects.
 * 🏷️ **Annotation Metadata**: Extraction and inclusion of metadata from
   annotations into generated docstrings.
-* 🔌 **Extensible Architecture**: Easily extendable via factories and
-  user-defined plugins.
+* 🔌 **Extensible Architecture**: Custom renderers, attribute visibility rules,
+  and introspection limiters.
+* 📖 **Sphinx-Compatible Output**: Render reStructuredText docstrings that work
+  with Sphinx Autodoc out of the box.
+* 🎨 **Configurable Renderers**: Ability to extend with other renderers as
+  desired.
 
 Installation 📦
 ===============================================================================
 
-Via `uv <https://github.com/astral-sh/uv/blob/main/README.md>`_ ``pip`` command::
+Via `uv <https://github.com/astral-sh/uv/blob/main/README.md>`_ ``pip``
+command::
 
     uv pip install dynadoc
 
@@ -76,6 +82,45 @@ Examples 💡
 
 .. Please see the `examples directory
    <https://github.com/emcd/python-dynadoc/tree/master/documentation/examples>`_.
+
+**Function Documentation**:
+
+.. code-block:: python
+
+    import dynadoc
+    from typing import Annotated
+
+    @dynadoc.with_docstring( )
+    def process_api_data(
+        endpoint: Annotated[ str, dynadoc.Doc( "API endpoint URL to query" ) ],
+        timeout: Annotated[ float, dynadoc.Doc( "Request timeout in seconds" ) ] = 30.0,
+    ) -> Annotated[ dict, dynadoc.Doc( "Processed API response data" ) ]:
+        ''' Process data from API endpoint with configurable timeout. '''
+        return { }
+
+Which will be turned into the following docstring on the function by the
+default renderer:
+
+.. code-block:: text
+
+    Process data from API endpoint with configurable timeout.
+
+    :argument endpoint: API endpoint URL to query
+    :type endpoint: str
+    :argument timeout: Request timeout in seconds
+    :type timeout: float
+    :returns: Processed API response data
+    :rtype: dict
+
+**Module Documentation**:
+
+Document all annotated attributes in current module:
+
+.. code-block:: python
+
+    import dynadoc
+
+    dynadoc.assign_module_docstring( __name__ )
 
 `More Flair <https://www.imdb.com/title/tt0151804/characters/nm0431918>`_
 ===============================================================================

@@ -18,7 +18,21 @@
 #============================================================================#
 
 
-''' Public interfaces for formatters, etc.... '''
+''' Rich annotations, public interfaces for cutomization functions, etc....
+
+    .. note::
+
+       By default, this module exports ``typing_extensions.Doc``, which is
+       based on the withdrawn :pep:`727`. A ``typing_extensions`` maintainer,
+       who was also the sponsor of this PEP, has indicated `in the PEP 727
+       Discourse thread
+       <https://discuss.python.org/t/pep-727-documentation-metadata-in-typing/32566/183>`_
+       that ``typing_extensions`` will support ``Doc`` indefinitely. However,
+       if it should disappear from ``typing_extensions``, we provide a
+       compatible fallback. Unless you are using ``typing_extensions.Doc`` for
+       other purposes, it is recommended that you import it from this package
+       instead, to ensure future availability.
+'''
 
 
 from . import __
