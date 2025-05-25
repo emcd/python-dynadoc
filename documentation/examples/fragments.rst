@@ -214,6 +214,52 @@ documenting related methods with shared concepts:
     :rtype: dict
 
 
+Storing Fragments on Classes
+===============================================================================
+
+For complex classes with many methods sharing common concepts, you can store
+fragments directly on the class using the ``_dynadoc_fragments_`` attribute:
+
+.. doctest:: Fragments
+
+    >>> # Fragment table for method parameters
+    >>> db_fragments = {
+    ...     'database_host': 'Hostname or IP address of database server',
+    ...     'timeout_seconds': 'Connection timeout in seconds',
+    ...     'success_status': 'True if operation completed successfully',
+    ...     'connection_pool': 'Maintains pool of reusable database connections',
+    ... }
+    >>>
+    >>> @dynadoc.with_docstring( table = db_fragments )
+    ... class DatabaseManager:
+    ...     ''' Manages database connections and operations. '''
+    ...
+    ...     # Store fragments directly on the class
+    ...     _dynadoc_fragments_ = (
+    ...         dynadoc.Doc( "Database manager for handling connections" ),
+    ...         "connection_pool",  # Reference to external table
+    ...     )
+    ...
+    ...     def __init__( self ):
+    ...         self._pool = None
+    >>>
+    >>> print( DatabaseManager.__doc__ )
+    Manages database connections and operations.
+    <BLANKLINE>
+    Database manager for handling connections
+    <BLANKLINE>
+    Maintains pool of reusable database connections
+
+The ``_dynadoc_fragments_`` attribute can contain:
+
+- **Doc objects**: Inline documentation that gets included directly
+- **String references**: Keys that get looked up in the fragment table
+
+When a class is decorated, fragments from ``_dynadoc_fragments_`` are
+automatically included in the class docstring, providing a way to share
+common documentation across related classes.
+
+
 Error Handling
 ===============================================================================
 

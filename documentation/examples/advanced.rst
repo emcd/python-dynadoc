@@ -78,10 +78,288 @@ styles:
     - **Returns** (`float`): Calculated result
 
 
-Visibility Control Patterns
+Custom Introspection Limiters
 ===============================================================================
 
-Advanced visibility control can implement sophisticated documentation policies:
+Custom introspection limiters provide fine-grained control over how deeply
+``dynadoc`` introspects different objects. Limiters are functions that can
+modify introspection behavior based on the specific object being documented:
+
+.. doctest:: Advanced
+
+    >>> def depth_limiter(
+    ...     objct: object,
+    ...     introspection: dynadoc.IntrospectionControl
+    ... ) -> dynadoc.IntrospectionControl:
+    ...     ''' Limits introspection depth for nested classes. '''
+    ...     import inspect
+    ...
+    ...     # If this is a nested class, disable further class introspection
+    ...     if inspect.isclass( objct ) and '.' in getattr( objct, '__qualname__', '' ):
+    ...         limit = dynadoc.IntrospectionLimit(
+    ...             targets_exclusions = dynadoc.IntrospectionTargets.Class
+    ...         )
+    ...         return introspection.with_limit( limit )
+    ...
+    ...     return introspection
+    >>>
+    >>> # Configure introspection with the custom limiter
+    >>> introspection_with_limiter = dynadoc.IntrospectionControl(
+    ...     targets = dynadoc.IntrospectionTargetsSansModule,
+    ...     limiters = ( depth_limiter, )
+    ... )
+    >>>
+    >>> @dynadoc.with_docstring( introspection = introspection_with_limiter )
+    ... class OuterClass:
+    ...     ''' Outer class with nested classes. '''
+    ...
+    ...     value: Annotated[ int, dynadoc.Doc( "Outer class value" ) ]
+    ...
+    ...     class InnerClass:
+    ...         ''' Inner class that should have limited introspection. '''
+    ...         inner_value: Annotated[ str, dynadoc.Doc( "Inner class value" ) ]
+    >>>
+    >>> print( OuterClass.__doc__ )
+    Outer class with nested classes.
+    <BLANKLINE>
+    :ivar value: Outer class value
+    :vartype value: int
+
+The depth limiter prevents recursive introspection of nested classes, avoiding
+potential infinite loops and controlling documentation scope for complex class
+hierarchies. Similar limiters can be created for performance optimization,
+domain-specific documentation policies, or handling special object types.
+
+
+Visibility Control
+===============================================================================
+
+The ``dynadoc`` library provides multiple layers of visibility control to
+determine which attributes appear in documentation. Understanding these rules
+helps you create clean, comprehensive API documentation.
+
+
+Attribute Visibility Rules
+-------------------------------------------------------------------------------
+
+The library uses intuitive default visibility rules:
+
+- **Public attributes** (not starting with ``_``) are always visible
+- **Private attributes** are visible only if they have documentation
+- **Explicit visibility annotations** override these rules
+
+This design reflects a key principle: *if you document a private attribute,
+you're signaling it's important enough for users to know about.*
+
+.. doctest:: Advanced
+
+    >>> @dynadoc.with_docstring( )
+    ... class VisibilityExample:
+    ...     ''' Demonstrates default visibility behavior. '''
+    ...
+    ...     # Public, documented - visible
+    ...     public_documented: Annotated[ str, dynadoc.Doc( "Public API method" ) ]
+    ...
+    ...     # Public, undocumented - still visible (public API)
+    ...     public_undocumented: int
+    ...
+    ...     # Private, documented - visible (intentionally exposed)
+    ...     _private_documented: Annotated[ bool, dynadoc.Doc( "Important internal flag" ) ]
+    ...
+    ...     # Private, undocumented - hidden (truly internal)
+    ...     _private_undocumented: float
+    ...
+    >>> print( VisibilityExample.__doc__ )
+    Demonstrates default visibility behavior.
+    <BLANKLINE>
+    :ivar public_documented: Public API method
+    :vartype public_documented: str
+    :ivar public_undocumented:
+    :vartype public_undocumented: int
+    :ivar _private_documented: Important internal flag
+    :vartype _private_documented: bool
+
+Notice that ``_private_undocumented`` doesn't appear because it lacks
+documentation, indicating it's truly internal.
+
+
+Explicit Visibility Control
+-------------------------------------------------------------------------------
+
+For fine-grained control, use ``Visibilities`` annotations to override the
+default behavior:
+
+.. doctest:: Advanced
+
+    >>> @dynadoc.with_docstring( )
+    ... class ExplicitVisibility:
+    ...     ''' Demonstrates explicit visibility control. '''
+    ...
+    ...     # Force visibility for private attribute
+    ...     _debug_info: Annotated[
+    ...         dict,
+    ...         dynadoc.Doc( "Debug information for troubleshooting" ),
+    ...         dynadoc.Visibilities.Reveal
+    ...     ]
+    ...
+    ...     # Hide public attribute from documentation
+    ...     api_secret: Annotated[
+    ...         str,
+    ...         dynadoc.Doc( "Secret key - hidden for security" ),
+    ...         dynadoc.Visibilities.Conceal
+    ...     ]
+    ...
+    ...     # Normal public attribute
+    ...     app_name: Annotated[ str, dynadoc.Doc( "Application name" ) ]
+    ...
+    >>> print( ExplicitVisibility.__doc__ )
+    Demonstrates explicit visibility control.
+    <BLANKLINE>
+    :ivar _debug_info: Debug information for troubleshooting
+    :vartype _debug_info: dict
+    :ivar app_name: Application name
+    :vartype app_name: str
+
+The ``Visibilities`` annotations take precedence over both default rules and
+custom visibility deciders.
+
+
+Module __all__ Support
+-------------------------------------------------------------------------------
+
+For modules, ``dynadoc`` automatically respects ``__all__`` declarations when
+present, overriding the default visibility rules:
+
+.. code-block:: python
+
+    # When __all__ is present, only listed attributes are documented
+    __all__ = [ 'public_function', 'IMPORTANT_CONSTANT' ]
+
+    # This will be documented (in __all__)
+    public_function: Annotated[ callable, dynadoc.Doc( "Public API function" ) ]
+
+    # This will NOT be documented (not in __all__)
+    helper_function: Annotated[ callable, dynadoc.Doc( "Internal helper" ) ]
+
+When ``__all__`` is absent, the library uses the standard visibility rules
+described above.
+
+
+Custom Visibility Deciders
+-------------------------------------------------------------------------------
+
+For advanced scenarios, you can implement custom visibility logic that replaces
+the default rules (but is still overridden by explicit ``Visibilities``
+annotations):
+
+.. doctest:: Advanced
+
+    >>> def api_visibility_decider( possessor, name: str, annotation, description ):
+    ...     ''' Custom visibility for API documentation. '''
+    ...     import inspect
+    ...
+    ...     # Always hide private names
+    ...     if name.startswith( '_' ):
+    ...         return False
+    ...
+    ...     # For modules, respect __all__ if present
+    ...     if inspect.ismodule( possessor ):
+    ...         all_list = getattr( possessor, '__all__', None )
+    ...         if all_list is not None:
+    ...             return name in all_list
+    ...
+    ...     # Only show documented public attributes
+    ...     return bool( description )
+    >>>
+    >>> api_context = dynadoc.produce_context(
+    ...     visibility_decider = api_visibility_decider
+    ... )
+    >>>
+    >>> @dynadoc.with_docstring( context = api_context )
+    ... class APIClass:
+    ...     ''' API class with custom visibility rules. '''
+    ...
+    ...     documented_attr: Annotated[ str, dynadoc.Doc( "API attribute" ) ]
+    ...     undocumented_attr: str  # No documentation
+    ...     _private_attr: Annotated[ str, dynadoc.Doc( "Private but documented" ) ]
+    ...
+    >>> print( APIClass.__doc__ )
+    API class with custom visibility rules.
+    <BLANKLINE>
+    :ivar documented_attr: API attribute
+    :vartype documented_attr: str
+
+The custom decider hides both ``undocumented_attr`` (no description) and
+``_private_attr`` (private name), creating stricter API documentation.
+
+
+Visibility Precedence Order
+-------------------------------------------------------------------------------
+
+The visibility system follows this precedence order (highest to lowest):
+
+1. **Explicit annotations** (``Visibilities.Conceal/Reveal``)
+2. **Custom visibility deciders** (when provided in context)
+3. **Module __all__** (for module attributes only)
+4. **Default rules** (public always visible, private only if documented)
+
+Understanding this hierarchy helps you combine different visibility mechanisms
+effectively for sophisticated documentation policies.
+
+
+Controlling Attribute Value Display
+===============================================================================
+
+Sometimes you want to control how attribute values appear in documentation,
+especially for complex objects that don't render well or when you want to
+provide more descriptive information. The ``Default`` annotation provides
+control over value display:
+
+.. doctest:: Advanced
+
+    >>> @dynadoc.with_docstring( )
+    ... class ConfigurationManager:
+    ...     ''' Manages application configuration with controlled value display. '''
+    ...
+    ...     # Normal value display
+    ...     version: Annotated[ str, dynadoc.Doc( "Current version" ) ] = "v2.1"
+    ...
+    ...     # Suppress value display for function objects
+    ...     error_handler: Annotated[
+    ...         callable,
+    ...         dynadoc.Doc( "Default error handling function" ),
+    ...         dynadoc.Default( mode = dynadoc.ValuationModes.Suppress )
+    ...     ] = lambda error: print( f"Error: {error}" )
+    ...
+    ...     # Use surrogate description instead of actual value
+    ...     database_config: Annotated[
+    ...         dict,
+    ...         dynadoc.Doc( "Database connection configuration" ),
+    ...         dynadoc.Default(
+    ...             mode = dynadoc.ValuationModes.Surrogate,
+    ...             surrogate = "Loaded from environment variables"
+    ...         )
+    ...     ] = { "host": "localhost", "database": "prod_db" }
+    ...
+    >>> print( ConfigurationManager.__doc__ )
+    Manages application configuration with controlled value display.
+    <BLANKLINE>
+    :ivar version: Current version
+    :vartype version: str
+    :ivar error_handler: Default error handling function
+    :vartype error_handler: callable
+    :ivar database_config: Database connection configuration
+    :vartype database_config: dict
+
+The ``ValuationModes`` provide three options:
+
+- **Accept** (default): Show the actual attribute value
+- **Suppress**: Hide the value entirely (useful for function objects, complex instances)
+- **Surrogate**: Display an alternative description instead of the actual value
+
+This is particularly useful when you want to document the purpose of attributes
+without exposing implementation details like function memory addresses or when
+you want to provide more meaningful descriptions than the raw data structure.
 
 .. doctest:: Advanced
 
@@ -107,23 +385,6 @@ Advanced visibility control can implement sophisticated documentation policies:
     ...     visibility_decider = api_visibility_decider
     ... )
     >>>
-    >>> @dynadoc.with_docstring( context = api_context )
-    ... class APIExample:
-    ...     ''' Example class for API documentation. '''
-    ...
-    ...     public_attr: Annotated[ str, dynadoc.Doc( "Public API attribute" ) ]
-    ...     _private_attr: Annotated[ str, dynadoc.Doc( "Private implementation detail" ) ]
-    ...     undocumented_attr: str  # No documentation
-    >>>
-    >>> print( APIExample.__doc__ )
-    Example class for API documentation.
-    <BLANKLINE>
-    :ivar public_attr: Public API attribute
-    :vartype public_attr: str
-
-Only the documented public attribute appears in the documentation.
-
-
 Error Handling Strategies
 ===============================================================================
 

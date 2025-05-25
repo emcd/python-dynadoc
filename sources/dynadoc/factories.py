@@ -30,7 +30,7 @@ from . import xtnsapi as _xtnsapi
 def notify( level: _xtnsapi.NotificationLevels, message: str ) -> None:
     # TODO: Python 3.12: Use 'skip_file_prefixes' option.
     ''' Issues warning message. '''
-    __.warnings.warn( message, category = RuntimeWarning )
+    __.warnings.warn( message, category = RuntimeWarning, stacklevel = 2 )
         # skip_file_prefixes = ( str( _package_location ), ) )
 
 

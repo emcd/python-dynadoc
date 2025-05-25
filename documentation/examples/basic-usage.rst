@@ -106,6 +106,50 @@ Functions that raise exceptions can document them using ``Raises`` annotations:
     :raises TypeError: When inputs are not numeric
 
 
+Multiple Exception Types
+===============================================================================
+
+When a function can raise multiple exception types for the same condition, you
+can specify them as a sequence in a single ``Raises`` annotation:
+
+.. doctest:: Basic.Usage
+
+    >>> @dynadoc.with_docstring( )
+    ... def parse_config_file(
+    ...     filename: Annotated[ str, dynadoc.Doc( "Path to configuration file" ) ]
+    ... ) -> Annotated[
+    ...     dict,
+    ...     dynadoc.Doc( "Parsed configuration data" ),
+    ...     dynadoc.Raises(
+    ...         ( FileNotFoundError, PermissionError ),
+    ...         "When file cannot be accessed"
+    ...     ),
+    ...     dynadoc.Raises(
+    ...         ( ValueError, KeyError ),
+    ...         "When file contains invalid configuration data"
+    ...     ),
+    ... ]:
+    ...     ''' Parse configuration from a JSON or YAML file. '''
+    ...     # Implementation would go here
+    ...     return { }
+    ...
+    >>> print( parse_config_file.__doc__ )
+    Parse configuration from a JSON or YAML file.
+    <BLANKLINE>
+    :argument filename: Path to configuration file
+    :type filename: str
+    :returns: Parsed configuration data
+    :rtype: dict
+    :raises FileNotFoundError: When file cannot be accessed
+    :raises PermissionError: When file cannot be accessed
+    :raises ValueError: When file contains invalid configuration data
+    :raises KeyError: When file contains invalid configuration data
+
+Notice how each exception type in the sequence gets its own ``:raises:`` line
+with the same description, allowing comprehensive documentation of all possible
+exception scenarios.
+
+
 Preserving Existing Docstrings
 ===============================================================================
 

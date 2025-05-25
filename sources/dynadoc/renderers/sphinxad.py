@@ -191,12 +191,12 @@ def _produce_module_attribute_text(
             value = getattr( possessor, name, __.absent )
         case __.ValuationModes.Suppress:
             value = __.absent
-        case __.ValuationModes.Surrogate:
+        case __.ValuationModes.Surrogate: # pragma: no branch
             value = __.absent
     lines: list[ str ] = [ ]
     if annotation is __.typx.TypeAlias:
         lines.append( f".. py:type:: {name}" )
-        if value is not __.absent:
+        if value is not __.absent: # pragma: no branch
             value_ar = __.reduce_annotation(
                 value, context,
                 __.AdjunctsData( ),
@@ -287,7 +287,7 @@ def _qualify_object_name( # noqa: PLR0911
         return qname
     mname = getattr( objct, '__module__', None )
     if mname: return f"{mname}.{qname}"
-    return name
+    return name # pragma: no cover
 
 
 def _stylize_delimiter(

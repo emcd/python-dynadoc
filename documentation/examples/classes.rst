@@ -97,6 +97,57 @@ The library distinguishes between class variables and instance variables using
     :vartype population: int | None
 
 
+Scanning Unannotated Attributes
+===============================================================================
+
+By default, ``dynadoc`` only documents attributes that have type annotations.
+However, you can enable scanning of unannotated attributes using the
+``scan_attributes`` option in class introspection control:
+
+.. doctest:: Classes
+
+    >>> # Configure introspection to scan unannotated attributes
+    >>> scan_introspection = dynadoc.IntrospectionControl(
+    ...     class_control = dynadoc.ClassIntrospectionControl(
+    ...         scan_attributes = True
+    ...     )
+    ... )
+    >>>
+    >>> @dynadoc.with_docstring( introspection = scan_introspection )
+    ... class MixedClass:
+    ...     ''' Class with both annotated and unannotated attributes. '''
+    ...
+    ...     # Annotated attributes (always documented)
+    ...     annotated_attr: Annotated[ str, dynadoc.Doc( "This has documentation" ) ]
+    ...     typed_attr: int  # Type annotation but no Doc
+    ...
+    ...     # Unannotated attributes (only documented with scan_attributes=True)
+    ...     class_constant = "CONSTANT_VALUE"
+    ...     default_timeout = 30
+    ...     _private_setting = "hidden"  # Private, won't be documented
+    ...
+    >>> print( MixedClass.__doc__ )
+    Class with both annotated and unannotated attributes.
+    <BLANKLINE>
+    :ivar annotated_attr: This has documentation
+    :vartype annotated_attr: str
+    :ivar typed_attr:
+    :vartype typed_attr: int
+    :cvar class_constant:
+    :cvar default_timeout:
+
+Notice that:
+
+- ``annotated_attr`` appears with its description from the ``Doc`` annotation
+- ``typed_attr`` appears with type information but no description
+- ``class_constant`` and ``default_timeout`` appear without type information
+- ``_private_setting`` is hidden due to the underscore prefix
+
+The ``scan_attributes`` feature is particularly useful for documenting classes
+that mix modern type annotations with legacy code or when you want to document
+important constants that don't need type annotations.
+
+
 Method Documentation
 ===============================================================================
 
@@ -251,30 +302,50 @@ documented. Like methods, they are not processed by default:
     ... )
     >>>
     >>> @dynadoc.with_docstring( introspection = descriptor_introspection )
-    ... class Circle:
-    ...     ''' A circle with radius-based calculations. '''
+    ... class BankAccount:
+    ...     ''' A bank account with balance management. '''
     ...
-    ...     def __init__(
-    ...         self,
-    ...         radius: Annotated[ float, dynadoc.Doc( "Radius of the circle" ) ]
-    ...     ) -> None:
-    ...         self._radius = radius
+    ...     def __init__( self, initial_balance: float = 0.0 ):
+    ...         self._balance = initial_balance
+    ...         self._is_frozen = False
     ...
     ...     @property
-    ...     def area( self ) -> Annotated[ float, dynadoc.Doc( "Area of the circle" ) ]:
-    ...         ''' Calculate the area of the circle. '''
-    ...         return 3.14159 * self._radius ** 2
+    ...     def balance( self ) -> Annotated[
+    ...         float,
+    ...         dynadoc.Doc( "Current account balance in dollars" ),
+    ...         dynadoc.Raises( ValueError, "If account data is corrupted" )
+    ...     ]:
+    ...         ''' Current account balance. '''
+    ...         if self._balance < 0 and not hasattr( self, '_overdraft_allowed' ):
+    ...             raise ValueError( "Account balance is negative without overdraft" )
+    ...         return self._balance
     ...
     ...     @property
-    ...     def circumference( self ) -> Annotated[ float, dynadoc.Doc( "Circumference of the circle" ) ]:
-    ...         ''' Calculate the circumference of the circle. '''
-    ...         return 2 * 3.14159 * self._radius
-    ...
+    ...     def is_active( self ) -> Annotated[ bool, dynadoc.Doc( "Whether account is active" ) ]:
+    ...         ''' Account active status. '''
+    ...         return not self._is_frozen
+
+When properties are introspected, ``dynadoc`` automatically processes the
+property's getter method to extract documentation from its type annotations.
+The generated documentation appears on the property itself:
 
 .. code-block:: text
 
-    >>> print( Circle.area.__doc__ )
-    Calculate the area of the circle.
+    >>> print( BankAccount.balance.__doc__ )
+    Current account balance.
 
-    :returns: Area of the circle
+    :returns: Current account balance in dollars
     :rtype: float
+    :raises ValueError: If account data is corrupted
+
+.. code-block:: text
+
+    >>> print( BankAccount.is_active.__doc__ )
+    Account active status.
+
+    :returns: Whether account is active
+    :rtype: bool
+
+This approach allows properties to have rich documentation including exception
+information, which is particularly useful for properties that perform validation
+or can fail under certain conditions.

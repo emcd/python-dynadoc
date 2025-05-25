@@ -26,7 +26,7 @@ from . import nomina as _nomina
 
 
 try: from typing_extensions import Doc # pyright: ignore[reportAssignmentType]
-except ImportError:
+except ImportError: # pragma: no cover
 
     @__.dcls.dataclass( frozen = True, slots = True )
     class Doc:
@@ -267,7 +267,7 @@ class FragmentRectifier( __.typx.Protocol ):
         ],
     ) -> str:
         ''' (Signature for fragment rectifier.) '''
-        raise NotImplementedError
+        raise NotImplementedError # pragma: no cover
 
 
 @__.dcls.dataclass( frozen = True, kw_only = True, slots = True )
@@ -342,7 +342,7 @@ class Notifier( __.typx.Protocol ):
         message: NotifierMessageArgument,
     ) -> None:
         ''' (Signature for notifier callback.) '''
-        raise NotImplementedError
+        raise NotImplementedError # pragma: no cover
 
 
 class Visibilities( __.enum.Enum ):
@@ -369,7 +369,7 @@ class VisibilityDecider( __.typx.Protocol ):
         description: VisibilityDescriptionArgument,
     ) -> bool:
         ''' (Signature for visibility decider.) '''
-        raise NotImplementedError
+        raise NotImplementedError # pragma: no cover
 
 
 AnnotationsCacheArgument: __.typx.TypeAlias = __.typx.Annotated[

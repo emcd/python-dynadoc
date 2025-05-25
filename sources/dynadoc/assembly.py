@@ -127,7 +127,9 @@ def _collect_fragments(
     '''
     fragments: _xtnsapi.Fragments = (
         getattr( objct, context.fragments_name, ( ) ) )
-    if not isinstance( fragments, __.cabc.Sequence ):
+    if (    isinstance( fragments, ( bytes, str ) )
+        or not isinstance( fragments, __.cabc.Sequence )
+    ):
         emessage = f"Invalid fragments sequence on {fqname}: {fragments!r}"
         context.notifier( 'error', emessage )
         fragments = ( )
@@ -167,7 +169,7 @@ def _consider_class_attribute( # noqa: C901,PLR0913
             attribute_ = attribute.fget
             update_surface = True
         # TODO: Apply custom processors from context.
-        if __.inspect.isdatadescriptor( attribute ):
+        elif __.inspect.isdatadescriptor( attribute ):
             # Ignore descriptors which we do not know how to handle.
             return None, False
     if (    not attribute_
@@ -176,7 +178,7 @@ def _consider_class_attribute( # noqa: C901,PLR0913
         if __.inspect.ismethod( attribute ):
             # Methods proxy docstrings from their core functions.
             attribute_ = attribute.__func__
-        if __.inspect.isfunction( attribute ) and aname != '<lambda>':
+        elif __.inspect.isfunction( attribute ) and aname != '<lambda>':
             attribute_ = attribute
     if attribute_:
         mname = getattr( attribute_, '__module__', None )
@@ -255,13 +257,17 @@ def _decorate( # noqa: PLR0913
                 preserve = preserve,
                 renderer = renderer,
                 table = table )
+    if __.inspect.ismodule( objct ): fqname = objct.__name__
+    else: fqname = f"{objct.__module__}.{objct.__qualname__}"
+    fragments_ = _collect_fragments( objct, context, fqname )
+    if not fragments_: fragments_ = fragments
     _decorate_core(
         objct,
         context = context,
         introspection = introspection,
         preserve = preserve,
         renderer = renderer,
-        fragments = fragments,
+        fragments = fragments_,
         table = table )
 
 
@@ -320,7 +326,6 @@ def _decorate_class_attributes( # noqa: PLR0913
         _survey_class_attributes( objct, context, introspection )
     ):
         fqname = f"{pmname}.{pqname}.{aname}"
-        fragments = _collect_fragments( attribute, context, fqname )
         introspection_ = _limit_introspection(
             attribute, context, introspection, fqname )
         introspection_ = introspection_.evaluate_limits_for( attribute )
@@ -330,7 +335,7 @@ def _decorate_class_attributes( # noqa: PLR0913
             introspection = introspection_,
             preserve = preserve,
             renderer = renderer,
-            fragments = fragments,
+            fragments = ( ),
             table = table )
         if attribute is not surface_attribute:
             surface_attribute.__doc__ = attribute.__doc__
@@ -354,7 +359,6 @@ def _decorate_module_attributes( # noqa: PLR0913
         _survey_module_attributes( module, context, introspection )
     ):
         fqname = f"{pmname}.{aname}"
-        fragments = _collect_fragments( attribute, context, fqname )
         introspection_ = _limit_introspection(
             attribute, context, introspection, fqname )
         introspection_ = introspection_.evaluate_limits_for( attribute )
@@ -364,9 +368,9 @@ def _decorate_module_attributes( # noqa: PLR0913
             introspection = introspection_,
             preserve = preserve,
             renderer = renderer,
-            fragments = fragments,
+            fragments = ( ),
             table = table )
-        if attribute is not surface_attribute:
+        if attribute is not surface_attribute: # pragma: no cover
             surface_attribute.__doc__ = attribute.__doc__
 
 
@@ -413,7 +417,8 @@ def _process_fragments_argument(
             if fragment not in table:
                 emessage = f"Fragment '{fragment}' not in provided table."
                 context.notifier( 'error', emessage )
-            else: fragment_r = table[ fragment ]
+                continue
+            fragment_r = table[ fragment ]
         else:
             emessage = f"Fragment {fragment!r} is invalid. Must be Doc or str."
             context.notifier( 'error', emessage )
@@ -466,7 +471,7 @@ def _survey_module_attributes(
             _consider_module_attribute(
                 attribute, context, introspection, pmname, aname ) )
         if attribute_ is None: continue
-        if update_surface:
+        if update_surface: # pragma: no cover
             yield aname, attribute_, attribute
             continue
         yield aname, attribute_, attribute_

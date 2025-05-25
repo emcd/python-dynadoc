@@ -79,7 +79,7 @@ class Renderer( __.typx.Protocol ):
         context: ContextArgument,
     ) -> RendererReturnValue:
         ''' (Signature for fragment renderer.) '''
-        raise NotImplementedError
+        raise NotImplementedError # pragma: no cover
 
 RendererArgument: __.typx.TypeAlias = __.typx.Annotated[
     Renderer, Fname( 'renderer' ) ]

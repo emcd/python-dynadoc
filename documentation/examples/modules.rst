@@ -40,7 +40,8 @@ Basic Module Documentation
 ===============================================================================
 
 Module-level annotations are documented by calling ``assign_module_docstring``
-with the current module. Here's what a typical module might look like:
+with the current module. You can pass either the module name as a string or
+the actual module object:
 
 .. code-block:: python
 
@@ -55,8 +56,16 @@ with the current module. Here's what a typical module might look like:
     debug_mode: Annotated[ bool, dynadoc.Doc( "Whether debug mode is enabled" ) ] = False
     max_connections: Annotated[ int, dynadoc.Doc( "Maximum allowed connections" ) ] = 100
 
-    # Generate documentation for this module
+    # Generate documentation using module name (most common)
     dynadoc.assign_module_docstring( __name__ )
+
+    # Alternative: pass the actual module object
+    import sys
+    dynadoc.assign_module_docstring( sys.modules[ __name__ ] )
+
+Both approaches produce the same result. Using the module name (``__name__``) is
+more common and readable, while passing the module object directly can be useful
+when you have a reference to a module from elsewhere.
 
 After processing, the module's docstring would become:
 
@@ -125,6 +134,71 @@ This generates clean documentation for the type aliases:
         :canonical: dict[ str, str | int | bool ]
 
         Configuration dictionary mapping strings to values
+
+
+Scanning Unannotated Attributes
+===============================================================================
+
+Like classes, modules can contain attributes without type annotations. You can
+enable scanning of these attributes to include them in documentation:
+
+.. code-block:: python
+
+    # settings.py
+    ''' Application settings and configuration values. '''
+
+    import dynadoc
+    from typing import Annotated
+
+    # Annotated configuration
+    API_VERSION: Annotated[ str, dynadoc.Doc( "Current API version" ) ] = "v2"
+    DEBUG: Annotated[ bool, dynadoc.Doc( "Debug mode flag" ) ] = False
+
+    # Legacy constants without annotations
+    DEFAULT_TIMEOUT = 30
+    MAX_RETRIES = 3
+    ALLOWED_HOSTS = [ "localhost", "127.0.0.1" ]
+    _INTERNAL_SECRET = "hidden"  # Private, won't be documented
+
+    # Configure module introspection to scan unannotated attributes
+    module_introspection = dynadoc.IntrospectionControl(
+        module_control = dynadoc.ModuleIntrospectionControl(
+            scan_attributes = True
+        )
+    )
+
+    dynadoc.assign_module_docstring(
+        __name__,
+        introspection = module_introspection
+    )
+
+This would generate documentation for both annotated and unannotated module
+attributes:
+
+.. code-block:: text
+
+    Application settings and configuration values.
+
+    .. py:data:: API_VERSION
+        :type: str
+        :value: 'v2'
+
+    .. py:data:: DEBUG
+        :type: bool
+        :value: False
+
+    .. py:data:: DEFAULT_TIMEOUT
+        :value: 30
+
+    .. py:data:: MAX_RETRIES
+        :value: 3
+
+    .. py:data:: ALLOWED_HOSTS
+        :value: ['localhost', '127.0.0.1']
+
+The ``scan_attributes`` feature helps document legacy modules that mix
+annotated and unannotated attributes, ensuring comprehensive documentation
+coverage without requiring extensive refactoring.
 
 
 Package Initialization with Recursive Documentation

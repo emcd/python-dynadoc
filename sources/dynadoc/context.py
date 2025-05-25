@@ -105,7 +105,7 @@ class ClassIntrospector( __.typx.Protocol ):
         table: _interfaces.FragmentsTableArgument,
     ) -> __.typx.Optional[ _interfaces.Informations ]:
         ''' Introspects class and returns information about its members. '''
-        raise NotImplementedError
+        raise NotImplementedError # pragma: no cover
 
 ClassIntrospectors: __.typx.TypeAlias = __.cabc.Sequence[ ClassIntrospector ]
 
@@ -204,7 +204,7 @@ class IntrospectionLimiter( __.typx.Protocol ):
         introspection: IntrospectionArgumentFref,
     ) -> 'IntrospectionControl':
         ''' Returns modified introspection control with limits applied. '''
-        raise NotImplementedError
+        raise NotImplementedError # pragma: no cover
 
 IntrospectionLimiters: __.typx.TypeAlias = __.typx.Annotated[
     __.cabc.Sequence[ IntrospectionLimiter ],
