@@ -9,7 +9,7 @@ build-backend = 'hatchling.build'
 
 [project]
 name = 'dynadoc'
-description = 'Docstring generation with configurable formats and PEP 727 support.'
+description = 'Docstring generation from annotations with configurable output formats.'
 dynamic = [ 'version' ]
 license = 'Apache-2.0'
 readme = { 'file' = 'README.rst', 'content-type' = 'text/x-rst' }

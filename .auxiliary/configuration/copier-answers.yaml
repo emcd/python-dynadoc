@@ -3,7 +3,7 @@ _commit: v1.17.1
 _src_path: gh:emcd/python-project-common
 author_email: emcd@users.noreply.github.com
 author_name: Eric McDonald
-description: Docstring generation with configurable formats and PEP 727 support.
+description: Docstring generation from annotations with configurable output formats.
 development_status: 5 - Production/Stable
 distribution_name: dynadoc
 enable_cli: false

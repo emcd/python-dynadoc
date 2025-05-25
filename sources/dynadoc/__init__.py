@@ -18,7 +18,7 @@
 #============================================================================#
 
 
-''' Docstring generation with configurable formats and PEP 727 support. '''
+''' Docstring generation from annotations with configurable output formats. '''
 
 
 from . import __
