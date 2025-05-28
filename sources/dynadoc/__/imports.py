@@ -42,6 +42,3 @@ from pathlib import Path
 import typing_extensions as typx
 # --- BEGIN: Injected by Copier ---
 # --- END: Injected by Copier ---
-
-
-ComparisonResult: typx.TypeAlias = bool | types.NotImplementedType
