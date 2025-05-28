@@ -1,3 +1,6 @@
+# vim: set filetype=python fileencoding=utf-8:
+# -*- mode: python ; coding: utf-8 -*-
+
 ''' Configuration file for the Sphinx documentation builder.
 
     This file only contains a selection of the most common options.
@@ -99,9 +102,9 @@ linkcheck_ignore = [
     r'https://github\.com/emcd/python-dynadoc',
     r'https://github\.com/emcd/python-dynadoc/.*',
     # Package does not exist during initial development.
-    r'https://pypi\.org/project/dynadoc/',
+    r'https://pypi.org/project/dynadoc/',
     # Github aggressively rate-limits access to certain blobs.
-    r'https://github\.com/.*/.*/blob/.*'
+    r'https://github\.com/.*/.*/blob/.*',
 ]
 
 # -- Options for HTML output -------------------------------------------------
@@ -122,10 +125,8 @@ html_static_path = [ '_static' ]
 autodoc_default_options = {
     'member-order': 'groupwise',
     'members': True,
-    # 'inherited-members': True,
     'show-inheritance': True,
     'special-members': '__call__',
-    # 'undoc-members': True,
 }
 
 # autodoc_docstring_signature = False

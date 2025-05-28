@@ -18,15 +18,15 @@
 #============================================================================#
 
 
-''' Common constants, imports, and utilities. '''
+''' Common names and type aliases. '''
 
 
-from .doctab import *
-from .imports import *
-from .nomina import *
+from . import imports as __
 
 
-T = typx.TypeVar( 'T' )
+ComparisonResult: __.typx.TypeAlias = bool | __.types.NotImplementedType
+NominativeArguments: __.typx.TypeAlias = __.cabc.Mapping[ str, __.typx.Any ]
+PositionalArguments: __.typx.TypeAlias = __.cabc.Sequence[ __.typx.Any ]
 
 
-dictproxy_empty: cabc.Mapping[ str, str ] = types.MappingProxyType( { } )
+package_name = __name__.split( '.', maxsplit = 1 )[ 0 ]

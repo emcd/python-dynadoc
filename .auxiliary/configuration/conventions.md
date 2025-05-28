@@ -5,8 +5,8 @@
 - Make classes lightweight. Prefer module-level functions over class methods.
 - Functions should not be more than 30 lines long. Refactor long functions.
 - Keep the number of function arguments small. Pass common state via
-  lightweight data transfer objects (DTOs).
-- Use dependency injection to improve configuration and testing. Choose
+  data transfer objects (DTOs).
+- Use dependency injection to improve configuration and testability. Choose
   sensible defaults for injected dependencies to streamline normal development.
 - Prefer immutability wherever possible.
 
@@ -18,11 +18,12 @@
 
 - Target Python 3.10 and use idioms appropriate for that version
   (`match`..`case`, type unions via `|`, etc...).
-- Note the internal `__` subpackage, which exposes imports used internally
+- Note the internal `__` subpackage which exposes imports used internally
   throughout the package (`cabc` alias for `collections.abc`, `enum`, `types`,
   `typx` alias for `typing_extensions`, etc...).
 - Do not pollute the module namespace with public imports. Either reference
-  common imports from the `__` import or alias module-level imports as private.
+  common imports from the `__` subpackage or alias module-level imports as
+  private.
 - Do not use `__all__` to advertise the public API of a module. Name anything,
   which should not be part of this API, with a private name starting with `_`.
 - Do not raise exceptions; this is a low-level library. Notify via the
@@ -55,9 +56,9 @@
 - Leave TODO comments about uncovered edge cases, tests, and other future work.
 - Do not break function bodies with empty lines.
 - One empty line between attribute blocks and methods on classes.
-- Two empty lines between attribute blocks and functions on modules.
+- Two empty lines between attribute blocks, classes, and functions on modules.
 - Split lines at 79 columns. Use parentheses for continuations and not
-  backslash.
+  backslashes.
 
 ### Lints and Tests
 
@@ -71,16 +72,21 @@
 - To generate documentation, use `hatch --env develop run docsgen`.
 - Do not write tests unless explicitly instructed to do so.
 
-### Commits
+# Commits
 
 - Use `git status` to ensure that all relevant changes are in the changeset to
   be committed.
-- Do not commit until you have user approval to do so.
 - Look at the previous five commit messages for guidance on message style.
 - Use present tense, imperative mood verbs to describe changes. E.g. "Fix" and
   *not* "Fixed".
-- The commit message should include `Co-Authored-By: OpenAI Codex CLI Agent
-  <emcd@users.noreply.github.com>` as its final line.
+- The commit message should include a `Co-Authored-By:` field as its final
+  line. The name of the author should be your model name. The email address
+  should either be one which you have been designated to use or else a
+  commonly-known no-reply address.
+
+## Interactive Collaboration on User Terminal
+
+- Do not commit until you have user approval to do so.
 - Add the `--no-gpg-sign` option to the `git commit` command to suppress GPG
-  passphrase challenges. (These challenges conflict with the Codex CLI
-  alternate console screen, resulting in an unusable terminal.)
+  passphrase challenges. (These challenges conflict with the alternate console
+  screen, managed by some CLI agents, resulting in an unusable terminal.)
