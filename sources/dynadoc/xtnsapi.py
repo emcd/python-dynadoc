@@ -46,10 +46,6 @@ FragmentsArgumentMultivalent: __.typx.TypeAlias = __.typx.Annotated[
 ]
 FragmentsNameArgument: __.typx.TypeAlias = __.typx.Annotated[
     str, Fname( 'fragments name' ) ]
-InformationsArgument: __.typx.TypeAlias = __.typx.Annotated[
-    Informations,
-    Doc( ''' Information extracted from object introspection. ''' ),
-]
 IntrospectionLimitNameArgument: __.typx.TypeAlias = __.typx.Annotated[
     str, Fname( 'introspection limit name' ) ]
 InvokerGlobalsArgument: __.typx.TypeAlias = __.typx.Annotated[
