@@ -23,6 +23,22 @@ Release Notes
 
 .. towncrier release notes start
 
+Dynadoc 1.1 (2025-05-29)
+========================
+
+Enhancements
+------------
+
+- Improve argument and return documentation on Sphinx Autodoc renderer.
+
+
+Repairs
+-------
+
+- Ensure multiline descriptions render correctly by indenting all subsequent
+  lines after the first one.
+
+
 Dynadoc 1.0 (2025-05-25)
 ========================
 
