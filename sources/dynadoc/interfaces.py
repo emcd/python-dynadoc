@@ -396,3 +396,13 @@ AnnotationsCacheArgument: __.typx.TypeAlias = __.typx.Annotated[
             Also used for cycle detection.
         ''' ),
 ]
+InformationsArgument: __.typx.TypeAlias = __.typx.Annotated[
+    Informations,
+    Doc(
+        ''' Sequence of information blocks from object introspection.
+
+            Information may be about arguments to a function, attributes on a
+            class or module, exceptions raised by a function, or returns from a
+            function.
+        ''' ),
+]

@@ -31,12 +31,23 @@ class Style( __.enum.Enum ):
     Pep8        = __.enum.auto( )
 
 
+StyleArgument: __.typx.TypeAlias = __.typx.Annotated[
+    Style,
+    __.Doc(
+        ''' Output style for renderer.
+
+            Legible: Extra space padding inside of delimiters.
+            Pep8: As the name implies.
+        ''' ),
+]
+
+
 def produce_fragment(
-    possessor: __.Documentable,
-    informations: __.Informations,
-    context: __.Context,
-    style: Style = Style.Legible,
-) -> str:
+    possessor: __.PossessorArgument,
+    informations: __.InformationsArgument,
+    context: __.ContextArgument,
+    style: StyleArgument = Style.Legible,
+) -> __.RendererReturnValue:
     ''' Produces a reStructuredText docstring fragment.
 
         Combines information from object introspection into a formatted
