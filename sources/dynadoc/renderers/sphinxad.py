@@ -91,6 +91,14 @@ def _format_annotation(
     return _stylize_delimiter( style, '[]', argstr, oname )
 
 
+def _format_description( description: __.typx.Optional[ str ] ) -> str:
+    ''' Ensures that multiline descriptions render correctly. '''
+    if not description: return ''
+    lines = description.split( '\n' )
+    lines[ 1 : ] = [ f"    {line}" for line in lines[ 1 : ] ]
+    return '\n'.join( lines )
+
+
 def _produce_fragment_partial(
     possessor: __.Documentable,
     information: __.InformationBase,
@@ -130,7 +138,7 @@ def _produce_argument_text(
         including parameter descriptions and types.
     '''
     annotation = information.annotation
-    description = information.description
+    description = _format_description( information.description )
     name = information.name
     lines: list[ str ] = [ ]
     lines.append(
@@ -160,7 +168,7 @@ def _produce_attribute_text(
                 possessor, information, context, style )
         case __.AttributeAssociations.Class: vlabel = 'cvar'
         case __.AttributeAssociations.Instance: vlabel = 'ivar'
-    description = information.description
+    description = _format_description( information.description )
     name = information.name
     lines: list[ str ] = [ ]
     lines.append(
@@ -230,7 +238,7 @@ def _produce_exception_text(
     '''
     lines: list[ str ] = [ ]
     annotation = information.annotation
-    description = information.description
+    description = _format_description( information.description )
     origin = __.typx.get_origin( annotation )
     if origin in ( __.types.UnionType, __.typx.Union ):
         annotations = __.typx.get_args( annotation )
@@ -255,7 +263,7 @@ def _produce_return_text(
         Returns empty string for None returns.
     '''
     if information.annotation in ( None, __.types.NoneType ): return ''
-    description = information.description
+    description = _format_description( information.description )
     typetext = _format_annotation( information.annotation, context, style )
     lines: list[ str ] = [ ]
     if description:
