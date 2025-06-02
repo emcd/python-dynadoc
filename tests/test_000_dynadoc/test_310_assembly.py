@@ -149,7 +149,7 @@ def test_104_decorate_object_already_visited( ):
             context = context,
             introspection = introspection,
             preserve = True,
-            renderer = lambda obj, info, ctx: '',
+            renderer = lambda obj, info, context: '',
             fragments = ( ),
             table = { }
         )
@@ -373,3 +373,115 @@ def test_110_decorate_class_attributes_with_property( ):
     assert ':raises ValueError: When status is corrupted' in updated_docstring
     assert ':raises RuntimeError: When system is unavailable' in (
         updated_docstring )
+
+
+def test_111_decorate_class_attributes_introspection_limiter_skip( ):
+    ''' _decorate_class_attributes skips attributes when limiter disables. '''
+    assembly_module = cache_import_module( f"{PACKAGE_NAME}.assembly" )
+    context_module = cache_import_module( f"{PACKAGE_NAME}.context" )
+    interfaces_module = cache_import_module( f"{PACKAGE_NAME}.interfaces" )
+    import inspect
+    def proper_fragment_rectifier( fragment, source ):
+        ''' Proper fragment rectifier that cleans docstrings. '''
+        if source == interfaces_module.FragmentSources.Docstring:
+            return inspect.cleandoc( fragment ).rstrip( )
+        return fragment
+    def _test_marker_limiter( objct, introspection ):
+        ''' Limiter that disables introspection for objects with marker. '''
+        if hasattr( objct, '_skip_introspection' ):
+            limit = context_module.IntrospectionLimit( disable = True )
+            return introspection.with_limit( limit )
+        return introspection
+    context = context_module.Context(
+        notifier = lambda level, msg: None,
+        fragment_rectifier = proper_fragment_rectifier,
+        visibility_decider = (
+            lambda possessor, name, annotation, description: True )
+    )
+    introspection = context_module.IntrospectionControl(
+        targets = context_module.IntrospectionTargets.Class,
+        limiters = [ _test_marker_limiter ]
+    )
+    class TestClassWithNestedClasses:
+        ''' Parent class with nested classes. '''
+        class MarkedNestedClass:
+            ''' This nested class should not be introspected. '''
+            _skip_introspection = True
+        class UnmarkedNestedClass:
+            ''' This nested class should be introspected. '''
+            pass
+    # Preserve original docstrings for comparison
+    marked_original = (
+        TestClassWithNestedClasses.MarkedNestedClass.__doc__ )
+    assembly_module._decorate_class_attributes(
+        TestClassWithNestedClasses,
+        context = context,
+        introspection = introspection,
+        preserve = True,
+        renderer = lambda obj, info, context: ':introspected:',
+        table = { }
+    )
+    # Marked nested class should not be introspected (original preserved)
+    assert TestClassWithNestedClasses.MarkedNestedClass.__doc__ == (
+        marked_original )
+    # Unmarked nested class should be introspected (docstring modified)
+    assert ':introspected:' in (
+        TestClassWithNestedClasses.UnmarkedNestedClass.__doc__ )
+
+
+def test_112_decorate_module_attributes_introspection_limiter_skip( ):
+    ''' _decorate_module_attributes skips attributes when limiter disables. '''
+    assembly_module = cache_import_module( f"{PACKAGE_NAME}.assembly" )
+    context_module = cache_import_module( f"{PACKAGE_NAME}.context" )
+    interfaces_module = cache_import_module( f"{PACKAGE_NAME}.interfaces" )
+    import inspect
+    import types
+    def proper_fragment_rectifier( fragment, source ):
+        ''' Proper fragment rectifier that cleans docstrings. '''
+        if source == interfaces_module.FragmentSources.Docstring:
+            return inspect.cleandoc( fragment ).rstrip( )
+        return fragment
+    def _test_marker_limiter( objct, introspection ):
+        ''' Limiter that disables introspection for objects with marker. '''
+        if hasattr( objct, '_skip_introspection' ):
+            limit = context_module.IntrospectionLimit( disable = True )
+            return introspection.with_limit( limit )
+        return introspection
+    context = context_module.Context(
+        notifier = lambda level, msg: None,
+        fragment_rectifier = proper_fragment_rectifier,
+        visibility_decider = (
+            lambda possessor, name, annotation, description: True )
+    )
+    introspection = context_module.IntrospectionControl(
+        targets = context_module.IntrospectionTargets.Class,
+        limiters = [ _test_marker_limiter ]
+    )
+    test_module = types.ModuleType( 'test_module' )
+    # Create classes with the correct module
+    class MarkedClass:
+        _skip_introspection = True
+        def marked_method( self ):
+            ''' This method should not be introspected. '''
+            pass
+    class UnmarkedClass:
+        def unmarked_method( self ):
+            ''' This method should be introspected. '''
+            pass
+    # Set correct module names
+    MarkedClass.__module__ = 'test_module'
+    UnmarkedClass.__module__ = 'test_module'
+    test_module.marked_attr = MarkedClass
+    test_module.unmarked_attr = UnmarkedClass
+    assembly_module._decorate_module_attributes(
+        test_module,
+        context = context,
+        introspection = introspection,
+        preserve = True,
+        renderer = lambda obj, info, context: ':introspected:',
+        table = { }
+    )
+    # Marked class should not be introspected (original docstring preserved)
+    assert test_module.marked_attr.__doc__ is None
+    # Unmarked class should be introspected (docstring modified)
+    assert ':introspected:' in test_module.unmarked_attr.__doc__
