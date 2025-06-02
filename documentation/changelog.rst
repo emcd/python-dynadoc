@@ -23,6 +23,24 @@ Release Notes
 
 .. towncrier release notes start
 
+Dynadoc 1.2 (2025-06-02)
+========================
+
+Enhancements
+------------
+
+- Allow introspection limits to completely disable introspection. Useful when a
+  limiter function detects a marker attribute, which indicates complete
+  documentation or immutability, on a class or module.
+
+
+Repairs
+-------
+
+- Always sever type-adjacent information, when transiting nested annotations, to
+  prevent ambiguity problems and unexpected information accumulation.
+
+
 Dynadoc 1.1 (2025-05-29)
 ========================
 
