@@ -240,6 +240,9 @@ IntrospectionTargetsOmni: __.typx.Annotated[
 class IntrospectionLimit:
     ''' Limits on introspection behavior. '''
 
+    disable: __.typx.Annotated[
+        bool, _interfaces.Doc( ''' Disable introspection? ''' )
+    ] = False
     class_limit: __.typx.Annotated[
         ClassIntrospectionLimit,
         _interfaces.Doc( ''' Limits specific to class introspection. ''' ),
@@ -306,11 +309,12 @@ class IntrospectionControl:
         ]
     ) -> __.typx.Self:
         ''' Returns new control with applied limits. '''
+        enable = self.enable and not limit.disable
         class_control = self.class_control.with_limit( limit.class_limit )
         module_control = self.module_control.with_limit( limit.module_limit )
         targets = self.targets & ~limit.targets_exclusions
         return type( self )(
-            enable = self.enable,
+            enable = enable,
             class_control = class_control,
             module_control = module_control,
             limiters = self.limiters,
@@ -319,13 +323,3 @@ class IntrospectionControl:
 
 IntrospectionArgument: __.typx.TypeAlias = __.typx.Annotated[
     IntrospectionControl, _interfaces.Fname( 'introspection' ) ]
-
-
-# def avoid_enum_inheritance(
-#     objct: object, recursion: RecursionControl
-# ) -> RecursionControl:
-#     ''' Enums inherit copious amounts of documentation. Avoids this. '''
-#     if isinstance( objct, __.enum.EnumMeta ):
-#         return recursion.with_limit(
-#             RecursionLimit( avoid_inheritance = True ) )
-#     return recursion
