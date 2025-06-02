@@ -413,8 +413,6 @@ def test_111_decorate_class_attributes_introspection_limiter_skip( ):
     # Preserve original docstrings for comparison
     marked_original = (
         TestClassWithNestedClasses.MarkedNestedClass.__doc__ )
-    unmarked_original = (
-        TestClassWithNestedClasses.UnmarkedNestedClass.__doc__ )
     assembly_module._decorate_class_attributes(
         TestClassWithNestedClasses,
         context = context,
