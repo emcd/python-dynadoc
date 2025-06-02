@@ -373,3 +373,81 @@ def test_110_decorate_class_attributes_with_property( ):
     assert ':raises ValueError: When status is corrupted' in updated_docstring
     assert ':raises RuntimeError: When system is unavailable' in (
         updated_docstring )
+
+
+def test_111_decorate_class_attributes_introspection_disabled( ):
+    ''' _decorate_class_attributes skips when introspection disabled. '''
+    assembly_module = cache_import_module( f"{PACKAGE_NAME}.assembly" )
+    context_module = cache_import_module( f"{PACKAGE_NAME}.context" )
+    import inspect
+    def proper_fragment_rectifier( fragment, source ):
+        if source == 'docstring':
+            return inspect.cleandoc( fragment ).rstrip( )
+        return fragment
+    context = context_module.Context(
+        notifier = lambda level, msg: None,
+        fragment_rectifier = proper_fragment_rectifier,
+        visibility_decider = (
+            lambda possessor, name, annotation, description: True )
+    )
+    introspection = context_module.IntrospectionControl( )
+    class TestClassWithLimit:
+        ''' Test class with introspection limit. '''
+        _dynadoc_introspection_limit_ = context_module.IntrospectionLimit(
+            disable = True
+        )
+        def test_method( self ):
+            ''' Original method docstring. '''
+            pass
+        test_attribute = "test_value"
+    original_method_doc = TestClassWithLimit.test_method.__doc__
+    assembly_module._decorate_class_attributes(
+        TestClassWithLimit,
+        context = context,
+        introspection = introspection,
+        preserve = True,
+        renderer = lambda obj, info, ctx: 'DECORATED',
+        table = { }
+    )
+    # Method should retain original docstring since introspection was disabled
+    assert TestClassWithLimit.test_method.__doc__ == original_method_doc
+
+
+def test_112_decorate_module_attributes_introspection_disabled( ):
+    ''' _decorate_module_attributes skips when introspection disabled. '''
+    assembly_module = cache_import_module( f"{PACKAGE_NAME}.assembly" )
+    context_module = cache_import_module( f"{PACKAGE_NAME}.context" )
+    import types
+    import inspect
+    def proper_fragment_rectifier( fragment, source ):
+        if source == 'docstring':
+            return inspect.cleandoc( fragment ).rstrip( )
+        return fragment
+    context = context_module.Context(
+        notifier = lambda level, msg: None,
+        fragment_rectifier = proper_fragment_rectifier,
+        visibility_decider = (
+            lambda possessor, name, annotation, description: True )
+    )
+    introspection = context_module.IntrospectionControl( )
+    # Create a test module with an introspection limit that disables decoration
+    test_module = types.ModuleType( 'test_module_with_limit' )
+    test_module._dynadoc_introspection_limit_ = (
+        context_module.IntrospectionLimit( disable = True )
+    )
+    def test_function( ):
+        ''' Original function docstring. '''
+        pass
+    test_module.test_function = test_function
+    test_module.test_variable = "test_value"
+    original_function_doc = test_function.__doc__
+    assembly_module._decorate_module_attributes(
+        test_module,
+        context = context,
+        introspection = introspection,
+        preserve = True,
+        renderer = lambda obj, info, ctx: 'DECORATED',
+        table = { }
+    )
+    # Function should retain original docstring since introspection disabled
+    assert test_module.test_function.__doc__ == original_function_doc
