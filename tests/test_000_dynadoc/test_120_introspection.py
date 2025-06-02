@@ -568,3 +568,108 @@ def test_504_introspect_class_scan_attributes( ):
     )
     assert unannotated_info.annotation is interfaces_module.absent
     assert unannotated_info.description is None
+
+
+def test_600_is_attribute_visible_conceal( ):
+    ''' _is_attribute_visible respects Visibilities.Conceal annotation. '''
+    introspection_module = cache_import_module(
+        f"{PACKAGE_NAME}.introspection" )
+    context_module = cache_import_module( f"{PACKAGE_NAME}.context" )
+    interfaces_module = cache_import_module( f"{PACKAGE_NAME}.interfaces" )
+    # Create context with visibility decider that would normally show attribute
+    def permissive_visibility_decider(
+        possessor, name, annotation, description
+    ):
+        return True  # Would normally show everything
+    context = context_module.Context(
+        notifier = lambda level, msg: None,
+        fragment_rectifier = lambda fragment, source: fragment,
+        visibility_decider = permissive_visibility_decider
+    )
+    # Create adjuncts with Conceal visibility
+    adjuncts = interfaces_module.AdjunctsData( )
+    adjuncts.extras.append( interfaces_module.Visibilities.Conceal )
+    # Test with a mock possessor
+    mock_possessor = types.ModuleType( 'mock_module' )
+    # Should return False despite permissive visibility decider
+    result = introspection_module._is_attribute_visible(
+        mock_possessor, 'test_attr', str, context, adjuncts, 'Has description'
+    )
+    assert result == False
+
+
+def test_601_is_attribute_visible_reveal( ):
+    ''' _is_attribute_visible respects Visibilities.Reveal annotation. '''
+    introspection_module = cache_import_module(
+        f"{PACKAGE_NAME}.introspection" )
+    context_module = cache_import_module( f"{PACKAGE_NAME}.context" )
+    interfaces_module = cache_import_module( f"{PACKAGE_NAME}.interfaces" )
+    # Create context with visibility decider that would normally hide attribute
+    def restrictive_visibility_decider(
+        possessor, name, annotation, description
+    ):
+        return False  # Would normally hide everything
+    context = context_module.Context(
+        notifier = lambda level, msg: None,
+        fragment_rectifier = lambda fragment, source: fragment,
+        visibility_decider = restrictive_visibility_decider
+    )
+    # Create adjuncts with Reveal visibility
+    adjuncts = interfaces_module.AdjunctsData( )
+    adjuncts.extras.append( interfaces_module.Visibilities.Reveal )
+    # Test with a mock possessor
+    mock_possessor = types.ModuleType( 'mock_module' )
+    # Should return True despite restrictive visibility decider
+    result = introspection_module._is_attribute_visible(
+        mock_possessor, '_hidden_attr', str, context, adjuncts, None
+    )
+    assert result == True
+
+
+def test_602_is_attribute_visible_default_fallback( ):
+    ''' _is_attribute_visible falls back to context visibility decider for
+        Default visibility. '''
+    introspection_module = cache_import_module(
+        f"{PACKAGE_NAME}.introspection" )
+    context_module = cache_import_module( f"{PACKAGE_NAME}.context" )
+    interfaces_module = cache_import_module( f"{PACKAGE_NAME}.interfaces" )
+    # Track visibility decider calls
+    visibility_calls = [ ]
+    def tracking_visibility_decider(
+        possessor, name, annotation, description
+    ):
+        visibility_calls.append( ( possessor, name, annotation, description ) )
+        return name.startswith( 'visible' )
+    context = context_module.Context(
+        notifier = lambda level, msg: None,
+        fragment_rectifier = lambda fragment, source: fragment,
+        visibility_decider = tracking_visibility_decider
+    )
+    # Create adjuncts with Default visibility (or no visibility at all)
+    adjuncts = interfaces_module.AdjunctsData( )
+    adjuncts.extras.append( interfaces_module.Visibilities.Default )
+    # Test with a mock possessor
+    mock_possessor = types.ModuleType( 'mock_module' )
+    # Test visible attribute
+    result1 = introspection_module._is_attribute_visible(
+        mock_possessor, 'visible_attr', int, context, adjuncts, 'Description'
+    )
+    assert result1 == True
+    # Test hidden attribute
+    result2 = introspection_module._is_attribute_visible(
+        mock_possessor, 'hidden_attr', str, context, adjuncts, None
+    )
+    assert result2 == False
+    # Should have called visibility decider twice
+    assert len( visibility_calls ) == 2
+    # Verify calls had correct parameters
+    call1 = visibility_calls[ 0 ]
+    assert call1[ 0 ] is mock_possessor
+    assert call1[ 1 ] == 'visible_attr'
+    assert call1[ 2 ] is int
+    assert call1[ 3 ] == 'Description'
+    call2 = visibility_calls[ 1 ]
+    assert call2[ 0 ] is mock_possessor
+    assert call2[ 1 ] == 'hidden_attr'
+    assert call2[ 2 ] is str
+    assert call2[ 3 ] is None
