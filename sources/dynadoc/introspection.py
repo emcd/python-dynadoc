@@ -224,19 +224,22 @@ def _filter_reconstitute_annotation(
         After reducing the arguments of a generic type, this function
         reconstitutes the type with the reduced arguments, potentially
         applying transformations based on context.
+
+        Note that any type-adjacent information on arguments is not propagated
+        upwards, due to ambiguity in its insertion order relative to
+        type-adjacent information on the annotation origin.
     '''
     adjuncts.traits.add( origin.__name__ )
     arguments_r: list[ __.typx.Any ] = [ ]
+    adjuncts_ = _interfaces.AdjunctsData( )
+    adjuncts_.traits.add( origin.__name__ )
     match len( arguments ):
         case 1:
             arguments_r.append( reduce_annotation(
-                arguments[ 0 ], context, adjuncts, cache ) )
+                arguments[ 0 ], context, adjuncts_, cache ) )
         case _:
-            # upward propagation is ambiguous, so sever adjuncts data
-            adjuncts_ = _interfaces.AdjunctsData( )
-            adjuncts_.traits.add( origin.__name__ )
             arguments_r.extend( _reduce_annotation_arguments(
-                origin, arguments, context, adjuncts_.copy( ), cache ) )
+                origin, arguments, context, adjuncts_, cache ) )
     # TODO: Apply filters from context, replacing origin as necessary.
     #       E.g., ClassVar -> Union
     #       (Union with one argument returns the argument.)

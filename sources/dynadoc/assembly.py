@@ -329,6 +329,7 @@ def _decorate_class_attributes( # noqa: PLR0913
         introspection_ = _limit_introspection(
             attribute, context, introspection, fqname )
         introspection_ = introspection_.evaluate_limits_for( attribute )
+        if not introspection_.enable: continue
         _decorate(
             attribute,
             context = context,
@@ -362,6 +363,7 @@ def _decorate_module_attributes( # noqa: PLR0913
         introspection_ = _limit_introspection(
             attribute, context, introspection, fqname )
         introspection_ = introspection_.evaluate_limits_for( attribute )
+        if not introspection_.enable: continue
         _decorate(
             attribute,
             context = context,
