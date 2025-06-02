@@ -37,7 +37,7 @@ from .userapi import *
 
 
 __version__: __.typx.Annotated[ str, Visibilities.Reveal ]
-__version__ = '1.2rc0'
+__version__ = '1.2'
 
 
 def _notify( level: NotificationLevels, message: str ) -> None:
