@@ -126,7 +126,11 @@ def _collect_fragments(
         of the expected types.
     '''
     fragments: _xtnsapi.Fragments = (
-        getattr( objct, context.fragments_name, ( ) ) )
+        # Fragments can come from base class or metaclass.
+        # We only care about fragments on class itself.
+        objct.__dict__.get( context.fragments_name, ( ) )
+        if __.inspect.isclass( objct )
+        else getattr( objct, context.fragments_name, ( ) ) )
     if (    isinstance( fragments, ( bytes, str ) )
         or not isinstance( fragments, __.cabc.Sequence )
     ):

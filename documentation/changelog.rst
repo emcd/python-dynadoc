@@ -23,6 +23,16 @@ Release Notes
 
 .. towncrier release notes start
 
+Dynadoc 1.2.1 (2025-06-05)
+==========================
+
+Repairs
+-------
+
+- Only collect documentation fragments attribute from class and not its ancestors
+  or metaclass.
+
+
 Dynadoc 1.2 (2025-06-02)
 ========================
 
