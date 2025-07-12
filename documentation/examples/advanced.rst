@@ -432,6 +432,45 @@ without exposing implementation details like function memory addresses or when
 you want to provide more meaningful descriptions than the raw data structure.
 
 
+Stringified Annotations Support
+===============================================================================
+
+The ``dynadoc`` library gracefully handles stringified type annotations,
+which commonly occur with forward references in self-referential or mutually
+dependent classes. Instead of attempting to resolve these strings (which
+could fail), the library processes them robustly.
+
+This feature is particularly useful for classes that reference themselves:
+
+.. doctest:: Advanced
+
+    >>> @dynadoc.with_docstring( )
+    ... class TreeNode:
+    ...     ''' Binary tree node with parent and child references. '''
+    ...
+    ...     value: Annotated[ int, dynadoc.Doc( "Node value" ) ]
+    ...     parent: Annotated[ 'TreeNode | None', dynadoc.Doc( "Parent node reference" ) ]
+    ...     left: Annotated[ 'TreeNode | None', dynadoc.Doc( "Left child node" ) ]
+    ...     right: Annotated[ 'TreeNode | None', dynadoc.Doc( "Right child node" ) ]
+    >>>
+    >>> print( TreeNode.__doc__ )
+    Binary tree node with parent and child references.
+    <BLANKLINE>
+    :ivar value: Node value
+    :vartype value: int
+    :ivar parent: Parent node reference
+    :vartype parent: TreeNode | None
+    :ivar left: Left child node
+    :vartype left: TreeNode | None
+    :ivar right: Right child node
+    :vartype right: TreeNode | None
+
+Note how the stringified forward references like ``'TreeNode | None'`` are handled
+gracefully. The ``dynadoc`` library extracts clean type names from forward
+references, ensuring robust documentation generation even with self-referential
+type dependencies.
+
+
 Performance Optimization
 ===============================================================================
 
