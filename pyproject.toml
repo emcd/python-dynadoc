@@ -53,6 +53,7 @@ year-of-origin = 2025
 gha-runners = [
   '/home/runner/work/python-dynadoc/python-dynadoc/',
   '/Users/runner/work/python-dynadoc/python-dynadoc/',
+  'C:\a\python-dynadoc\python-dynadoc\',
   'D:\a\python-dynadoc\python-dynadoc\',
 ]
 [tool.coverage.run]
@@ -94,9 +95,7 @@ description = ''' Development environment. '''
 dependencies = [
   'Jinja2',
   'coverage[toml]',
-  'emcd-projects',
   'furo',
-  'icecream-truck',
   'packaging',
   'pre-commit',
   'pyright',
