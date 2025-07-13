@@ -66,11 +66,11 @@ def _extract_qualident( name: str, context: __.Context ) -> str:
         representation when direct name access is not available.
     '''
     extract = _qualident_regex.match( name )
-    if extract is not None: return extract[ 1 ]
+    if extract is not None: return extract[ 1 ] # pragma: no cover
     return '<unknown>'
 
 
-def _format_annotation(
+def _format_annotation( # noqa: PLR0911
     annotation: __.typx.Any, context: __.Context, style: Style
 ) -> str:
     ''' Formats a type annotation as a string for documentation.
@@ -78,6 +78,11 @@ def _format_annotation(
         Handles various annotation types including unions, generics,
         and literals. Formats according to the selected style.
     '''
+    if isinstance( annotation, str ): # Cannot do much with unresolved strings.
+        # TODO? Parse string and try to resolve generic arguments, etc....
+        return annotation
+    if isinstance( annotation, __.typx.ForwardRef ): # Extract string.
+        return annotation.__forward_arg__
     if isinstance( annotation, list ):
         seqstr = ', '.join(
             _format_annotation( element, context, style )

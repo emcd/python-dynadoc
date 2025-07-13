@@ -132,6 +132,10 @@ def reduce_annotation(
     # TODO: Short-circuit on cache hit.
     #       Need to ensure copy of adjuncts data is retrieved too.
     # if annotation_r is not _interfaces.absent: return annotation_r
+    if isinstance( annotation, str ): # Cannot do much with unresolved strings.
+        return cache.enter( annotation, annotation )
+    if isinstance( annotation, __.typx.ForwardRef ): # Extract string.
+        return cache.enter( annotation, annotation.__forward_arg__ )
     cache.enter( annotation ) # mark as incomplete
     return cache.enter(
         annotation,
@@ -141,18 +145,22 @@ def reduce_annotation(
 def _access_annotations(
     possessor: _nomina.Documentable, /, context: _context.Context
 ) -> __.cabc.Mapping[ str, __.typx.Any ]:
-    ''' Accesses annotations from a documentable object.
-
-        Retrieves annotations with appropriate resolver settings from the
-        context. Handles errors gracefully.
-    '''
-    nomargs: _nomina.Variables = dict( eval_str = True )
-    nomargs[ 'globals' ] = context.resolver_globals
-    nomargs[ 'locals' ] = context.resolver_locals
+    # TODO? Option to attempt resolution of strings.
+    #       Probably after retrieval of annotations dictionary
+    #       to prevent 'NameError' from ruining everything.
+    #       Would leave unresolvable strings as strings.
+    # TODO? Option 'strict' to force resolution of all strings.
+    # TODO: Switch to '__.typx.get_annotations'.
+    ''' Accesses annotations from documentable object. '''
+    # nomargs: _nomina.Variables = dict( eval_str = True )
+    # nomargs[ 'globals' ] = context.resolver_globals
+    # nomargs[ 'locals' ] = context.resolver_locals
     try:
+        # return __.types.MappingProxyType(
+        #     __.inspect.get_annotations( possessor, **nomargs ) )
         return __.types.MappingProxyType(
-            __.inspect.get_annotations( possessor, **nomargs ) )
-    except TypeError as exc:
+            __.inspect.get_annotations( possessor ) )
+    except ( NameError, TypeError ) as exc:
         emessage = f"Cannot access annotations for {possessor!r}: {exc}"
         context.notifier( 'error', emessage )
         return __.dictproxy_empty

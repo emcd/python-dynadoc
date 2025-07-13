@@ -20,8 +20,6 @@
 
 ''' Assert correct function of Sphinx autodoc renderer. '''
 
-# ruff: noqa: E712
-
 
 import types
 
@@ -68,7 +66,26 @@ def test_100_format_annotation_no_arguments( ):
         typing_module.typx.get_args = original_get_args
 
 
-def test_101_produce_fragment_partial_unrecognized_information( ):
+def test_101_format_annotation_forward_ref( ):
+    ''' _format_annotation handles ForwardRef objects. '''
+    renderers_module = cache_import_module(
+        f"{PACKAGE_NAME}.renderers.sphinxad" )
+    context_module = cache_import_module( f"{PACKAGE_NAME}.context" )
+    typing_module = cache_import_module( f"{PACKAGE_NAME}.__" )
+    context = context_module.Context(
+        notifier = lambda level, msg: None,
+        fragment_rectifier = lambda fragment, source: fragment,
+        visibility_decider = (
+            lambda possessor, name, annotation, description: True )
+    )
+    forward_ref = typing_module.typx.ForwardRef( 'SomeType' )
+    result = renderers_module._format_annotation(
+        forward_ref, context, renderers_module.Style.Legible
+    )
+    assert result == 'SomeType'
+
+
+def test_102_produce_fragment_partial_unrecognized_information( ):
     ''' _produce_fragment_partial handles unrecognized information types. '''
     renderers_module = cache_import_module(
         f"{PACKAGE_NAME}.renderers.sphinxad" )
@@ -101,7 +118,7 @@ def test_101_produce_fragment_partial_unrecognized_information( ):
     assert 'Unrecognized information' in message
 
 
-def test_102_produce_module_attribute_text_surrogate_mode( ):
+def test_103_produce_module_attribute_text_surrogate_mode( ):
     ''' _produce_module_attribute_text handles ValuationModes.Surrogate. '''
     renderers_module = cache_import_module(
         f"{PACKAGE_NAME}.renderers.sphinxad" )
@@ -138,7 +155,7 @@ def test_102_produce_module_attribute_text_surrogate_mode( ):
     assert 'Custom surrogate description' not in result
 
 
-def test_103_produce_module_attribute_text_no_annotation( ):
+def test_104_produce_module_attribute_text_no_annotation( ):
     ''' Handles module attributes without annotations. '''
     renderers_module = cache_import_module(
         f"{PACKAGE_NAME}.renderers.sphinxad" )

@@ -18,7 +18,7 @@
 #============================================================================#
 
 
-''' Common imports and type aliases used throughout the package. '''
+''' Common imports used throughout the package. '''
 
 # ruff: noqa: F401
 

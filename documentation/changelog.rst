@@ -23,6 +23,15 @@ Release Notes
 
 .. towncrier release notes start
 
+Dynadoc 1.3 (2025-07-12)
+========================
+
+Enhancements
+------------
+
+- Improve handling of stringified type annotations and forward references.
+
+
 Dynadoc 1.2.1 (2025-06-05)
 ==========================
 

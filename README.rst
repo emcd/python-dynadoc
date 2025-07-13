@@ -49,6 +49,7 @@
 and **automatic documentation generation** with configurable renderers and
 support for reusable fragments.
 
+
 Key Features ⭐
 ===============================================================================
 
@@ -65,17 +66,26 @@ Key Features ⭐
 * 🎨 **Configurable Renderers**: Ability to extend with other renderers as
   desired.
 
+
 Installation 📦
 ===============================================================================
 
-Via `uv <https://github.com/astral-sh/uv/blob/main/README.md>`_ ``pip``
-command::
+Method: Install Python Package
+-------------------------------------------------------------------------------
+
+Install via `uv <https://github.com/astral-sh/uv/blob/main/README.md>`_ ``pip``
+command:
+
+::
 
     uv pip install dynadoc
 
-Or, via ``pip``::
+Or, install via ``pip``:
+
+::
 
     pip install dynadoc
+
 
 Examples 💡
 ===============================================================================
@@ -122,6 +132,24 @@ Document all annotated attributes in current module:
 
     dynadoc.assign_module_docstring( __name__ )
 
+
+Contribution 🤝
+===============================================================================
+
+Contribution to this project is welcome! However, it must follow the `code of
+conduct
+<https://emcd.github.io/python-project-common/stable/sphinx-html/common/conduct.html>`_
+for the project.
+
+Please file bug reports and feature requests in the `issue tracker
+<https://github.com/emcd/python-dynadoc/issues>`_ or submit `pull
+requests <https://github.com/emcd/python-dynadoc/pulls>`_ to
+improve the source code or documentation.
+
+For development guidance and standards, please see the `development guide
+<https://emcd.github.io/python-dynadoc/stable/sphinx-html/contribution.html#development>`_.
+
+
 `More Flair <https://www.imdb.com/title/tt0151804/characters/nm0431918>`_
 ===============================================================================
 
@@ -162,24 +190,24 @@ Other Projects by This Author 🌟
 ===============================================================================
 
 
-* `python-absence <https://github.com/emcd/python-absence>`_ (`absence <https://pypi.org/project/absence/>`_ on PyPI) 
+* `python-absence <https://github.com/emcd/python-absence>`_ (`absence <https://pypi.org/project/absence/>`_ on PyPI)
 
   🕳️ A Python library package which provides a **sentinel for absent values** - a falsey, immutable singleton that represents the absence of a value in contexts where ``None`` or ``False`` may be valid values.
-* `python-accretive <https://github.com/emcd/python-accretive>`_ (`accretive <https://pypi.org/project/accretive/>`_ on PyPI) 
+* `python-accretive <https://github.com/emcd/python-accretive>`_ (`accretive <https://pypi.org/project/accretive/>`_ on PyPI)
 
   🌌 A Python library package which provides **accretive data structures** - collections which can grow but never shrink.
-* `python-classcore <https://github.com/emcd/python-classcore>`_ (`classcore <https://pypi.org/project/classcore/>`_ on PyPI) 
+* `python-classcore <https://github.com/emcd/python-classcore>`_ (`classcore <https://pypi.org/project/classcore/>`_ on PyPI)
 
   🏭 A Python library package which provides **foundational class factories and decorators** for providing classes with attributes immutability and concealment and other custom behaviors.
-* `python-falsifier <https://github.com/emcd/python-falsifier>`_ (`falsifier <https://pypi.org/project/falsifier/>`_ on PyPI) 
+* `python-falsifier <https://github.com/emcd/python-falsifier>`_ (`falsifier <https://pypi.org/project/falsifier/>`_ on PyPI)
 
   🎭 A very simple Python library package which provides a **base class for falsey objects** - objects that evaluate to ``False`` in boolean contexts.
-* `python-frigid <https://github.com/emcd/python-frigid>`_ (`frigid <https://pypi.org/project/frigid/>`_ on PyPI) 
+* `python-frigid <https://github.com/emcd/python-frigid>`_ (`frigid <https://pypi.org/project/frigid/>`_ on PyPI)
 
   🔒 A Python library package which provides **immutable data structures** - collections which cannot be modified after creation.
-* `python-icecream-truck <https://github.com/emcd/python-icecream-truck>`_ (`icecream-truck <https://pypi.org/project/icecream-truck/>`_ on PyPI) 
+* `python-icecream-truck <https://github.com/emcd/python-icecream-truck>`_ (`icecream-truck <https://pypi.org/project/icecream-truck/>`_ on PyPI)
 
   🍦 **Flavorful Debugging** - A Python library which enhances the powerful and well-known ``icecream`` package with flavored traces, configuration hierarchies, customized outputs, ready-made recipes, and more.
-* `python-mimeogram <https://github.com/emcd/python-mimeogram>`_ (`mimeogram <https://pypi.org/project/mimeogram/>`_ on PyPI) 
+* `python-mimeogram <https://github.com/emcd/python-mimeogram>`_ (`mimeogram <https://pypi.org/project/mimeogram/>`_ on PyPI)
 
   📨 A command-line tool for **exchanging collections of files with Large Language Models** - bundle multiple files into a single clipboard-ready document while preserving directory structure and metadata... good for code reviews, project sharing, and LLM interactions.
