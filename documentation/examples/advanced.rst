@@ -37,6 +37,22 @@ needs.
     >>> from typing import Annotated
 
 
+Exclusions
+===============================================================================
+
+Sometimes, it is necessary to exclude objects from recursive processing. For
+example, classes or functions, which are meant for consumption by an API
+processor (FastAPI, FastMCP, etc...), should probably not have rendered updates
+to their docstrings. To make such an exclusion, we can register the object with
+the ``exclude`` decorator:
+
+.. doctest:: Advanced
+
+    >>> @dynadoc.exclude
+    ... def api_function( ) -> str: pass
+    ...
+
+
 Custom Renderers
 ===============================================================================
 

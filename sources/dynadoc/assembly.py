@@ -77,6 +77,12 @@ def assign_module_docstring( # noqa: PLR0913
         table = table )
 
 
+def exclude( objct: _xtnsapi.D ) -> _xtnsapi.D:
+    ''' Excludes object from docstring updates. '''
+    _visitees.add( objct )
+    return objct
+
+
 def with_docstring(
     *fragments: _xtnsapi.FragmentsArgumentMultivalent,
     context: _xtnsapi.ContextArgument = context_default,

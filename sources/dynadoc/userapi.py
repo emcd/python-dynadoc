@@ -23,7 +23,7 @@
 # ruff: noqa: F401,F403
 
 
-from .assembly import assign_module_docstring, with_docstring
+from .assembly import assign_module_docstring, exclude, with_docstring
 from .context import *
 from .factories import *
 from .interfaces import (
