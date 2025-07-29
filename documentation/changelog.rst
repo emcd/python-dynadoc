@@ -23,6 +23,18 @@ Release Notes
 
 .. towncrier release notes start
 
+Dynadoc 1.4 (2025-07-28)
+========================
+
+Enhancements
+------------
+
+- Add ``exclude`` decorator to prevent other Dynadoc processing of the object.
+  Does not actually decorate the object in any way, but adds it to Dynadoc's
+  visitees registry, which will cause the Dyandoc decorators to short-circuit on
+  the object.
+
+
 Dynadoc 1.3 (2025-07-12)
 ========================
 
