@@ -103,6 +103,8 @@ linkcheck_ignore = [
     r'https://pypi.org/project/dynadoc/',
     # Github aggressively rate-limits access to certain blobs.
     r'https://github\.com/.*/.*/blob/.*',
+    # Avoid timeouts for slow sites.
+    r'http://www\.catb\.org/~esr/faqs/smart-questions\.html',
 ]
 
 # -- Options for HTML output -------------------------------------------------
@@ -139,6 +141,8 @@ intersphinx_mapping = {
         'https://docs.python.org/3', None),
     'typing-extensions': (
         'https://typing-extensions.readthedocs.io/en/latest', None),
+  # --- BEGIN: Injected by Copier ---
+  # --- END: Injected by Copier ---
 }
 
 # -- Options for todo extension ----------------------------------------------

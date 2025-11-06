@@ -26,7 +26,7 @@
 import inspect
 import types
 
-from . import PACKAGE_NAME, cache_import_module
+from .__ import PACKAGE_NAME, cache_import_module
 
 
 def test_100_introspect_non_documentable( ):

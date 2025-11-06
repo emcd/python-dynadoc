@@ -1,12 +1,11 @@
 # Changes here will be overwritten by Copier
-_commit: v1.33
+_commit: v1.54
 _src_path: gh:emcd/python-project-common
 author_email: emcd@users.noreply.github.com
 author_name: Eric McDonald
 description: Docstring generation from annotations with configurable output formats.
 development_status: 5 - Production/Stable
 distribution_name: dynadoc
-enable_cli: false
 enable_property_tests: false
 enable_publication: true
 enable_rust_extension: false
@@ -17,10 +16,12 @@ package_name: dynadoc
 project_name: python-dynadoc
 pypy_versions:
 - '3.10'
+- '3.11'
 python_version_min: '3.10'
 python_versions:
 - '3.10'
 - '3.11'
 - '3.12'
 - '3.13'
+- '3.14'
 year_of_origin: 2025

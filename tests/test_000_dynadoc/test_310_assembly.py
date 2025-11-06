@@ -30,7 +30,7 @@ from dynadoc import assembly as module
 from dynadoc import context as _context
 from dynadoc import interfaces as _interfaces
 
-from . import PACKAGE_NAME, cache_import_module
+from .__ import PACKAGE_NAME, cache_import_module
 
 
 def test_100_assign_module_docstring_with_module_object( ):
