@@ -131,10 +131,10 @@ Core Decoration
   documentation from function annotations.
 
   Acceptance Criteria:
+
   - Decorator accepts functions with annotated parameters
   - ``Doc`` metadata extracted from ``Annotated`` types
-  - Generated docstring includes ``:argument:``, ``:type:``, ``:returns:``,
-    and ``:rtype:`` fields
+  - Generated docstring includes ``:argument:``, ``:type:``, ``:returns:``, and ``:rtype:`` fields
   - Existing docstring content preserved when ``preserve=True``
   - Works with positional, keyword-only, and variadic parameters
 
@@ -145,8 +145,7 @@ Core Decoration
 
   Acceptance Criteria:
   - Decorator processes class-level annotations
-  - Distinguishes between class variables (``ClassVar``) and instance
-    variables
+  - Distinguishes between class variables (``ClassVar``) and instance variables
   - Generated docstring includes ``:cvar:`` and ``:ivar:`` fields
   - Supports inheritance of annotations when configured
   - Handles properties and descriptors appropriately
@@ -230,10 +229,9 @@ Customization
   documented and documentation scope.
 
   Acceptance Criteria:
-  - ``IntrospectionControl.targets`` specifies classes, functions, modules,
-    descriptors
-  - Per-object ``_dynadoc_introspection_limit_`` attribute overrides global
-    settings
+
+  - ``IntrospectionControl.targets`` specifies classes, functions, modules, and descriptors
+  - Per-object ``_dynadoc_introspection_limit_`` attribute overrides global settings
   - Inheritance handling configurable per class
   - Attribute scanning can be enabled or disabled
   - Maximum recursion depth implicitly controlled by targets
@@ -271,10 +269,10 @@ Configuration
   as needed.
 
   Acceptance Criteria:
+
   - ``Default(mode=ValuationModes.Accept)`` uses actual default value
   - ``Default(mode=ValuationModes.Suppress)`` omits default from documentation
-  - ``Default(mode=ValuationModes.Surrogate, surrogate="value")`` shows
-    alternative
+  - ``Default(mode=ValuationModes.Surrogate, surrogate="value")`` shows an alternative
   - Applied via annotation metadata
   - Works for function parameters and class/module attributes
 
