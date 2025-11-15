@@ -65,6 +65,29 @@ class ResolutionMode(enum.Enum):
 3. **Medium**: Enhanced error handling and namespace inference
 4. **Low**: Full PARSE mode with AST-based string parsing
 
+## Python 3.14 Lazy Annotation Evaluation
+
+### Investigation Needed: `__annotate__` and `annotationslib` Support
+
+Python 3.14 introduces PEP 649 lazy evaluation of annotations:
+- **`__annotate__` method**: Replaces `__annotations__` dict for lazy evaluation
+- **`annotationslib` module**: Provides `get_annotations()` and related utilities
+- **Impact**: May affect how Dynadoc introspects and processes type annotations
+
+**Questions to investigate**:
+1. Does our current `_access_annotations` function handle `__annotate__` correctly?
+2. Should we use `annotationslib.get_annotations()` when available (Python 3.14+)?
+3. How does lazy evaluation interact with our annotation reduction pipeline?
+4. Are there performance implications or opportunities with lazy evaluation?
+5. Do we need special handling for the evaluation context/namespace?
+
+**References**:
+- PEP 649: Deferred Evaluation of Annotations
+- Python 3.14 `annotationslib` documentation
+- Interaction with PEP 727 `Doc` objects
+
+**Priority**: Medium - Should investigate before promoting Python 3.14 support beyond testing
+
 ## Notes
 
 - `evaluate_forward_ref` requires `typing_extensions>=4.13.0`
