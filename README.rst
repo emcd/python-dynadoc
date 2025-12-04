@@ -199,6 +199,9 @@ Other Projects by This Author 🌟
 * `python-classcore <https://github.com/emcd/python-classcore>`_ (`classcore <https://pypi.org/project/classcore/>`_ on PyPI)
 
   🏭 A Python library package which provides **foundational class factories and decorators** for providing classes with attributes immutability and concealment and other custom behaviors.
+* `python-detextive <https://github.com/emcd/python-detextive>`_ (`detextive <https://pypi.org/project/detextive/>`_ on PyPI)
+
+  🕵️ A Python library which provides consolidated text detection capabilities for reliable content analysis. Offers MIME type detection, character set detection, and line separator processing.
 * `python-falsifier <https://github.com/emcd/python-falsifier>`_ (`falsifier <https://pypi.org/project/falsifier/>`_ on PyPI)
 
   🎭 A very simple Python library package which provides a **base class for falsey objects** - objects that evaluate to ``False`` in boolean contexts.
@@ -208,6 +211,9 @@ Other Projects by This Author 🌟
 * `python-icecream-truck <https://github.com/emcd/python-icecream-truck>`_ (`icecream-truck <https://pypi.org/project/icecream-truck/>`_ on PyPI)
 
   🍦 **Flavorful Debugging** - A Python library which enhances the powerful and well-known ``icecream`` package with flavored traces, configuration hierarchies, customized outputs, ready-made recipes, and more.
+* `python-librovore <https://github.com/emcd/python-librovore>`_ (`librovore <https://pypi.org/project/librovore/>`_ on PyPI)
+
+  🐲 **Documentation Search Engine** - An intelligent documentation search and extraction tool that provides both a command-line interface for humans and an MCP (Model Context Protocol) server for AI agents. Search across Sphinx and MkDocs sites with fuzzy matching, extract clean markdown content, and integrate seamlessly with AI development workflows.
 * `python-mimeogram <https://github.com/emcd/python-mimeogram>`_ (`mimeogram <https://pypi.org/project/mimeogram/>`_ on PyPI)
 
   📨 A command-line tool for **exchanging collections of files with Large Language Models** - bundle multiple files into a single clipboard-ready document while preserving directory structure and metadata... good for code reviews, project sharing, and LLM interactions.

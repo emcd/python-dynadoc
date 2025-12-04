@@ -38,8 +38,9 @@
 from . import __
 from . import nomina as _nomina
 
-
-try: from typing_extensions import Doc # pyright: ignore[reportAssignmentType]
+try:
+    from typing_extensions import Doc as _Doc
+    Doc = _Doc  # pyright: ignore[reportAssignmentType]
 except ImportError: # pragma: no cover
 
     @__.dcls.dataclass( frozen = True, slots = True )
