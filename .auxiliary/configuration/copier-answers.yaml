@@ -1,5 +1,5 @@
 # Changes here will be overwritten by Copier
-_commit: v1.57
+_commit: v1.58.2
 _src_path: gh:emcd/python-project-common
 author_email: emcd@users.noreply.github.com
 author_name: Eric McDonald
@@ -15,7 +15,6 @@ inject_foundations: false
 package_name: dynadoc
 project_name: python-dynadoc
 pypy_versions:
-- '3.10'
 - '3.11'
 python_version_min: '3.10'
 python_versions:

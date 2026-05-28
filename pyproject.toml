@@ -96,7 +96,6 @@ description = ''' Development environment. '''
 builder = true
 dependencies = [
   'coverage[toml]',
-  'emcd-vibe-linter',
   'furo',
   'isort',
   'myst-parser',
@@ -175,7 +174,6 @@ python = [
     '3.12',
     '3.13',
     '3.14',
-    'pypy3.10',
     'pypy3.11',
 ]
 [tool.hatch.version]
