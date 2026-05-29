@@ -176,7 +176,7 @@ def _classes_sequence_to_union(
     '''
     if not isinstance( annotation, __.cabc.Sequence ):
         return annotation
-    return __.funct.reduce( __.operator.or_, annotation )
+    return __.funct.reduce( lambda a, b: a | b, annotation )
 
 
 def _compile_description(
@@ -255,7 +255,7 @@ def _filter_reconstitute_annotation(
         if origin in ( __.types.UnionType, __.typx.Union ):
             # Unions cannot be reconstructed from sequences.
             # TODO: Python 3.11: Unpack into subscript.
-            annotation = __.funct.reduce( __.operator.or_, arguments_r )
+            annotation = __.funct.reduce( lambda a, b: a | b, arguments_r )
         else:
             match len( arguments_r ):
                 case 1: annotation = origin[ arguments_r[ 0 ] ]
