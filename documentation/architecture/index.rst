@@ -24,7 +24,4 @@ Architecture
 .. toctree::
    :maxdepth: 2
 
-   summary
-   filesystem
    designs/index
-   testplans/index

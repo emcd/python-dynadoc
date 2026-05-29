@@ -141,4 +141,4 @@ Use `openspec/AGENTS.md` to learn:
 # Project Notes
 
 <!-- This section accumulates project-specific knowledge, constraints, and deviations.
-     For structured items, use documentation/architecture/decisions/ and `nb`. -->
+     For structured items, use OpenSpec proposals and `nb`. -->
