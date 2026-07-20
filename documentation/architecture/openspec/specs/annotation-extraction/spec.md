@@ -72,4 +72,5 @@ Priority: High
 #### Scenario: Invalid Metadata
 - **WHEN** annotation metadata is invalid (e.g., non-Doc object where expected)
 - **THEN** a warning is issued via the notifier
+- **AND** the invalid metadata is dropped from processing
 - **AND** the process continues without crashing

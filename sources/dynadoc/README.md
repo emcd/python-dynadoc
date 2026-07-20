@@ -49,8 +49,9 @@ and introspection control settings.
 
 Orchestrates docstring generation and object decoration:
 
-* **Entry Points**: Provides `with_docstring` decorator for functions/classes
-  and `assign_module_docstring` for modules
+* **Entry Points**: Provides `with_docstring` decorator for functions/classes,
+  `assign_module_docstring` for modules, and `exclude` decorator to prevent
+  objects from being processed during recursive decoration
 * **Fragment Collection**: Gathers docstring fragments from multiple sources:
   existing docstrings, explicit fragment arguments, fragment tables, and
   introspection results
