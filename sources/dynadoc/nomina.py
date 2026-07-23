@@ -24,7 +24,7 @@
 from . import __
 
 
-Decoratable: __.typx.TypeAlias = type | __.cabc.Callable[ ..., __.typx.Any ]
+Decoratable: __.typx.TypeAlias = __.cabc.Callable[ ..., __.typx.Any ]
 Documentable: __.typx.TypeAlias = __.types.ModuleType | Decoratable
 D = __.typx.TypeVar( 'D', bound = Decoratable )
 
