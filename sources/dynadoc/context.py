@@ -96,7 +96,7 @@ class ClassIntrospector( __.typx.Protocol ):
     ''' Custom introspector for class annotations and attributes. '''
 
     @staticmethod
-    def __call__( # noqa: PLR0913
+    def __call__( # noqa: PLR0913,PLR0917
         possessor: _interfaces.PossessorClassArgument, /,
         context: ContextArgument,
         introspection: IntrospectionArgumentFref,

@@ -43,7 +43,7 @@ def rectify_fragment(
         case _: return __.inspect.cleandoc( fragment ).rstrip( )
 
 
-def produce_context( # noqa: PLR0913
+def produce_context( # noqa: PLR0913,PLR0917
     invoker_globals: _xtnsapi.InvokerGlobalsArgument = None,
     resolver_globals: _xtnsapi.ResolverGlobalsArgument = None,
     resolver_locals: _xtnsapi.ResolverLocalsArgument = None,

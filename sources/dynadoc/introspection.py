@@ -63,7 +63,7 @@ def introspect(
     return ( )
 
 
-def introspect_special_classes( # noqa: PLR0913
+def introspect_special_classes( # noqa: PLR0913,PLR0917
     possessor: _interfaces.PossessorClassArgument, /,
     context: _context.ContextArgument,
     introspection: _context.IntrospectionArgument,
@@ -546,7 +546,7 @@ def _introspect_module_attributes(
     return informations
 
 
-def _is_attribute_visible( # noqa: PLR0913
+def _is_attribute_visible( # noqa: PLR0913,PLR0917
     possessor: _nomina.Documentable,
     name: str,
     annotation: __.typx.Any,

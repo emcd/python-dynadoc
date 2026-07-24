@@ -150,7 +150,7 @@ def _collect_fragments(
     return fragments
 
 
-def _consider_class_attribute( # noqa: C901,PLR0913
+def _consider_class_attribute( # noqa: C901,PLR0913,PLR0917
     attribute: object, /,
     context: _xtnsapi.Context,
     introspection: _xtnsapi.IntrospectionControl,
@@ -233,7 +233,7 @@ def _consider_module_attribute(
     return attribute_, update_surface
 
 
-def _decorate( # noqa: PLR0913
+def _decorate( # noqa: PLR0913,PLR0917
     objct: _xtnsapi.Documentable, /,
     context: _xtnsapi.Context,
     introspection: _xtnsapi.IntrospectionControl,
@@ -281,7 +281,7 @@ def _decorate( # noqa: PLR0913
         table = table )
 
 
-def _decorate_core( # noqa: PLR0913
+def _decorate_core( # noqa: PLR0913,PLR0917
     objct: _xtnsapi.Documentable, /,
     context: _xtnsapi.Context,
     introspection: _xtnsapi.IntrospectionControl,
@@ -317,7 +317,7 @@ def _decorate_core( # noqa: PLR0913
     objct.__doc__ = docstring if docstring else None
 
 
-def _decorate_class_attributes( # noqa: PLR0913
+def _decorate_class_attributes( # noqa: PLR0913,PLR0917
     objct: type, /,
     context: _xtnsapi.Context,
     introspection: _xtnsapi.IntrospectionControl,
@@ -352,7 +352,7 @@ def _decorate_class_attributes( # noqa: PLR0913
             surface_attribute.__doc__ = attribute.__doc__
 
 
-def _decorate_module_attributes( # noqa: PLR0913
+def _decorate_module_attributes( # noqa: PLR0913,PLR0917
     module: __.types.ModuleType, /,
     context: _xtnsapi.Context,
     introspection: _xtnsapi.IntrospectionControl,
