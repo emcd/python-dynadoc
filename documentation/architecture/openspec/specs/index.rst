@@ -18,10 +18,13 @@
 
 
 *******************************************************************************
-Architecture
+Capability Specifications
 *******************************************************************************
 
 .. toctree::
    :maxdepth: 2
 
-   designs/index
+   annotation-extraction/spec
+   core-decoration/spec
+   customization/spec
+   introspection/spec

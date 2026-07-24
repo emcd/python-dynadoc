@@ -63,8 +63,8 @@ Architecture
   `nb` for scoped implementation tasks.
 
 * Document technical design specifications for Python interfaces, module
-  organization, and implementation patterns in :doc:`design documents
-  <architecture/designs/index>` to guide implementation efforts.
+  organization, and implementation patterns in :doc:`OpenSpec capability specs
+  <architecture/openspec/specs/index>` to guide implementation efforts.
 
 Guidance and Standards
 -------------------------------------------------------------------------------
@@ -128,7 +128,7 @@ Resources
 
    Code of Conduct <https://emcd.github.io/python-project-common/stable/sphinx-html/common/conduct.html>
    specifications/index
-   architecture/index
+   architecture/openspec/specs/index
    devapi
    Environment Guide <https://emcd.github.io/python-project-common/stable/sphinx-html/common/environment.html>
    Practices Guide <https://emcd.github.io/python-project-common/stable/sphinx-html/common/practices.html>
