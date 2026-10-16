@@ -5,20 +5,18 @@
 - Use the 'context7' MCP server to retrieve up-to-date documentation for any SDKs or APIs.
 - Use the 'nb' MCP server for project note-taking, issue tracking, and collaboration. The server provides LLM-friendly access to the `nb` note-taking system with proper escaping and project-specific notebook context.
 - Check README files in directories you're working with for insights about architecture and design decisions.
-
-## Purpose
-[Describe your project's purpose and goals]
-
-## Tech Stack
-[List your primary technologies]
+- Project purpose, tech stack, and other project-owned guidance: @.auxiliary/agents/project.md
 
 # Development Standards
-Before implementing code changes, consult these files in `.auxiliary/instructions/`:
-- `practices.rst` - General development principles (robustness, immutability, exception chaining)
-- `practices-python.rst` - Python-specific patterns (module organization, type annotations, wide parameter/narrow return)
-- `nomenclature.rst` - Naming conventions for variables, functions, classes, exceptions
-- `style.rst` - Code formatting standards (spacing, line length, documentation mood)
-- `validation.rst` - Quality assurance requirements (linters, type checkers, tests)
+
+Before implementing code changes, consult these files in `.auxiliary/agents/standards/`:
+- `practices.md` - General development principles (robustness, immutability, exception chaining)
+- `practices-python.md` - Python-specific patterns (module organization, type annotations, wide parameter/narrow return)
+- `nomenclature.md` - Naming conventions for variables, functions, classes, exceptions
+- `style.md` - Code formatting standards (spacing, line length, documentation mood)
+- `validation.md` - Quality assurance requirements (linters, type checkers, tests)
+- `tests.md` - Testing expectations and patterns (observable behavior through public contracts)
+- `contribution.md` - Contribution workflow (conduct, validation before submit, OpenSpec proposal flow)
 
 # Operation
 
@@ -28,20 +26,24 @@ Before implementing code changes, consult these files in `.auxiliary/instruction
   - If a touched subsystem README is stale after your change, update it in the same batch.
 - Use relative paths rather than absolute paths when possible (relative paths are less likely to trigger tool call permission requests).
 - Do not write to paths outside the current project unless explicitly requested.
+- Do **not** run `find`, `fd`, or other unbounded recursive walks on `/`, `~`, or other home-wide roots. Scope searches to the current project/worktree or a path the operator named. Prefer harness file-search tools when available.
+- Notebook and project-note operations go through the **`nb` MCP** tools. Do not use the `nb` CLI or read/write underlying notebook files on disk unless MCP is broken — and then state why in one sentence and discuss the defect with the operator before any workaround. Selectors are not repo filesystem paths; see @.auxiliary/agents/procedures/notebook.md.
 - Use `.auxiliary/scribbles` for scratch work and one-off experiments instead of `/tmp`.
 - Use `.auxiliary/temporary` for ephemeral test state and build artifacts that are safe to delete.
 - In sandboxed environments (e.g., Codex CLI), treat file/network permission failures as escalation boundaries:
   - If an operation fails due to sandbox, file access, or network restrictions, rerun it with user escalation.
   - Do not spend time on retry loops or workaround exploration before escalating blocked operations.
 - When writing here-docs or multi-line shell strings, suppress expansions by quoting the delimiter (e.g., `'EOF'` instead of `EOF`) unless you intentionally need variable or command substitution.
+- Code comments should help a future reader understand non-obvious behavior of the code. Do **not** put transient administrative or process metadata in comments: no todo IDs, proposal/task names, "this arc", "this phase", ticket folklore, or other coordination state. Do not use comments for long discursive design or architecture narrative — that belongs in design docs, specs, or subsystem READMEs.
 
 ## Guidance Files
 
 | Topic | File |
 |-------|------|
-| `nb` MCP tools, tagging, and notebook organization | @documentation/agents/notebook.md |
-| OpenSpec proposals and workflow | @documentation/agents/openspec.md |
-| Delegated review flow and stacked commits | @documentation/agents/reviews.md |
+| Project-specific guidance (project-owned) | @.auxiliary/agents/project.md |
+| `nb` MCP tools, tagging, notebook organization, and handoff hygiene | @.auxiliary/agents/procedures/notebook.md |
+| OpenSpec proposals and workflow | @.auxiliary/agents/procedures/openspec.md |
+| Delegated review flow and stacked commits | @.auxiliary/agents/procedures/reviews.md |
 
 ### Recommended Organization
 
@@ -73,26 +75,14 @@ Before implementing code changes, consult these files in `.auxiliary/instruction
   - you are handing off completed work with validation results,
   - you are reporting a material risk, failure, or scope change.
 - Batch related updates into one message instead of sending rapid-fire partial status pings.
-- Use `Cc` only for agents who need to act or review; avoid broad `Cc` by default.
+- Use `Cc` only for agents who need to act or review; avoid broad `Cc` by default. Do not use `Cc` to engage a Tier-2 Reviewer. Tier routing is in @.auxiliary/agents/procedures/reviews.md.
 - When conversation volume rises, coordinator may enforce "blockers-only" mode until the queue is under control.
 
 ## OpenSpec Instructions
 
-This project uses OpenSpec 1.x (OPSX), the action-based workflow. OPSX skills
-deliver workflow instructions through the agentsmgr distribution pipeline.
+This project uses OpenSpec 1.x (OPSX). Skills, CLI queries, and conventions: @.auxiliary/agents/procedures/openspec.md.
 
-Workflow skills: `opsx-propose`, `opsx-explore`, `opsx-apply`,
-`opsx-sync`, `opsx-archive`.
-
-Use OPSX skills when the request:
-- Mentions planning or proposals (words like proposal, spec, change, plan).
-- Introduces new capabilities, breaking changes, architecture shifts, or big performance/security work.
-- Sounds ambiguous and you need the authoritative spec before coding.
-
-CLI state queries: `openspec list`, `openspec list --specs`,
-`openspec status --change <id>`, `openspec validate --all --strict`.
-
-When a commit completes an OpenSpec task or requirement, update the relevant OpenSpec task status in the same commit.
+Use an OPSX skill when the request mentions a proposal, spec, or plan; introduces a new capability, breaking change, or architecture shift; or is too ambiguous to implement without the spec. When a commit completes an OpenSpec task or requirement, update that task status in the same commit.
 
 # Commits
 
@@ -108,15 +98,28 @@ When a commit completes an OpenSpec task or requirement, update the relevant Ope
 
 ## Delegated Review and Stacked Commits
 
-**Read this section before reviewing or stacking commits.** @documentation/agents/reviews.md covers the delegated review flow, review request packet format, and how to handle stacked commits with `--fixup`/`--autosquash`.
+**Read this section before reviewing or stacking commits.** @.auxiliary/agents/procedures/reviews.md covers the delegated review flow, review request packet format, and how to handle stacked commits with `--fixup`/`--autosquash`.
 
-# Project Notes
+# Collaboration
 
-<!-- This section accumulates project-specific knowledge, constraints, and deviations.
-     For structured items, use `nb`.
+## Questions Are Not Stop-Orders
 
-     TODO: If this project uses multiple agent/worktree roles, create a stable
-     team-organization note in `nb`, modeled after one of the examples at:
-     https://raw.githubusercontent.com/emcd/agents-common/master/examples/nb-notes/team-organization/README.md
-     Then link the note here, for example:
-     - Team org, role ownership, signoff policy, and merge workflow: `coordination/general/<n>` -->
+- When the operator asks why you are doing something, **answer first**: state your actual reason in one or two sentences, even if it is unflattering, before changing course. The question is a request for information, not a rebuke. Pivoting without answering destroys the information the operator asked for.
+- Questions in review feedback are requests for discussion, not requests for changes. Answer them in the review thread; do not silently apply a change as your answer.
+- A question arriving through a tool rejection or interruption still deserves an answer before (or alongside) the course correction.
+
+## The Human Is Not Always Right
+
+- Assert your reasons. When you believe a requested course is wrong or a better one exists, argue the alternative with evidence before complying. Reasoned disagreement is a contribution; silent compliance wastes the operator's collaboration channel.
+- Concede on evidence, not on authority. Gates (merge, deploy, publish) belong to the operator; discussion upstream of gates is peer discussion.
+- However, do not manufacture dissent. When you agree, say so briefly and proceed.
+
+## Workarounds Require Stated Reasons
+
+- Routing around a designated tool (for example reading notebook files from the filesystem instead of using the nb MCP tools) is evidence of a defect — in the tool, its documentation, or the workflow. Never work around silently: state the reason in one sentence and raise it with the operator.
+- If a tool's output looks wrong, untrustworthy, or unusable, say so to the operator before falling back.
+
+# Project Guidance
+
+Read and follow @.auxiliary/agents/project.md for project-specific guidance
+(purpose, tech stack, knowledge, constraints, deviations, durable links).
