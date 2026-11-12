@@ -1,72 +1,78 @@
 # vim: set filetype=python fileencoding=utf-8:
 # -*- mode: python ; coding: utf-8 -*-
 
-''' Configuration file for the Sphinx documentation builder.
+"""Configuration file for the Sphinx documentation builder.
 
-    This file only contains a selection of the most common options.
-    For a full list, see the documentation:
-        https://www.sphinx-doc.org/en/master/usage/configuration.html
-    Also, see this nice article on Sphinx customization:
-        https://jareddillard.com/blog/common-ways-to-customize-sphinx-themes.html
-'''
+This file only contains a selection of the most common options.
+For a full list, see the documentation:
+    https://www.sphinx-doc.org/en/master/usage/configuration.html
+Also, see this nice article on Sphinx customization:
+    https://jareddillard.com/blog/common-ways-to-customize-sphinx-themes.html
+"""
 
 
-def _calculate_copyright_notice( ):
+def _calculate_copyright_notice():
     from datetime import datetime as DateTime, timezone as TimeZone
+
     first_year = 2025
-    now_year = DateTime.now( TimeZone.utc ).year
-    if first_year < now_year: year_range = f"{first_year}-{now_year}"
-    else: year_range = str( first_year )
+    now_year = DateTime.now(TimeZone.utc).year
+    if first_year < now_year:
+        year_range = f"{first_year}-{now_year}"
+    else:
+        year_range = str(first_year)
     return f"{year_range}, Eric McDonald"
 
 
-def _import_version( ):
+def _import_version():
     from importlib import import_module
     from pathlib import Path
     from sys import path
-    project_location = Path( __file__ ).parent.parent
-    path.insert( 0, str( project_location / 'sources' ) )
-    module = import_module( 'dynadoc' )
+
+    project_location = Path(__file__).parent.parent
+    path.insert(0, str(project_location / "sources"))
+    module = import_module("dynadoc")
     return module.__version__
 
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = 'python-dynadoc'
-author = 'Eric McDonald'
-copyright = ( # noqa: A001
-    _calculate_copyright_notice( ) )
-release = version = _import_version( )
+project = "python-dynadoc"
+author = "Eric McDonald"
+copyright = (  # noqa: A001
+    _calculate_copyright_notice()
+)
+release = version = _import_version()
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
 extensions = [
-    'sphinx.ext.autodoc',
-    'sphinx.ext.doctest',
-    'sphinx.ext.graphviz',
-    'sphinx.ext.intersphinx',
-    'sphinx.ext.todo',
-    'sphinx.ext.githubpages',
-    'myst_parser',
-    'sphinx_copybutton',
-    'sphinx_inline_tabs',
+    "sphinx.ext.autodoc",
+    "sphinx.ext.doctest",
+    "sphinx.ext.graphviz",
+    "sphinx.ext.intersphinx",
+    "sphinx.ext.todo",
+    "sphinx.ext.githubpages",
+    "myst_parser",
+    "sphinx_copybutton",
+    "sphinx_inline_tabs",
 ]
 
-templates_path = [ '_templates' ]
+templates_path = ["_templates"]
 
 exclude_patterns = [
-    'architecture/**',
+    "applying-template-updates.md",
+    "architecture/**",
 ]
 
-rst_prolog = f'''
+rst_prolog = f"""
 .. |project| replace:: {project}
-'''
+"""
 
 source_suffix = {
-    '.rst': 'restructuredtext',
-    '.md': 'markdown',
+    ".rst": "restructuredtext",
+    ".md": "markdown",
 }
 
 nitpicky = True
@@ -74,45 +80,50 @@ nitpick_ignore = [
     # Workaround for https://bugs.python.org/issue11975
     # Found on Stack Overflow (credit to Astropy project):
     #   https://stackoverflow.com/a/30624034
-    ( 'py:class', "D[k] if k in D, else d.  d defaults to None." ),
-    ( 'py:class', "None.  Remove all items from D." ),
-    ( 'py:class', "a set-like object providing a view on D's items" ),
-    ( 'py:class', "a set-like object providing a view on D's keys" ),
-    ( 'py:class', "an object providing a view on D's values" ),
-    ( 'py:class', "functools.partial" ),
-    ( 'py:class', "mappingproxy" ),
-    ( 'py:class', "module" ),
-    ( 'py:class',
-      "v, remove specified key and return the corresponding value." ),
+    ("py:class", "D[k] if k in D, else d.  d defaults to None."),
+    ("py:class", "None.  Remove all items from D."),
+    ("py:class", "a set-like object providing a view on D's items"),
+    ("py:class", "a set-like object providing a view on D's keys"),
+    ("py:class", "an object providing a view on D's values"),
+    ("py:class", "functools.partial"),
+    ("py:class", "mappingproxy"),
+    ("py:class", "module"),
+    (
+        "py:class",
+        "v, remove specified key and return the corresponding value.",
+    ),
     # Type annotation weirdnesses.
-    ( 'py:class', "Doc" ),
-    ( 'py:class', "builtins.NotImplementedType" ),
-    ( 'py:class', "dynadoc.context.Context" ),
-    ( 'py:class', "dynadoc.context.RecursionTargets" ),
-    ( 'py:class', "dynadoc.nomina.D" ),
-    ( 'py:class', "dynadoc.xtnsapi.Renderer" ),
-    ( 'py:class', "types.Annotated" ),
-    ( 'py:class', "typing_extensions.Any" ),
-    ( 'py:class', "typing_extensions.Self" ),
-    ( 'py:obj', "dynadoc.nomina.D" ),
+    ("py:class", "Doc"),
+    ("py:class", "builtins.NotImplementedType"),
+    ("py:class", "dynadoc.context.Context"),
+    ("py:class", "dynadoc.context.RecursionTargets"),
+    ("py:class", "dynadoc.nomina.D"),
+    ("py:class", "dynadoc.xtnsapi.Renderer"),
+    ("py:class", "types.Annotated"),
+    ("py:class", "typing_extensions.Any"),
+    ("py:class", "typing_extensions.Self"),
+    ("py:obj", "dynadoc.nomina.D"),
 ]
 
 # -- Options for linkcheck builder -------------------------------------------
 
 linkcheck_ignore = [
     # Circular dependency between building HTML and publishing it.
-    r'https://emcd\.github\.io/python-dynadoc/.*',
+    r"https://emcd\.github\.io/python-dynadoc/.*",
     # Stack Overflow rate limits too aggressively, which breaks matrix builds.
-    r'https://stackoverflow\.com/help/.*',
+    r"https://stackoverflow\.com/help/.*",
     # Repository does not exist during initial development.
-    r'https://github\.com/emcd/python-dynadoc',
-    r'https://github\.com/emcd/python-dynadoc/.*',
+    r"https://github\.com/emcd/python-dynadoc",
+    r"https://github\.com/emcd/python-dynadoc/.*",
     # Package does not exist during initial development.
-    r'https://pypi.org/project/dynadoc/',
+    r"https://pypi.org/project/dynadoc/",
     # Github aggressively rate-limits access to certain blobs.
-    r'https://github\.com/.*/.*/blob/.*',
+    r"https://github\.com/.*/.*/blob/.*",
+    # Crates.io fingerprints user agents and 404s bot-like probes
+    # (e.g. linkcheck), so all crate pages must be ignored.
+    r"https://crates\.io/crates/.*",
     # Avoid timeouts for slow sites.
-    r'http://www\.catb\.org/~esr/faqs/smart-questions\.html',
+    r"http://www\.catb\.org/~esr/faqs/smart-questions\.html",
 ]
 
 # -- Options for HTML output -------------------------------------------------
@@ -120,37 +131,38 @@ linkcheck_ignore = [
 
 # The theme to use for HTML and HTML Help pages.
 # https://github.com/pradyunsg/furo
-html_theme = 'furo'
+html_theme = "furo"
 html_theme_options = {
-    'navigation_with_keys': True,
-    'sidebar_hide_name': True,
+    "navigation_with_keys": True,
+    "sidebar_hide_name": True,
 }
 
-html_static_path = [ '_static' ]
+html_static_path = ["_static"]
 
 # -- Options for autodoc extension -------------------------------------------
 
 autodoc_default_options = {
-    'member-order': 'groupwise',
-    'members': True,
-    'show-inheritance': True,
-    'special-members': '__call__',
+    "member-order": "groupwise",
+    "members": True,
+    "show-inheritance": True,
+    "special-members": "__call__",
 }
 
 # autodoc_docstring_signature = False
-autodoc_typehints = 'none'
+autodoc_typehints = "none"
 autodoc_use_type_comments = False
 
 # -- Options for intersphinx extension ---------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/extensions/intersphinx.html#configuration
 
 intersphinx_mapping = {
-    'python': (
-        'https://docs.python.org/3', None),
-    'typing-extensions': (
-        'https://typing-extensions.readthedocs.io/en/latest', None),
-  # --- BEGIN: Injected by Copier ---
-  # --- END: Injected by Copier ---
+    "python": ("https://docs.python.org/3", None),
+    "typing-extensions": (
+        "https://typing-extensions.readthedocs.io/en/latest",
+        None,
+    ),
+    # --- BEGIN: Injected by Copier ---
+    # --- END: Injected by Copier ---
 }
 
 # -- Options for Myst extension ----------------------------------------------
@@ -159,8 +171,8 @@ intersphinx_mapping = {
 myst_enable_extensions = [
     # 'amsmath',
     # 'attrs_inline',
-    'colon_fence',      # ::: blocks
-    'deflist',          # Definition lists
+    "colon_fence",  # ::: blocks
+    "deflist",  # Definition lists
     # 'dollarmath',
     # 'fieldlist',
     # 'html_admonition',
@@ -170,7 +182,7 @@ myst_enable_extensions = [
     # 'smartquotes',
     # 'strikethrough',
     # 'substitution',
-    'tasklist',         # - [ ] tasks
+    "tasklist",  # - [ ] tasks
 ]
 
 # -- Options for todo extension ----------------------------------------------

@@ -17,7 +17,7 @@
    +--------------------------------------------------------------------------+
 
 *******************************************************************************
-                                    dynadoc
+                                    dynadoc                                    
 *******************************************************************************
 
 .. image:: https://img.shields.io/pypi/v/dynadoc
@@ -45,26 +45,7 @@
    :target: https://pypi.org/project/dynadoc/
 
 
-📝 A Python library package which bridges the gap between **rich annotations**
-and **automatic documentation generation** with configurable renderers and
-support for reusable fragments.
-
-
-Key Features ⭐
-===============================================================================
-
-* 🔄 **Docstring Generation**: Generation of docstrings for modules, classes,
-  functions, and methods via introspection with fine-grained control.
-* 🧩 **Fragment System**: Reusable documentation snippets for consistent
-  terminology across projects.
-* 🏷️ **Annotation Metadata**: Extraction and inclusion of metadata from
-  annotations into generated docstrings.
-* 🔌 **Extensible Architecture**: Custom renderers, attribute visibility rules,
-  and introspection limiters.
-* 📖 **Sphinx-Compatible Output**: Render reStructuredText docstrings that work
-  with Sphinx Autodoc out of the box.
-* 🎨 **Configurable Renderers**: Ability to extend with other renderers as
-  desired.
+.. todo:: Provide project description and key features.
 
 
 Installation 📦
@@ -87,50 +68,7 @@ Or, install via ``pip``:
     pip install dynadoc
 
 
-Examples 💡
-===============================================================================
-
-Please see the `examples directory
-<https://github.com/emcd/python-dynadoc/tree/master/documentation/examples>`_.
-
-**Function Documentation**:
-
-.. code-block:: python
-
-    import dynadoc
-    from typing import Annotated
-
-    @dynadoc.with_docstring( )
-    def process_api_data(
-        endpoint: Annotated[ str, dynadoc.Doc( "API endpoint URL to query" ) ],
-        timeout: Annotated[ float, dynadoc.Doc( "Request timeout in seconds" ) ] = 30.0,
-    ) -> Annotated[ dict, dynadoc.Doc( "Processed API response data" ) ]:
-        ''' Process data from API endpoint with configurable timeout. '''
-        return { }
-
-Which will be turned into the following docstring on the function by the
-default renderer:
-
-.. code-block:: text
-
-    Process data from API endpoint with configurable timeout.
-
-    :argument endpoint: API endpoint URL to query
-    :type endpoint: str
-    :argument timeout: Request timeout in seconds
-    :type timeout: float
-    :returns: Processed API response data
-    :rtype: dict
-
-**Module Documentation**:
-
-Document all annotated attributes in current module:
-
-.. code-block:: python
-
-    import dynadoc
-
-    dynadoc.assign_module_docstring( __name__ )
+.. todo:: Provide usage examples and additional content.
 
 
 Contribution 🤝
@@ -138,7 +76,7 @@ Contribution 🤝
 
 Contribution to this project is welcome! However, it must follow the `code of
 conduct
-<https://emcd.github.io/python-project-common/stable/sphinx-html/common/conduct.html>`_
+<https://emcd.github.io/documentation-common/v1/sphinx-html/common/conduct.html>`_
 for the project.
 
 Please file bug reports and feature requests in the `issue tracker
@@ -190,30 +128,30 @@ Other Projects by This Author 🌟
 ===============================================================================
 
 
-* `python-absence <https://github.com/emcd/python-absence>`_ (`absence <https://pypi.org/project/absence/>`_ on PyPI)
+* `agentmux <https://github.com/emcd/agentmux>`_  (`agentmux <https://crates.io/crates/agentmux/>`_ on Crates.io)
 
-  🕳️ A Python library package which provides a **sentinel for absent values** - a falsey, immutable singleton that represents the absence of a value in contexts where ``None`` or ``False`` may be valid values.
-* `python-accretive <https://github.com/emcd/python-accretive>`_ (`accretive <https://pypi.org/project/accretive/>`_ on PyPI)
+  📡 Provides **relays for inter-agent communication** and a single pane of glass for managing multiple agent harness sessions.
+* `cistella <https://github.com/emcd/cistella>`_  (`cistella <https://crates.io/crates/cistella/>`_ on Crates.io)
+
+  🧱 A **sandboxing application** which **isolates agent sessions** via various technologies.
+* `nb-mcp-server <https://github.com/emcd/nb-mcp-server>`_  (`nb-mcp-server <https://crates.io/crates/nb-mcp-server/>`_ on Crates.io)
+
+  🗒️ An MCP server wrapping the ``nb`` CLI for **LLM-friendly note-taking**.
+* `python-accretive <https://github.com/emcd/python-accretive>`_ (`accretive <https://pypi.org/project/accretive/>`_ on PyPI) 
 
   🌌 A Python library package which provides **accretive data structures** - collections which can grow but never shrink.
-* `python-classcore <https://github.com/emcd/python-classcore>`_ (`classcore <https://pypi.org/project/classcore/>`_ on PyPI)
+* `python-classcore <https://github.com/emcd/python-classcore>`_ (`classcore <https://pypi.org/project/classcore/>`_ on PyPI) 
 
   🏭 A Python library package which provides **foundational class factories and decorators** for providing classes with attributes immutability and concealment and other custom behaviors.
-* `python-detextive <https://github.com/emcd/python-detextive>`_ (`detextive <https://pypi.org/project/detextive/>`_ on PyPI)
+* `python-detextive <https://github.com/emcd/python-detextive>`_ (`detextive <https://pypi.org/project/detextive/>`_ on PyPI) 
 
   🕵️ A Python library which provides consolidated text detection capabilities for reliable content analysis. Offers MIME type detection, character set detection, and line separator processing.
-* `python-falsifier <https://github.com/emcd/python-falsifier>`_ (`falsifier <https://pypi.org/project/falsifier/>`_ on PyPI)
+* `python-falsifier <https://github.com/emcd/python-falsifier>`_ (`falsifier <https://pypi.org/project/falsifier/>`_ on PyPI) 
 
   🎭 A very simple Python library package which provides a **base class for falsey objects** - objects that evaluate to ``False`` in boolean contexts.
-* `python-frigid <https://github.com/emcd/python-frigid>`_ (`frigid <https://pypi.org/project/frigid/>`_ on PyPI)
+* `python-frigid <https://github.com/emcd/python-frigid>`_ (`frigid <https://pypi.org/project/frigid/>`_ on PyPI) 
 
   🔒 A Python library package which provides **immutable data structures** - collections which cannot be modified after creation.
-* `python-icecream-truck <https://github.com/emcd/python-icecream-truck>`_ (`icecream-truck <https://pypi.org/project/icecream-truck/>`_ on PyPI)
+* `python-ictr <https://github.com/emcd/python-ictr>`_ (`ictr <https://pypi.org/project/ictr/>`_ on PyPI) 
 
-  🍦 **Flavorful Debugging** - A Python library which enhances the powerful and well-known ``icecream`` package with flavored traces, configuration hierarchies, customized outputs, ready-made recipes, and more.
-* `python-librovore <https://github.com/emcd/python-librovore>`_ (`librovore <https://pypi.org/project/librovore/>`_ on PyPI)
-
-  🐲 **Documentation Search Engine** - An intelligent documentation search and extraction tool that provides both a command-line interface for humans and an MCP (Model Context Protocol) server for AI agents. Search across Sphinx and MkDocs sites with fuzzy matching, extract clean markdown content, and integrate seamlessly with AI development workflows.
-* `python-mimeogram <https://github.com/emcd/python-mimeogram>`_ (`mimeogram <https://pypi.org/project/mimeogram/>`_ on PyPI)
-
-  📨 A command-line tool for **exchanging collections of files with Large Language Models** - bundle multiple files into a single clipboard-ready document while preserving directory structure and metadata... good for code reviews, project sharing, and LLM interactions.
+  🍦 **Non-Intrusive Debugging** - A Python library which provides flavored traces, configuration hierarchies, customized outputs, and ready-made recipes for logging and debug printing.

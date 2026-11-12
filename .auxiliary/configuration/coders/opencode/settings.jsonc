@@ -136,8 +136,8 @@
       "git stash list": "allow",
       "git stash list *": "allow",
       "git status *": "allow",
-      "git worktree list": "allow",
-      "git worktree list *": "allow",
+      "git worktree": "allow",
+      "git worktree *": "allow",
       "grep *": "allow",
       "head *": "allow",
       "ls *": "allow",
@@ -178,6 +178,9 @@
 
   "formatter": {
     "ruff": {
+      "disabled": true
+    },
+    "uv": {
       "disabled": true
     },
     "prettier": {

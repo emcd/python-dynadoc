@@ -94,11 +94,9 @@ description = ''' Development environment. '''
 builder = true
 dependencies = [
   'coverage[toml]',
-  'emcd-vibe-linter~=1.0a2',
   'furo',
   'isort',
   'myst-parser',
-  'pre-commit',
   'pyright',
   'pytest',
   'ruff',
@@ -133,7 +131,9 @@ module-sizes = [
 ]
 linters = [
   """ruff check --quiet sources documentation tests""",
-  """vibelinter check""",
+  # External install only (e.g. uv tool install): a develop dependency
+  # cycles for packages below emcd-vibe-linter in the stack.
+  #"""vibelinter check""",
   # --- BEGIN: Injected by Copier ---
   # --- END: Injected by Copier ---
   """isort --check-only --diff sources tests""",
